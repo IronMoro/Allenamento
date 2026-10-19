@@ -1,0 +1,38 @@
+DIARIO DI ALLENAMENTO - versione da installare (funziona anche offline)
+
+Questa cartella contiene la web app da mettere online una volta sola.
+Dentro NON ci sono i tuoi dati: lo storico sta nel file di backup separato
+(diario-backup-2026-10-16.json), che NON va caricato insieme a questi file.
+
+1) METTERLA ONLINE (una volta sola, gratis)
+   Serve un indirizzo https perché Chrome permetta di installarla.
+   Con GitHub Pages:
+   - crea un account su github.com e un nuovo repository pubblico, ad es. "diario";
+   - "Add file" > "Upload files": trascina TUTTI i file di questa cartella
+     (index.html, sw.js, manifest.webmanifest, le icone) e conferma con "Commit";
+   - Settings > Pages > Source: "Deploy from a branch", branch "main", cartella "/ (root)", Save;
+   - dopo un minuto o due l'app è su https://TUO-UTENTE.github.io/diario/
+   In alternativa puoi usare Netlify (app.netlify.com/drop) trascinando la cartella;
+   per tenerla online in modo permanente serve un account gratuito.
+
+2) INSTALLARLA SUL TABLET
+   - apri l'indirizzo con Chrome (con internet, la prima volta);
+   - menu (tre puntini) > "Installa app" oppure "Aggiungi a schermata Home";
+   - apri l'app dall'icona: da qui in poi funziona anche senza connessione.
+
+3) CARICARE IL TUO STORICO
+   - copia sul tablet il file diario-backup-2026-10-16.json (Drive, email, cavo USB);
+   - nell'app tocca "Importa backup" (in Nuova seduta o nello Storico) e scegli il file.
+
+4) PASSARE LE SEDUTE TRA TABLET E VERSIONE ONLINE (claude.ai)
+   - dove hai registrato: Storico > "Esporta backup";
+   - dall'altra parte: Storico > "Importa backup" con quel file.
+   Vengono aggiunte solo le sedute nuove o modificate: niente doppioni.
+
+ATTENZIONE
+   I dati dell'app installata stanno nella memoria di Chrome del tablet: se cancelli
+   i dati di Chrome o disinstalli l'app, si perdono. Esporta un backup ogni tanto.
+
+AGGIORNAMENTI
+   Quando ricevi una nuova versione, ricarica i file nello stesso posto: il tablet la
+   prende alla prima apertura con internet e la usa da quella successiva.

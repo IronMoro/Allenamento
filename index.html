@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diario di allenamento</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1D2830">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#E8EBE6; --surface:#F6F7F4; --raise:#FFFFFF; --ink:#1D2830; --muted:#5C6970; --line:#C9D0C8;
+  --accent:#1D2830; --on-accent:#F6F7F4;
+  --ok:#92D050; --fat:#FFC000; --ko:#E3342F; --skip:#0070C0; --on-ok:#1D2830; --on-ko:#FFFFFF;
+  --rest:#DCE6E2; --warn:#FFC000;
+  --f-text:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-num:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141B20; --surface:#1C252B; --raise:#243037; --ink:#E4EAE5; --muted:#9AA7AE; --line:#34434C;
+    --accent:#E4EAE5; --on-accent:#141B20; --rest:#1F3330;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141B20; --surface:#1C252B; --raise:#243037; --ink:#E4EAE5; --muted:#9AA7AE; --line:#34434C;
+  --accent:#E4EAE5; --on-accent:#141B20; --rest:#1F3330;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-text);min-height:100%;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--skip);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px 120px}
+h1,h2,h3{font-family:var(--f-num);font-weight:700;letter-spacing:.01em;margin:0;line-height:1.1}
+h1{font-size:32px}
+h2{font-size:24px}
+h3{font-size:20px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+
+/* barra superiore */
+.top{display:flex;align-items:baseline;gap:12px;margin:4px 0 16px}
+.top .save{margin-left:auto;font-size:14px;color:var(--muted)}
+.banner{background:var(--raise);border-left:4px solid var(--fat);padding:10px 12px;margin:0 0 16px;font-size:14px}
+
+/* tab in basso */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs button{flex:1;max-width:220px;background:none;border:0;padding:12px 8px 14px;font-family:var(--f-num);font-size:19px;font-weight:600;color:var(--muted);border-top:3px solid transparent}
+.tabs button[aria-current="page"]{color:var(--ink);border-top-color:var(--ink)}
+.minitimer{position:fixed;left:0;right:0;z-index:19;bottom:calc(54px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;pointer-events:none}
+.minitimer[hidden]{display:none}
+.minitimer button{pointer-events:auto;background:var(--accent);color:var(--on-accent);border:0;border-radius:20px;padding:6px 16px;font-family:var(--f-num);font-size:18px;font-weight:600;margin-bottom:8px}
+
+/* campi */
+label.f{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted);min-width:0}
+input[type=text],input[type=number],input[type=date],select,textarea{background:var(--raise);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;min-width:0;color:var(--ink);font-size:16px}
+textarea{resize:vertical;min-height:44px}
+input[type=number]{font-family:var(--f-num);font-size:19px;font-weight:600}
+.btn{border:1px solid var(--line);background:var(--raise);border-radius:6px;padding:9px 14px;font-weight:600}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.big{font-family:var(--f-num);font-size:22px;padding:12px 22px}
+.btn.ghost{background:none;border-color:transparent;color:var(--muted)}
+.btn.danger{color:var(--ko)}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* seduta */
+.sess-head{display:grid;grid-template-columns:1fr 90px;gap:10px;margin-bottom:6px}
+.sess-meta{font-family:var(--f-num);font-size:18px;color:var(--muted);margin:0 0 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 14px}
+.card-h{display:flex;gap:8px;align-items:center}
+.card-h input{font-family:var(--f-num);font-size:22px;font-weight:700;border-color:transparent;background:transparent;padding:4px 6px}
+.card-h input:hover,.card-h input:focus{border-color:var(--line);background:var(--raise)}
+.sugg{font-size:14px;color:var(--muted);margin:2px 6px 10px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.grid .wide{grid-column:span 4}
+.grid label.f{justify-content:flex-end}
+@media (min-width:600px){.grid{grid-template-columns:repeat(8,minmax(0,1fr))}.grid .wide{grid-column:span 4}}
+.sets{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 6px}
+.chip{width:52px;height:56px;border-radius:6px;border:2px solid var(--line);background:var(--raise);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;line-height:1}
+.chip b{font-family:var(--f-num);font-size:26px;font-weight:700}
+.chip small{font-size:11px;margin-top:2px;opacity:.8}
+.chip.e-{color:var(--muted);border-style:dashed}
+.chip.e-ok{background:var(--ok);border-color:var(--ok);color:var(--on-ok)}
+.chip.e-fat{background:var(--fat);border-color:var(--fat);color:var(--on-ok)}
+.chip.e-ko{background:var(--ko);border-color:var(--ko);color:var(--on-ko)}
+.chip.e-skip{background:var(--skip);border-color:var(--skip);color:var(--on-ko)}
+.hint{font-size:13px;color:var(--muted);margin:0 0 10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px 12px;margin:12px 0 4px;padding-top:10px;border-top:1px solid var(--line)}
+@media (min-width:600px){.metrics{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.metrics div{display:flex;flex-direction:column}
+.metrics span{font-size:12px;color:var(--muted)}
+.metrics b{font-family:var(--f-num);font-size:20px;font-weight:600}
+.card-a{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.prog{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;padding:10px;background:var(--raise);border-radius:6px}
+.prog p{grid-column:1/-1;margin:0;font-size:13px;color:var(--muted)}
+.add{display:flex;gap:8px;margin:6px 0 18px}
+
+/* nuova seduta */
+.tpl{display:flex;flex-direction:column;gap:8px;margin:14px 0 22px}
+.tpl button{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;grid-template-columns:56px 1fr;gap:2px 12px;align-items:center}
+.tpl .wo{grid-row:span 2;font-family:var(--f-num);font-size:34px;font-weight:700;text-align:center;line-height:1}
+.tpl .when{font-size:14px;color:var(--muted)}
+.tpl .what{font-weight:600}
+
+/* storico */
+.week{margin:0 0 18px}
+.week-h{display:flex;align-items:baseline;gap:10px;padding:0 2px 6px;border-bottom:2px solid var(--ink);margin-bottom:8px}
+.week-h{flex-wrap:wrap}
+.week-h h3{font-size:20px;white-space:nowrap}
+.week-h span{font-size:14px;color:var(--muted)}
+.sess{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:0 0 8px}
+.sess > button{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;padding:10px 12px}
+.sess > button:focus-visible{outline:3px solid var(--skip)}
+.sess-t{display:flex;gap:10px;align-items:baseline;margin-bottom:4px}
+.sess-t b{font-family:var(--f-num);font-size:19px}
+.sess-t .wo{font-family:var(--f-num);font-weight:700;font-size:19px;background:var(--ink);color:var(--bg);border-radius:4px;padding:0 6px}
+.exl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;font-size:15px}
+.exl .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini{display:flex;gap:2px}
+.mini i{width:10px;height:14px;border-radius:2px;background:var(--line)}
+.mini i.e-ok{background:var(--ok)}.mini i.e-fat{background:var(--fat)}.mini i.e-ko{background:var(--ko)}.mini i.e-skip{background:var(--skip)}
+.sess-d{padding:0 12px 12px;border-top:1px solid var(--line)}
+.sess-d .ex{padding:10px 0;border-bottom:1px dashed var(--line)}
+.sess-d .ex:last-of-type{border-bottom:0}
+.sess-d p{margin:4px 0;font-size:14px}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;margin:0 0 14px}
+.chart svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-top:4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+
+/* timer */
+.seg{display:flex;border:2px solid var(--ink);border-radius:8px;overflow:hidden;margin:0 0 18px}
+.seg button{flex:1;background:none;border:0;padding:10px 6px;font-family:var(--f-num);font-size:20px;font-weight:600;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg.sm{border-width:1px;margin:0}
+.seg.sm button{font-size:17px;padding:7px 4px}
+.tcfg{display:flex;flex-direction:column;gap:14px}
+.tcfg .lead{margin:0;color:var(--muted)}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--raise);width:max-content}
+.stepper button{background:none;border:0;width:48px;height:48px;font-size:24px;font-weight:600}
+.stepper output{min-width:56px;text-align:center;font-family:var(--f-num);font-size:26px;font-weight:700}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.sw{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);padding:0}
+.sw[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:2px}
+.swatches input[type=color]{width:42px;height:34px;padding:2px;border:1px solid var(--line);border-radius:6px;background:var(--raise)}
+.emx{display:flex;flex-direction:column;gap:2px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.exrow{display:grid;grid-template-columns:minmax(0,1fr) 72px 84px;gap:8px;align-items:end}
+.run{border-radius:12px;padding:20px 16px 22px;text-align:center;background:var(--accent);color:var(--on-accent);transition:background .25s}
+.run.rest{background:var(--rest);color:var(--ink)}
+.run.flash{background:var(--warn);color:#1D2830}
+.run.done{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.run .ph{font-family:var(--f-num);font-size:22px;font-weight:600;margin:0}
+.run .ex-now{font-family:var(--f-num);font-size:clamp(30px,8vw,46px);font-weight:700;margin:6px 0 0;line-height:1.05}
+.run .clock{font-family:var(--f-num);font-weight:700;font-size:clamp(96px,30vw,210px);line-height:.95;font-variant-numeric:tabular-nums;margin:6px 0}
+.run .sub{font-size:17px;margin:0;opacity:.85}
+.run .ctl{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.run .btn{background:transparent;color:inherit;border-color:currentColor}
+.run .btn.primary{background:var(--pfg,var(--on-accent));color:var(--pbg,var(--accent));border-color:var(--pfg,var(--on-accent))}
+.run.rest .btn.primary,.run.done .btn.primary,.run.flash .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.repadj{display:flex;align-items:center;justify-content:center;gap:16px;margin:10px 0 4px}
+.repadj button{width:64px;height:64px;border-radius:50%;border:2px solid currentColor;background:transparent;color:inherit;font-size:32px;font-weight:600}
+.repadj output{font-family:var(--f-num);font-size:64px;font-weight:700;min-width:80px}
+.esito{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px auto 0;max-width:420px}
+.esito button{border:0;border-radius:6px;padding:12px 6px;font-weight:600}
+.esito button{border:2px solid rgba(255,255,255,.75)}
+.esito button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink);text-decoration:underline}
+.tot{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;text-align:left}
+.tot div{background:rgba(127,127,127,.14);border-radius:6px;padding:8px 10px}
+.tot b{font-family:var(--f-num);font-size:24px;display:block}
+.sumlist{text-align:left;margin:12px auto 0;max-width:420px;font-size:15px}
+
+/* foglio in basso */
+.sheet-bg{position:fixed;inset:0;background:rgba(10,15,18,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:520px;border-radius:14px 14px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px))}
+.sheet h3{margin-bottom:4px}
+.sheet .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.sheet .opts button{border:0;border-radius:8px;padding:14px 10px;font-weight:600;font-size:16px}
+.o-ok{background:var(--ok);color:var(--on-ok)}.o-fat{background:var(--fat);color:var(--on-ok)}.o-ko{background:var(--ko);color:var(--on-ko)}.o-skip{background:var(--skip);color:var(--on-ko)}
+.empty{text-align:center;padding:30px 10px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.run{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="main" aria-live="off"></div>
+<div class="minitimer" id="mini" hidden><button data-a="tab" data-tab="timer" id="miniBtn"></button></div>
+<nav class="tabs" aria-label="Sezioni">
+  <button data-a="tab" data-tab="diario">Diario</button>
+  <button data-a="tab" data-tab="timer">Timer</button>
+  <button data-a="tab" data-tab="storico">Storico</button>
+</nav>
+<div id="sheetRoot"></div>
+<input type="file" id="fileImp" accept=".json,application/json" hidden>
+<datalist id="names"></datalist>
+
+<script>
+"use strict";
+/* ---------- costanti ---------- */
+const GIORNI=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const FATICA=['Facile','Facile/Liscia','Liscia','Liscia/Difficile','Difficile','Difficile/Dura','Dura','Dura/Fallito','Fallito'];
+const RPE={'Facile':6.5,'Facile/Liscia':7.5,'Liscia':8,'Liscia/Difficile':8.5,'Difficile':9,'Difficile/Dura':9.5,'Dura':10,'Dura/Fallito':10.5,'Fallito':11};
+const REPMAX=[[0.5,30],[0.6,20],[0.63,18],[0.65,15],[0.67,12],[0.7,11],[0.75,10],[0.77,9],[0.8,8],[0.83,7],[0.85,6],[0.87,5],[0.9,4],[0.93,3],[0.95,2],[1,1]];
+const ESITO={'':'Da fare',ok:'Completata',fat:'A fatica',ko:'Fallita',skip:'Non eseguita'};
+const WEEK0=Date.UTC(2023,0,9);
+
+/* ---------- utilità ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const todayIso=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const isoUTC=iso=>{const [y,m,d]=iso.split('-').map(Number);return Date.UTC(y,m-1,d)};
+const ggOf=iso=>GIORNI[new Date(isoUTC(iso)).getUTCDay()];
+const weekOf=iso=>Math.floor((isoUTC(iso)-WEEK0)/864e5/7);
+const mondayOf=iso=>{const t=isoUTC(iso);const wd=(new Date(t).getUTCDay()+6)%7;const m=new Date(t-wd*864e5);return `${m.getUTCFullYear()}-${pad(m.getUTCMonth()+1)}-${pad(m.getUTCDate())}`};
+const fmtD=iso=>iso?`${iso.slice(8,10)}/${iso.slice(5,7)}/${iso.slice(0,4)}`:'';
+const fmtN=(v,d=0)=>v==null||!isFinite(v)?'–':Number(v).toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
+const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return `${Math.floor(s/60)}:${pad(s%60)}`};
+const mmssUp=ms=>{const s=Math.max(0,Math.floor(ms/1000));return `${Math.floor(s/60)}:${pad(s%60)}`};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const num=v=>{if(v===''||v==null)return null;const n=Number(String(v).replace(',','.'));return isFinite(n)?n:null};
+function repMax(p){let r=null;for(const [q,n] of REPMAX){if(p>=q-1e-9)r=n}return r}
+function planned(e,i){if(e.b==null)return null;return e.b+(i<(e.k||0)?1:0)}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
+
+/* ---------- stato ---------- */
+const STANDALONE=!(window.claude&&typeof window.claude.use==='function');
+const S={tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
+  saveMsg:'',storEx:'',storWeeks:8,open:new Set(),progOpen:new Set(),newDate:todayIso(),downloads:null,
+  tmode:'rec',tc:{rec:{n:6,rest:'fix',sec:90,mult:2,auto:true,link:null,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120},
+  emom:{k:2,giri:10,lead:10,mark:'next',col:['#0284C7','#16A34A','#9333EA'],warnSec:3,warnCol:'#FFC000',half:false,restOn:false,restSec:60,restEnd:false,restEndSec:120,restCol:'#E2E8F0',ex:[{n:'',rep:'',sec:60},{n:'',rep:'',sec:60},{n:'',rep:'',sec:60}]},
+  edt:{min:15,a:{n:'',rep:5},b:{n:'',rep:5},col:['#0284C7','#F97316'],warnSec:3,warnCol:'#FFC000',half:false,frac:'none',minsLeft:'',restEnd:false,restEndSec:120,restCol:'#E2E8F0'},snd:{style:'bip'}}};
+
+/* ---------- metriche ---------- */
+function metrics(e,strict){
+  const exec=e.st!=='Non eseguito';
+  const done=exec?(e.s||[]).filter(x=>x[0]!==''&&x[0]!=null&&(strict?['ok','fat','ko'].includes(x[1]):x[1]!=='skip')):[];
+  const tot=done.length?done.reduce((a,x)=>a+(Number(x[0])||0),0):null;
+  const kg=Number(e.kg)||0,pct=Number(e.pct)||0,t=Number(e.t)||0;
+  const vol=tot!=null?tot*pct:null;
+  let fails=null;
+  if(e.b!=null&&exec){fails=0;(e.s||[]).forEach((x,i)=>{if(x[1]!=='skip'&&(x[1]!==''||!strict)&&x[0]!==''&&x[0]!=null&&Number(x[0])<planned(e,i))fails++;});}
+  return {tot,ton:tot!=null?tot*kg:null,vol,dens:tot!=null&&t?tot/t:null,pi:tot!=null&&t?Math.floor(vol+1e-9)**2/t:null,
+    rm:kg&&pct?kg/pct:null,rmx:pct?repMax(pct):null,fails,rpe:RPE[e.f]??null};
+}
+
+/* ---------- storico: unione ---------- */
+function merge(){
+  const m=new Map(S.stor);
+  for(const [id,s] of S.sed){if(s.deleted)m.delete(id);else m.set(id,s)}
+  S.hist=[...m.values()].sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:(a.id<b.id?1:-1));
+  const names=new Set();S.hist.forEach(s=>s.ex.forEach(e=>e.n&&names.add(e.n)));
+  S.names=[...names].sort((a,b)=>a.localeCompare(b,'it'));
+  $('#names').innerHTML=S.names.map(n=>`<option value="${esc(n)}">`).join('');
+}
+function lastOf(name,beforeIso,skipId){
+  for(const s of S.hist){
+    if(s.id===skipId||s.d>beforeIso)continue;
+    for(const e of s.ex)if(e.n===name&&e.st!=='Non eseguito'&&(e.s||[]).length)return {s,e};
+  }
+  return null;
+}
+function nextPlan(e,cfg){
+  const n=(e.s||[]).length;if(!n)return null;
+  let b=e.b,k=e.k||0;
+  const reps=e.s.map(x=>Number(x[0])||0);
+  if(b==null){b=Math.min(...reps);k=0;while(k<n&&reps[k]>b)k++;}
+  const failed=e.s.some((x,i)=>x[1]==='ko'||x[1]==='skip'||(x[1]!==''&&reps[i]<b+(i<k?1:0)));
+  let kg=e.kg??null,why;
+  if(failed){why='ultima volta qualche serie non è arrivata all’obiettivo: stesso piano';}
+  else if(cfg&&cfg.tetto&&k===0&&b>=cfg.tetto){
+    const rip=cfg.rip||Math.max(1,b-3);
+    why=`tetto di ${cfg.tetto} raggiunto: riparti da ${rip}`+(cfg.inc&&kg?` con ${fmtN(cfg.inc,1)} kg in più`:'');
+    b=rip;k=0;if(cfg.inc&&kg)kg=Math.round((Number(kg)+Number(cfg.inc))*100)/100;
+  }
+  else if(k+1>=n){b=b+1;k=0;why=`tutte completate: ora tutte le serie a ${b}`;}
+  else{k=k+1;why=`tutte completate: ora le prime ${k} serie a ${b+1}`;}
+  return {b,k,n,kg,why};
+}
+function exFromHistory(name,iso,skipId){
+  const last=lastOf(name,iso,skipId);
+  const e={n:name,p:'',t:null,kg:null,z:null,pct:null,b:null,k:0,s:[],st:'Eseguito',f:'',note:''};
+  if(!last){e.s=[];setN(e,4);return e}
+  const p=last.e;Object.assign(e,{p:p.p||'',t:p.t??null,kg:p.kg??null,z:p.z??null,pct:p.pct??null});
+  const plan=nextPlan(p,S.cfg.esercizi[name]);
+  if(plan){e.b=plan.b;e.k=plan.k;e.kg=plan.kg;e._why=`Ultima volta il ${fmtD(last.s.d)}: ${plan.why}.`;setN(e,plan.n)}
+  else setN(e,p.s.length||4);
+  return e;
+}
+function setN(e,n){
+  n=Math.max(1,Math.min(20,n|0));const s=e.s||[];
+  while(s.length<n)s.push([planned(e,s.length)??'','']);
+  s.length=n;e.s=s;syncSets(e);
+}
+function syncSets(e){e.s.forEach((x,i)=>{if(x[1]===''){const p=planned(e,i);x[0]=p??x[0]}})}
+
+/* ---------- bozza e salvataggio ---------- */
+function newDraft(iso,wo,exs){
+  S.draft={id:`${iso}_${Date.now().toString(36)}`,d:iso,wo:wo||'',note:'',ex:exs||[],isNew:true};
+  persistDraft();
+}
+function persistDraft(){store('diario-bozza',S.draft)}
+function sessionObj(dr){
+  const ex=dr.ex.map(e=>{const o={...e};delete o._why;return o});
+  return {id:dr.id,d:dr.d,gg:ggOf(dr.d),wo:dr.wo,set:dr.set!=null&&dr.d===dr._d0?dr.set:weekOf(dr.d),note:dr.note||'',ex,updated:Date.now()};
+}
+let saveTimer=null,saveChain=Promise.resolve(),lastSaved='';
+function scheduleSave(){persistDraft();clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,1200);setSaveMsg('Modifiche da salvare')}
+function saveNow(){
+  clearTimeout(saveTimer);const dr=S.draft;if(!dr||!dr.ex.length)return saveChain;
+  const obj=sessionObj(dr);const key=JSON.stringify({...obj,updated:0});
+  if(key===lastSaved){setSaveMsg('Salvata');return saveChain}
+  saveChain=saveChain.then(async()=>{
+    setSaveMsg('Salvataggio…');
+    try{
+      if(S.mode==='db')await S.base.collection('sedute').doc(obj.id).set(obj);
+      else{const all=load('diario-sedute')||{};all[obj.id]=obj;store('diario-sedute',all);S.sed.set(obj.id,obj);merge()}
+      lastSaved=key;setSaveMsg('Salvata');
+    }catch(err){setSaveMsg(err&&err.code==='quota_exceeded'?'Spazio esaurito: seduta non salvata':'Non salvata: riprovo tra poco');if(!(err&&err.code==='quota_exceeded'))setTimeout(scheduleSave,4000)}
+  });
+  return saveChain;
+}
+function setSaveMsg(m){S.saveMsg=m;const el=$('#saveMsg');if(el)el.textContent=m}
+
+/* ---------- avvio ---------- */
+async function init(){
+  S.draft=load('diario-bozza');
+  render();
+  let db=null,user=null,uid=null;
+  try{
+    if(window.claude&&claude.use){
+      [db,user]=await Promise.all([claude.use('db'),claude.use('user')]);
+      if(user)uid=await user.id();
+      claude.use('downloads').then(d=>{S.downloads=d;if(S.tab==='storico')render()}).catch(()=>{});
+    }
+  }catch(e){}
+  if(!db||!uid){
+    S.mode='local';
+    const all=load('diario-sedute')||{};S.sed=new Map(Object.entries(all));
+    (load('diario-storico')||[]).forEach(x=>x&&x.id&&S.stor.set(x.id,x));
+    S.cfg=load('diario-config')||{esercizi:{}};loadPrefs();
+    merge();render();return;
+  }
+  S.base=db.doc(`data/users/${uid}/diario`);
+  try{
+    const q=await S.base.collection('storico').get();
+    q.docs.forEach(d=>{const v=d.data();(v&&v.sedute||[]).forEach(s=>S.stor.set(s.id,s))});
+  }catch(e){S.loadErr=true}
+  S.mode='db';merge();render();
+  S.base.collection('sedute').onSnapshot(q=>{
+    S.sed=new Map(q.docs.map(d=>[d.id,d.data()]));merge();
+    if(S.tab==='storico')render();
+  },()=>{S.loadErr=true});
+  S.base.onSnapshot(d=>{
+    const v=d.exists?d.data():null;S.cfg={esercizi:{},...(v?clone(v):{})};loadPrefs();
+  },()=>{});
+}
+
+const PREFKEYS={emom:['mark','col','warnSec','warnCol','half','restOn','restSec','restEnd','restEndSec','restCol'],rec:['colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],edt:['col','warnSec','warnCol','frac','minsLeft','restEnd','restEndSec','restCol'],snd:['style']};
+function loadPrefs(){
+  if(S.prefsLoaded||!S.cfg.timer)return;
+  for(const m in PREFKEYS){const p=S.cfg.timer[m];if(!p)continue;
+    PREFKEYS[m].forEach(k=>{if(p[k]==null)return;if(Array.isArray(p[k]))p[k].forEach((c,i)=>{if(c)S.tc[m][k][i]=bright(c)});else S.tc[m][k]=/col/i.test(k)?bright(p[k]):p[k]})}
+  S.prefsLoaded=true;if(S.tab==='timer'&&!T)render();
+}
+function savePrefs(){
+  const t={};for(const m in PREFKEYS){t[m]={};PREFKEYS[m].forEach(k=>{const v=S.tc[m][k];t[m][k]=Array.isArray(v)?[...v]:k==='warnSec'?(num(v)??3):v})}
+  S.cfg.timer=t;S.prefsLoaded=true;saveCfg();
+}
+function saveCfg(){clearTimeout(cfgTimer);cfgTimer=setTimeout(async()=>{try{if(S.mode==='db')await S.base.set(clone(S.cfg));else store('diario-config',S.cfg)}catch(e){}},1000)}
+function vRestEnd(m){
+  const c=S.tc[m];
+  return `<div class="emx"><label class="row" style="flex-wrap:nowrap"><input type="checkbox" ${c.restEnd?'checked':''} data-f="tc:${m}.restEnd" style="width:22px;height:22px"> Riposo alla fine</label>
+    ${c.restEnd?`<label class="f" style="max-width:190px">Secondi di riposo finale<input type="number" inputmode="numeric" value="${c.restEndSec}" data-f="tc:${m}.restEndSec"></label>
+    ${m==='edt'?swatches('edt','restCol',c.restCol,PAL,'Colore del riposo'):'<p class="muted small" style="margin:6px 0 0">Usa il colore del recupero.</p>'}`:''}</div>`;
+}
+function vWarn(m,what){
+  const c=S.tc[m];
+  return `<div><div class="muted small" style="margin-bottom:4px">Avviso di fine ${what}</div>
+    <label class="f" style="max-width:190px">Secondi prima della fine<input type="number" inputmode="numeric" min="0" value="${c.warnSec}" data-f="tc:${m}.warnSec"></label>
+    ${swatches(m,'warnCol',c.warnCol,WPAL,'Colore dell’avviso')}
+    <p class="muted small" style="margin:6px 0 0">Gli ultimi 3 secondi suonano sempre; se l’avviso parte prima, un segnale ne segna l’inizio.</p>
+    ${m==='edt'?`<label class="f" style="max-width:260px;margin-top:8px">Avvisi durante il tempo<select data-f="tc:edt.frac">${[['none','Nessuno'],['half','A metà'],['thirds','A 1/3 e 2/3'],['quarters','A 1/4, metà e 3/4']].map(([k,l])=>`<option value="${k}" ${c.frac===k?'selected':''}>${l}</option>`).join('')}</select></label>
+    <label class="f" style="max-width:260px;margin-top:8px">Avvisa quando mancano (minuti)<input type="text" inputmode="decimal" placeholder="es. 5, 1" value="${esc(c.minsLeft)}" data-f="tc:edt.minsLeft"></label>`
+    :`<label class="row" style="flex-wrap:nowrap;margin-top:8px"><input type="checkbox" ${c.half?'checked':''} data-f="tc:${m}.half" style="width:22px;height:22px"> ${{emom:'Avviso a metà di ogni intervallo',rec:'Avviso a metà del recupero'}[m]}</label>`}</div>
+  ${vSound()}`;
+}
+const STILI=[['bip','Bip'],['campanello','Campanello'],['fischietto','Fischietto'],['legno','Legno'],['voce','Voce']];
+function vSound(){
+  const st=S.tc.snd.style;
+  return `<div><div class="muted small" style="margin-bottom:4px">Suono degli avvisi (vale per tutti i timer)</div>
+    <div class="seg sm" role="group" aria-label="Suono degli avvisi" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));max-width:520px">${STILI.map(([k,l])=>`<button data-a="tset" data-f="snd.style" data-v="${k}" aria-pressed="${st===k}">${l}</button>`).join('')}</div>
+    <div class="row" style="margin-top:8px"><button class="btn" data-a="sndTest">Prova il suono</button><span class="muted small">${st==='voce'?'Conta gli ultimi secondi e dice il nome dell’esercizio a ogni cambio.':''}</span></div></div>`;
+}
+function fgFor(hex){const n=parseInt(String(hex).slice(1),16);if(!isFinite(n))return '#FFFFFF';const l=(0.2126*(n>>16)+0.7152*(n>>8&255)+0.0722*(n&255))/255;return l>0.55?'#1D2830':'#FFFFFF'}
+const PAL=['#334155','#16A34A','#9333EA','#0284C7','#DC2626','#F97316','#84CC16','#64748B','#E2E8F0'];
+const OLDPAL={'#1d2830':'#334155','#1e6b52':'#16A34A','#6a3d9a':'#9333EA','#0e5a8a':'#0284C7','#8a2a2a':'#DC2626','#b85c00':'#F97316','#4a5a1e':'#84CC16','#5c6970':'#64748B','#dce6e2':'#E2E8F0'};
+const bright=c=>OLDPAL[String(c).toLowerCase()]||c;
+const WPAL=['#FFC000','#FF7A00','#E3342F','#F2E205','#FFFFFF'];
+function swatches(m,key,cur,pal,label){
+  return `<div class="swatches" role="group" aria-label="${label}">${pal.map(h=>`<button class="sw" style="background:${h}" data-a="tcol" data-m="${m}" data-k="${key}" data-v="${h}" aria-pressed="${String(cur).toLowerCase()===h.toLowerCase()}" aria-label="${label} ${h}"></button>`).join('')}<input type="color" value="${esc(cur)}" data-f="tc:${m}.${key}" aria-label="${label}: altro colore"></div>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===S.tab?'page':'false'));
+  const m=$('#main');
+  if(S.tab==='diario')m.innerHTML=vDiario();
+  else if(S.tab==='timer')m.innerHTML=vTimer();
+  else m.innerHTML=vStorico();
+  updateMini();
+}
+function banner(){
+  if(S.mode==='loading')return `<p class="banner">Carico i tuoi dati…</p>`;
+  if(S.mode==='local'&&STANDALONE)return S.hist.length?'':`<p class="banner">Per ritrovare qui il tuo storico importa il file di backup (diario-backup….json). <button class="btn" data-a="importBtn">Importa backup</button></p>`;
+  if(S.mode==='local')return `<p class="banner">Qui i dati restano solo su questo dispositivo e lo storico importato non è disponibile. Apri l’app da claude.ai, con l’accesso fatto, per ritrovare tutto.</p>`;
+  if(S.loadErr)return `<p class="banner">Una parte dello storico non si è caricata. Ricarica la pagina per riprovare.</p>`;
+  return '';
+}
+
+/* ----- diario ----- */
+function vDiario(){
+  if(!S.draft)return vNuova();
+  const d=S.draft;
+  return `<div class="top"><h1>Seduta</h1><span class="save" id="saveMsg">${esc(S.saveMsg)}</span></div>${banner()}
+  <div class="sess-head">
+    <label class="f">Data<input type="date" value="${d.d}" data-f="d:d"></label>
+    <label class="f">WO<input type="text" value="${esc(d.wo)}" data-f="d:wo" maxlength="6" autocapitalize="characters"></label>
+  </div>
+  <p class="sess-meta" id="sessMeta">${ggOf(d.d)}, settimana ${weekOf(d.d)}</p>
+  ${d.ex.length?d.ex.map((e,i)=>vCard(e,i)).join(''):`<p class="empty">Aggiungi il primo esercizio: se l’hai già fatto in passato riprendo carico e piano dall’ultima volta.</p>`}
+  <div class="add">
+    <input type="text" id="addName" list="names" placeholder="Aggiungi un esercizio" aria-label="Nome esercizio da aggiungere">
+    <button class="btn primary" data-a="addEx">Aggiungi</button>
+  </div>
+  <label class="f">Note sulla seduta<textarea data-f="d:note" rows="2">${esc(d.note)}</textarea></label>
+  <div class="row" style="margin-top:18px">
+    <button class="btn primary" data-a="closeDraft">Chiudi seduta</button>
+    <span class="spacer"></span>
+    <button class="btn ghost danger" data-a="askDelDraft">Elimina seduta</button>
+  </div>`;
+}
+function vNuova(){
+  const seen=new Map();
+  for(const s of S.hist){if(s.wo&&!seen.has(s.wo))seen.set(s.wo,s);if(seen.size>=8)break}
+  const tpls=[...seen.values()];
+  return `<div class="top"><h1>Nuova seduta</h1></div>${banner()}
+  <label class="f" style="max-width:220px">Data<input type="date" value="${S.newDate}" data-f="new:date"></label>
+  ${tpls.length?`<p class="muted small" style="margin:16px 0 0">Riparti da un allenamento: copio gli esercizi dell’ultima volta e propongo il piano successivo.</p>
+  <div class="tpl">${tpls.map(s=>`<button data-a="fromTpl" data-id="${esc(s.id)}"><span class="wo">${esc(s.wo)}</span>
+    <span class="what">${esc(s.ex.map(e=>e.n).join(', '))}</span><span class="when">Ultima volta ${ggOf(s.d).toLowerCase()} ${fmtD(s.d)}</span></button>`).join('')}</div>`:''}
+  <button class="btn" data-a="emptyDraft" style="margin-top:${tpls.length?0:16}px">Seduta vuota</button>`;
+}
+function vCard(e,i){
+  const cfg=S.cfg.esercizi[e.n]||{};
+  const pctShow=e.pct!=null?Math.round(e.pct*1000)/10:'';
+  return `<section class="card" id="card-${i}">
+  <div class="card-h"><input type="text" value="${esc(e.n)}" data-f="e:${i}:n" list="names" aria-label="Esercizio"></div>
+  ${e._why?`<p class="sugg">${esc(e._why)}</p>`:''}
+  <div class="grid">
+    <label class="f wide">Protocollo<input type="text" value="${esc(e.p)}" data-f="e:${i}:p"></label>
+    <label class="f">Kg<input type="number" inputmode="decimal" step="any" value="${e.kg??''}" data-f="e:${i}:kg"></label>
+    <label class="f">Zavorra<input type="number" inputmode="decimal" step="any" value="${e.z??''}" data-f="e:${i}:z"></label>
+    <label class="f">% 1RM<input type="number" inputmode="decimal" step="any" value="${pctShow}" data-f="e:${i}:pct"></label>
+    <label class="f">Tempo ′<input type="number" inputmode="decimal" step="any" value="${e.t??''}" data-f="e:${i}:t"></label>
+    <label class="f">Rep previste<input type="number" inputmode="numeric" value="${e.b??''}" data-f="e:${i}:b"></label>
+    <label class="f">Serie a +1<input type="number" inputmode="numeric" value="${e.k??0}" data-f="e:${i}:k"></label>
+    <label class="f">N° serie<input type="number" inputmode="numeric" min="1" max="20" value="${e.s.length}" data-f="e:${i}:n_s"></label>
+  </div>
+  <div class="sets" id="sets-${i}">${vChips(e,i)}</div>
+  ${i===0?`<p class="hint">Tocca una serie per segnarla completata; toccala di nuovo per cambiare esito o ripetizioni.</p>`:''}
+  <div class="two">
+    <label class="f">Fatica<select data-f="e:${i}:f"><option value=""></option>${FATICA.map(f=>`<option ${f===e.f?'selected':''}>${f}</option>`).join('')}</select></label>
+    <label class="f">Stato<select data-f="e:${i}:st">${['Eseguito','Non eseguito'].map(s=>`<option ${s===e.st?'selected':''}>${s}</option>`).join('')}</select></label>
+  </div>
+  <label class="f">Note<textarea rows="1" data-f="e:${i}:note">${esc(e.note)}</textarea></label>
+  <div class="metrics" id="m-${i}" aria-label="Calcoli sulle serie segnate">${vMetrics(e)}</div>
+  <div class="card-a">
+    <button class="btn" data-a="linkTimer" data-i="${i}" id="tb-${i}">${esc(timerPlan(i).label)}</button>
+    <button class="btn" data-a="toggleProg" data-i="${i}" aria-expanded="${S.progOpen.has(i)}">Progressione</button>
+    <span class="spacer"></span>
+    <button class="btn ghost danger" data-a="delEx" data-i="${i}">Rimuovi</button>
+  </div>
+  ${S.progOpen.has(i)?`<div class="prog">
+    <p>Regole di progressione per ${esc(e.n||'questo esercizio')}: quando tutte le serie arrivano al tetto, la seduta dopo riparte dalla base indicata con più carico.</p>
+    <label class="f">Tetto rep<input type="number" inputmode="numeric" value="${cfg.tetto??''}" data-f="c:${i}:tetto"></label>
+    <label class="f">Riparti da<input type="number" inputmode="numeric" value="${cfg.rip??''}" data-f="c:${i}:rip"></label>
+    <label class="f">Kg in più<input type="number" inputmode="decimal" step="0.5" value="${cfg.inc??''}" data-f="c:${i}:inc"></label>
+  </div>`:''}
+  </section>`;
+}
+function vChips(e,i){
+  return e.s.map((x,j)=>{
+    const p=planned(e,j);const show=x[0]===''||x[0]==null?(p??'–'):x[0];
+    const sub=x[1]==='ko'&&p!=null?`su ${p}`:({fat:'fatica',skip:'saltata',ko:'fallita'})[x[1]]||'';
+    return `<button class="chip e-${x[1]}" data-a="chip" data-i="${i}" data-j="${j}" aria-label="Serie ${j+1}: ${show} ripetizioni, ${ESITO[x[1]]}"><b>${esc(show)}</b>${sub?`<small>${sub}</small>`:''}</button>`;
+  }).join('');
+}
+function vMetrics(e){
+  const m=metrics(e,true);
+  const c=(l,v)=>`<div><span>${l}</span><b>${v}</b></div>`;
+  return c('TotRep',fmtN(m.tot))+c('Tonnellaggio',fmtN(m.ton))+c('Volume',fmtN(m.vol,2))+c('1RM calc',fmtN(m.rm,1))+c('Rep max',m.rmx??'–')
+   +c('Densità',fmtN(m.dens,2))+c('PowerIndex',fmtN(m.pi,1))+c('Serie fallite',m.fails??'–')+c('RPE',m.rpe!=null?fmtN(m.rpe,1):'–');
+}
+function refreshCard(i){
+  const e=S.draft.ex[i];if(!e)return;
+  const s=$('#sets-'+i);if(s)s.innerHTML=vChips(e,i);
+  const m=$('#m-'+i);if(m)m.innerHTML=vMetrics(e);
+}
+
+/* ----- storico ----- */
+function vStorico(){
+  const ex=S.storEx;
+  let h=`<div class="top"><h1>Storico</h1></div>${banner()}
+  <div class="row" style="margin-bottom:16px">
+    <label class="f" style="flex:1;min-width:200px">Esercizio<select data-f="st:ex"><option value="">Tutte le sedute</option>${(S.names||[]).map(n=>`<option ${n===ex?'selected':''}>${esc(n)}</option>`).join('')}</select></label>
+  </div>
+  <div class="row" style="margin:-6px 0 16px">${canSave()?`<button class="btn" data-a="exportCsv">Esporta CSV</button><button class="btn" data-a="exportBak">Esporta backup</button>`:''}<button class="btn" data-a="importBtn">Importa backup</button></div>`;
+  if(!S.hist.length)return h+`<p class="empty">${S.mode==='loading'?'Carico lo storico…':'Nessuna seduta salvata. Le sedute che registri nel Diario compaiono qui.'}</p>`;
+  if(ex)return h+vExHistory(ex);
+  const weeks=new Map();
+  for(const s of S.hist){const k=mondayOf(s.d);if(!weeks.has(k))weeks.set(k,[]);weeks.get(k).push(s)}
+  const keys=[...weeks.keys()];
+  h+=keys.slice(0,S.storWeeks).map(k=>{
+    const list=weeks.get(k);let tot=0,f=0;
+    list.forEach(s=>s.ex.forEach(e=>{const m=metrics(e,!!s.updated);tot+=m.tot||0;f+=m.fails||0}));
+    return `<section class="week"><div class="week-h"><h3>Settimana ${weekOf(k)}</h3><span>dal ${fmtD(k)}</span><span class="spacer"></span><span>${list.length} sedute, ${fmtN(tot)} rep${f?`, ${f} serie fallite`:''}</span></div>
+      ${list.map(vSess).join('')}</section>`;
+  }).join('');
+  if(keys.length>S.storWeeks)h+=`<button class="btn" data-a="moreWeeks" style="width:100%">Mostra altre settimane</button>`;
+  return h;
+}
+function vSess(s){
+  const open=S.open.has(s.id);
+  return `<article class="sess"><button data-a="toggleSess" data-id="${esc(s.id)}" aria-expanded="${open}">
+    <div class="sess-t">${s.wo?`<span class="wo">${esc(s.wo)}</span>`:''}<b>${ggOf(s.d)} ${fmtD(s.d)}</b></div>
+    <div class="exl">${s.ex.map(e=>`<span class="nm">${esc(e.n)}${e.kg?` <span class="muted">${fmtN(e.kg,e.kg%1?1:0)} kg</span>`:''}</span><span class="mini">${(e.s||[]).map(x=>`<i class="e-${e.st==='Non eseguito'?'skip':x[1]}"></i>`).join('')}</span>`).join('')}</div>
+  </button>${open?`<div class="sess-d">${s.ex.map(e=>{const m=metrics(e,!!s.updated);return `<div class="ex"><b>${esc(e.n)}</b>${e.p?` <span class="muted small">${esc(e.p)}</span>`:''}
+    <p>${e.st==='Non eseguito'?'Non eseguito':`${(e.s||[]).map(x=>x[0]).join(' ')}${e.b!=null?` <span class="muted">(piano: ${e.b}${e.k?`, prime ${e.k} a ${e.b+1}`:''})</span>`:''}`}</p>
+    <p class="muted">TotRep ${fmtN(m.tot)}, tonnellaggio ${fmtN(m.ton)}, volume ${fmtN(m.vol,2)}${m.fails?`, ${m.fails} fallite`:''}${e.f?`, ${esc(e.f.toLowerCase())}`:''}</p>
+    ${e.note?`<p>${esc(e.note)}</p>`:''}</div>`}).join('')}
+    ${s.note?`<p><b>Note:</b> ${esc(s.note)}</p>`:''}
+    <div class="row" style="margin-top:8px"><button class="btn" data-a="editSess" data-id="${esc(s.id)}">Modifica</button><span class="spacer"></span><button class="btn ghost danger" data-a="askDelSess" data-id="${esc(s.id)}">Elimina</button></div>
+  </div>`:''}</article>`;
+}
+function vExHistory(name){
+  const occ=[];
+  for(const s of S.hist)for(const e of s.ex)if(e.n===name)occ.push({s,e,m:metrics(e,!!s.updated)});
+  const pts=occ.filter(o=>o.e.st!=='Non eseguito'&&o.m.tot!=null).slice(0,60).reverse();
+  let h='';
+  if(pts.length>1){
+    h+=chart('Carico (kg)',pts.map(o=>({v:Number(o.e.kg)||null,f:o.m.fails>0,d:o.s.d})),1);
+    h+=chart('Volume',pts.map(o=>({v:o.m.vol,f:o.m.fails>0,d:o.s.d})),2);
+  }
+  h+=occ.slice(0,40).map(({s,e,m})=>`<article class="sess"><div style="padding:10px 12px">
+    <div class="sess-t">${s.wo?`<span class="wo">${esc(s.wo)}</span>`:''}<b>${fmtD(s.d)}</b><span class="muted small">${e.kg?`${fmtN(e.kg,e.kg%1?1:0)} kg`:''}${e.pct?`, ${fmtN(e.pct*100)}%`:''}</span></div>
+    <div class="row"><span class="mini">${(e.s||[]).map(x=>`<i class="e-${e.st==='Non eseguito'?'skip':x[1]}"></i>`).join('')}</span>
+    <span class="small">${e.st==='Non eseguito'?'non eseguito':(e.s||[]).map(x=>x[0]).join(' ')}</span></div>
+    <p class="small muted" style="margin:4px 0 0">${e.b!=null?`Piano ${e.b}${e.k?`, prime ${e.k} a ${e.b+1}`:''}. `:''}Volume ${fmtN(m.vol,2)}${m.fails?`, ${m.fails} serie fallite`:''}${e.f?`, ${esc(e.f.toLowerCase())}`:''}</p>
+  </div></article>`).join('');
+  return h;
+}
+function chart(title,data,dec){
+  const W=600,H=200,P=30;const vals=data.map(d=>d.v).filter(v=>v!=null);
+  if(!vals.length)return '';
+  let lo=Math.min(...vals),hi=Math.max(...vals);if(lo===hi){lo-=1;hi+=1}
+  const x=i=>P+(W-2*P)*(data.length===1?.5:i/(data.length-1)),y=v=>H-P-(H-2*P)*(v-lo)/(hi-lo);
+  const pts=data.map((d,i)=>d.v==null?null:[x(i),y(d.v)]).filter(Boolean);
+  return `<div class="chart"><h3>${title}</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${title} nelle ultime ${data.length} sedute">
+    <line x1="${P}" x2="${W-P}" y1="${H-P}" y2="${H-P}" stroke="var(--line)"/>
+    <text x="${P}" y="${H-4}" font-size="20" fill="var(--muted)">${fmtD(data[0].d)}</text>
+    <text x="${W-P}" y="${H-4}" font-size="20" fill="var(--muted)" text-anchor="end">${fmtD(data[data.length-1].d)}</text>
+    <text x="${P}" y="20" font-size="20" fill="var(--muted)">${fmtN(hi,dec)}</text><text x="${P}" y="${H-P-4}" font-size="20" fill="var(--muted)">${fmtN(lo,dec)}</text>
+    <polyline fill="none" stroke="var(--ink)" stroke-width="2.5" points="${pts.map(p=>p.join(',')).join(' ')}"/>
+    ${data.map((d,i)=>d.v==null?'':`<circle cx="${x(i)}" cy="${y(d.v)}" r="5" fill="${d.f?'var(--ko)':'var(--ok)'}" stroke="var(--surface)" stroke-width="1.5"/>`).join('')}
+  </svg><div class="legend"><span><i style="background:var(--ok)"></i>tutte riuscite</span><span><i style="background:var(--ko)"></i>con serie fallite</span></div></div>`;
+}
+
+/* ----- timer: viste ----- */
+function vTimer(){
+  if(T&&!T.done)return `<div class="top"><h1>${T.mode==='rec'?(linkedEx()?esc(linkedEx().n):'Recupero'):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT'}</h1></div><div id="runBox">${vRun()}</div>`;
+  const m=S.tmode;
+  return `<div class="top"><h1>Timer</h1></div>${T&&T.done?`<div id="runBox" style="margin-bottom:18px">${vRun()}</div>`:''}
+  <div class="seg" role="group" aria-label="Tipo di timer">
+    ${[['rec','Recupero'],['emom','EMOM'],['edt','EDT']].map(([k,l])=>`<button data-a="tmode" data-m="${k}" aria-pressed="${m===k}">${l}</button>`).join('')}
+  </div>
+  <div class="tcfg">${m==='rec'?vCfgRec():m==='emom'?vCfgEmom():vCfgEdt()}</div>`;
+}
+const stepper=(f,v,lbl)=>`<div class="stepper" role="group" aria-label="${lbl}"><button data-a="step" data-f="${f}" data-d="-1" aria-label="Meno">−</button><output>${v}</output><button data-a="step" data-f="${f}" data-d="1" aria-label="Più">+</button></div>`;
+function emomName(k){return k===1?'EMOM':`E${k}MOM`}
+function parseProto(p){
+  p=String(p||'').replace(/[″“”]/g,'"').replace(/''|""/g,'"');let m;
+  if(m=p.match(/^\s*EDT\s*(\d+)/i))return {type:'edt',min:+m[1]};
+  if(/EMOM/i.test(p)){
+    let giri=null,sec=null,rep=null;
+    if(m=p.match(/EMOM\s*(\d+)\s*x\s*(\d+)\s*x\s*(\d+)\s*"/i)){giri=+m[1];rep=+m[2];sec=+m[3]}
+    else if(m=p.match(/EMOM\s*(\d+)\s*x\s*(\d+)\s*"/i)){giri=+m[1];sec=+m[2]}
+    else if(m=p.match(/EMOM\s*(\d+)\s*"/i)){sec=+m[1]}
+    if(rep==null&&(m=p.match(/"\s*x\s*(\d+)(?!\d)(?!\s*-)/)))rep=+m[1];
+    return sec?{type:'emom',giri,sec,rep}:null;
+  }
+  if((m=p.match(/(?:Rest|Pausa|Rec)\s*(\d+)\s*("|s\b|sec|$|\s)/i))||(m=p.match(/(\d+)\s*"\s*(?:Calf\s*\+\s*)?Rest/i)))return {type:'rest',sec:+m[1]};
+  return null;
+}
+const emomSig=q=>`${q.giri||''}x${q.sec}`;
+function timerPlan(i){
+  const ex=S.draft.ex,e=ex[i],pp=parseProto(e.p);
+  if(pp&&pp.type==='emom'){
+    let idx=ex.map((x,j)=>[j,parseProto(x.p)]).filter(([,q])=>q&&q.type==='emom'&&emomSig(q)===emomSig(pp)).map(([j])=>j);
+    if(idx.length>3)idx=idx.sort((a,b)=>Math.abs(a-i)-Math.abs(b-i)).slice(0,3).sort((a,b)=>a-b);
+    return {mode:'emom',idx,pp,label:`Timer ${emomName(idx.length)}`};
+  }
+  if(pp&&pp.type==='edt'){const o=ex.findIndex((x,j)=>j!==i&&(parseProto(x.p)||{}).type==='edt');return {mode:'edt',idx:o<0?[i]:[i,o].sort((a,b)=>a-b),pp,label:'Timer EDT'}}
+  return {mode:'rec',idx:[i],pp:pp&&pp.type==='rest'?pp:null,label:pp&&pp.type==='rest'?`Timer recupero ${pp.sec}″`:'Timer recupero'};
+}
+function fromBanner(m){
+  const f=S.tc.from;const c=S.tc[m];
+  const names=m==='rec'?(c.link!=null&&S.draft&&S.draft.ex[c.link]?[S.draft.ex[c.link].n]:[]):(c.link||[]).map(j=>S.draft&&S.draft.ex[j]?S.draft.ex[j].n:'').filter(Boolean);
+  if(!names.length)return '';
+  const what={rec:'durante il recupero segni l’esito della serie appena fatta e alla fine il tempo totale va nell’esercizio',
+    emom:'segni l’esito di ogni serie, durante l’intervallo o in quello dopo come scegli più sotto, e con «Torna alla seduta» puoi correggere qualsiasi serie anche a timer avviato',
+    edt:'le ripetizioni che confermi diventano le serie degli esercizi nella seduta'}[m];
+  const src=f&&f.p?(f.ok?`Impostato dal protocollo «${esc(f.p)}». `:`Il protocollo «${esc(f.p)}» non indica un timer: imposta tu il recupero. `):'';
+  return `<p class="banner" style="border-left-color:var(--ok)">${src}Collegato a ${esc(names.join(' e '))}: ${what}. <button class="btn ghost" data-a="unlink" data-m="${m}">Scollega</button></p>`;
+}
+function vCfgRec(){
+  const c=S.tc.rec;
+  return `<p class="lead">Avvii ogni serie tu; alla fine parte il recupero e, se vuoi, la serie dopo parte da sola.</p>
+  ${fromBanner('rec')}
+  <div><div class="muted small">Serie totali</div>${stepper('rec.n',c.n,'Serie totali')}</div>
+  <div><div class="muted small" style="margin-bottom:4px">Recupero</div>
+    <div class="seg sm" role="group" aria-label="Tipo di recupero" style="max-width:360px">
+      <button data-a="tset" data-f="rec.rest" data-v="fix" aria-pressed="${c.rest==='fix'}">Fisso</button>
+      <button data-a="tset" data-f="rec.rest" data-v="mult" aria-pressed="${c.rest==='mult'}">Multiplo della serie</button></div></div>
+  ${c.rest==='fix'?`<label class="f" style="max-width:200px">Secondi di recupero<input type="number" inputmode="numeric" value="${c.sec}" data-f="tc:rec.sec"></label>`
+   :`<label class="f" style="max-width:260px">Recupero = durata della serie ×<input type="number" inputmode="decimal" step="0.25" value="${c.mult}" data-f="tc:rec.mult"></label>`}
+  <label class="row" style="flex-wrap:nowrap"><input type="checkbox" ${c.auto?'checked':''} data-f="tc:rec.auto" style="width:22px;height:22px"> La serie successiva parte da sola a fine recupero</label>
+  <div class="emx"><div class="muted small">Colore durante la serie</div>${swatches('rec','colWork',c.colWork,PAL,'Colore durante la serie')}</div>
+  <div class="emx"><div class="muted small">Colore durante il recupero</div>${swatches('rec','colRest',c.colRest,PAL,'Colore durante il recupero')}</div>
+  ${vRestEnd('rec')}
+  ${vWarn('rec','recupero')}
+  <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
+}
+function vCfgEmom(){
+  const c=S.tc.emom;
+  return `<p class="lead">Un esercizio per intervallo, a rotazione, per il numero di giri scelto.</p>${fromBanner('emom')}
+  <div class="seg sm" role="group" aria-label="Numero di esercizi" style="max-width:360px">
+    ${[1,2,3].map(k=>`<button data-a="tset" data-f="emom.k" data-v="${k}" aria-pressed="${c.k===k}">${emomName(k)}</button>`).join('')}</div>
+  ${c.ex.slice(0,c.k).map((e,i)=>`<div class="emx"><div class="exrow">
+    <label class="f">Esercizio ${i+1}<input type="text" list="names" value="${esc(e.n)}" data-f="tc:emom.ex.${i}.n"></label>
+    <label class="f">Rep<input type="number" inputmode="numeric" value="${e.rep}" data-f="tc:emom.ex.${i}.rep"></label>
+    <label class="f">Secondi<input type="number" inputmode="numeric" value="${e.sec}" data-f="tc:emom.ex.${i}.sec"></label></div>
+    ${swatches('emom','col.'+i,c.col[i],PAL,`Colore dell’intervallo ${i+1}`)}</div>`).join('')}
+  <div class="emx"><label class="row" style="flex-wrap:nowrap"><input type="checkbox" ${c.restOn?'checked':''} data-f="tc:emom.restOn" style="width:22px;height:22px"> Riposo alla fine di ogni giro</label>
+    ${c.restOn?`<label class="f" style="max-width:190px">Secondi di riposo<input type="number" inputmode="numeric" value="${c.restSec}" data-f="tc:emom.restSec"></label>
+    <p class="muted small" style="margin:6px 0 0">Il riposo arriva dopo l’ultimo esercizio di ogni giro, tranne l’ultimo giro.</p>`:''}
+    <label class="row" style="flex-wrap:nowrap;margin-top:8px"><input type="checkbox" ${c.restEnd?'checked':''} data-f="tc:emom.restEnd" style="width:22px;height:22px"> Riposo alla fine dell’EMOM</label>
+    ${c.restEnd?`<label class="f" style="max-width:190px">Secondi di riposo finale<input type="number" inputmode="numeric" value="${c.restEndSec}" data-f="tc:emom.restEndSec"></label>
+    <p class="muted small" style="margin:6px 0 0">Parte dopo l’ultimo intervallo; durante il riposo puoi ancora correggere l’ultima serie.</p>`:''}
+    ${c.restOn||c.restEnd?swatches('emom','restCol',c.restCol,PAL,'Colore del riposo'):''}</div>
+  ${vWarn('emom','intervallo')}
+  <div><div class="muted small" style="margin-bottom:4px">Ripetizioni di ogni intervallo</div>
+    <div class="seg sm" role="group" aria-label="Quando segnare le ripetizioni" style="max-width:420px">
+      <button data-a="tset" data-f="emom.mark" data-v="next" aria-pressed="${c.mark==='next'}">Le segno dopo</button>
+      <button data-a="tset" data-f="emom.mark" data-v="during" aria-pressed="${c.mark==='during'}">Le segno durante</button></div>
+    <p class="muted small" style="margin:6px 0 0">${c.mark==='during'?'Correggi la serie mentre l’intervallo è in corso.':'Correggi la serie appena finita durante l’intervallo successivo.'} Se non tocchi niente, la serie conta come completata.</p></div>
+  <div class="row" style="gap:24px"><div><div class="muted small">Giri</div>${stepper('emom.giri',c.giri,'Giri')}</div>
+  <label class="f" style="max-width:150px">Preparazione (s)<input type="number" inputmode="numeric" value="${c.lead}" data-f="tc:emom.lead"></label></div>
+  <p class="muted small" style="margin:0">Durata totale ${mmss(1000*(c.giri*c.ex.slice(0,c.k).reduce((a,e)=>a+(Number(e.sec)||0),0)+(c.restOn?(c.giri-1)*(Number(c.restSec)||0):0)+(c.restEnd?(Number(c.restEndSec)||0):0)))}.</p>
+  <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
+}
+function vCfgEdt(){
+  const c=S.tc.edt;
+  return `<p class="lead">Alterni due esercizi fino a fine tempo: confermi le ripetizioni fatte e passi all’altro.</p>${fromBanner('edt')}
+  <label class="f" style="max-width:180px">Durata (minuti)<input type="number" inputmode="numeric" value="${c.min}" data-f="tc:edt.min"></label>
+  ${['a','b'].map((k,i)=>`<div class="exrow" style="grid-template-columns:minmax(0,1fr) 90px">
+    <label class="f">Esercizio ${i?'B':'A'}<input type="text" list="names" value="${esc(c[k].n)}" data-f="tc:edt.${k}.n"></label>
+    <label class="f">Rep target<input type="number" inputmode="numeric" value="${c[k].rep}" data-f="tc:edt.${k}.rep"></label></div>
+    ${swatches('edt','col.'+i,c.col[i],PAL,`Colore dell’esercizio ${i?'B':'A'}`)}`).join('')}
+  ${vRestEnd('edt')}
+  ${vWarn('edt','tempo')}
+  <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
+}
+
+/* ---------- motore timer ---------- */
+let T=null,AC=null,loopId=null;
+const now=()=>performance.now();
+const clk=()=>T.acc+(T.paused?0:now()-T.since);
+function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){AC=null}}
+function beep(f=880,d=.12,v=.3){
+  if(!AC)return;try{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;
+  g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);
+  o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d+.03)}catch(e){}
+  if(d>.3&&navigator.vibrate)try{navigator.vibrate(300)}catch(e){}
+}
+function tone(f,d,v,type='sine',when=0,f2=null){
+  if(!AC)return;try{const t0=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t0);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t0+d);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(v,t0+.01);
+  g.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+d+.05)}catch(e){}
+}
+function bell(f,d,v,when=0){[[1,1],[2.76,.45],[5.4,.2]].forEach(([m,a])=>tone(f*m,d/Math.sqrt(m),v*a,'sine',when))}
+function whistle(f,d,v,when=0){
+  if(!AC)return;try{const t0=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain(),l=AC.createOscillator(),lg=AC.createGain();
+  o.frequency.value=f;l.frequency.value=24;lg.gain.value=f*.04;l.connect(lg);lg.connect(o.frequency);
+  g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(v,t0+.02);g.gain.setValueAtTime(v,t0+Math.max(.03,d-.05));g.gain.exponentialRampToValueAtTime(.0001,t0+d);
+  o.connect(g);g.connect(AC.destination);o.start(t0);l.start(t0);o.stop(t0+d+.05);l.stop(t0+d+.05)}catch(e){}
+}
+const wood=(f,v,when=0)=>tone(f,.08,v,'triangle',when,f*.6);
+const SOUNDS={
+  bip:{tick:()=>tone(880,.12,.3),change:()=>tone(1320,.55,.4),warn:()=>tone(660,.25,.35),half:()=>{tone(990,.12,.3);tone(990,.12,.3,'sine',.18)},end:()=>{tone(1320,.4,.4);tone(990,.7,.4,'sine',.45)}},
+  campanello:{tick:()=>bell(1568,.35,.25),change:()=>bell(784,1.4,.35),warn:()=>bell(1046,.8,.3),half:()=>{bell(1318,.5,.25);bell(1318,.5,.25,.25)},end:()=>{bell(784,1.2,.35);bell(523,1.8,.35,.5)}},
+  fischietto:{tick:()=>whistle(2600,.12,.18),change:()=>whistle(2400,.7,.22),warn:()=>whistle(1800,.35,.2),half:()=>{whistle(2600,.12,.18);whistle(2600,.12,.18,.2)},end:()=>{whistle(2400,.5,.22);whistle(2400,.9,.22,.65)}},
+  legno:{tick:()=>wood(1200,.5),change:()=>{wood(800,.6);wood(800,.6,.12);wood(600,.6,.24)},warn:()=>{wood(1000,.5);wood(1000,.5,.15)},half:()=>{wood(1400,.45);wood(1400,.45,.1)},end:()=>[0,.15,.3,.6].forEach((w,i)=>wood(i<3?800:500,.6,w))},
+};
+const VOCE={tick:n=>n?String(n):'',change:n=>n||'via',warn:n=>n||'attenzione',half:n=>n||'metà',end:()=>'fine'};
+function speak(t){try{if(!t||!window.speechSynthesis)return false;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='it-IT';u.rate=1.1;speechSynthesis.speak(u);return true}catch(e){return false}}
+function sound(kind,n){
+  const st=S.tc.snd.style;
+  if(!(st==='voce'&&speak(VOCE[kind](n)))){const set=SOUNDS[st]||SOUNDS.bip;(set[kind]||set.tick)()}
+  if((kind==='change'||kind==='end')&&navigator.vibrate)try{navigator.vibrate(300)}catch(e){}
+}
+const beepShort=()=>sound('tick'),beepLong=()=>sound('change'),beepEnd=()=>sound('end');
+async function wake(on){
+  try{if(on&&navigator.wakeLock&&!T.wl)T.wl=await navigator.wakeLock.request('screen');if(!on&&T&&T.wl){T.wl.release();T.wl=null}}catch(e){}
+}
+function tStart(){
+  ensureAudio();
+  const m=S.tmode,c=clone(S.tc[m]);
+  if(m==='emom'){c.ex=c.ex.slice(0,c.k).map((e,i)=>({n:e.n||`Esercizio ${i+1}`,rep:num(e.rep),sec:Math.max(5,num(e.sec)||60)}));c.giri=Math.max(1,c.giri);c.lead=Math.max(0,num(c.lead)||0);c.restSec=Math.max(5,num(c.restSec)||60);c.restEndSec=Math.max(5,num(c.restEndSec)||120);c.warnSec=Math.max(0,num(c.warnSec)??3)}
+  if(m!=='emom'){c.warnSec=Math.max(0,num(c.warnSec)??3);c.restEndSec=Math.max(5,num(c.restEndSec)||120)}
+  if(m==='edt'){c.min=Math.max(1,num(c.min)||15);['a','b'].forEach((k,i)=>{c[k].n=c[k].n||(i?'Esercizio B':'Esercizio A');c[k].rep=num(c[k].rep)||5})}
+  if(m==='rec'){c.n=Math.max(1,c.n);c.sec=Math.max(5,num(c.sec)||90);c.mult=Math.max(.25,num(c.mult)||2)}
+  T={mode:m,cfg:c,acc:0,since:now(),paused:false,done:false,lastSec:null};
+  if(m==='rec'){Object.assign(T,{set:0,phase:'ready',ph0:0,durs:[],restMs:0});const le=linkedEx();if(le){const f=le.s.findIndex(x=>x[1]==='');T.set=f<0?0:f;c.n=le.s.length}}
+  if(m==='emom'&&c.link&&S.draft)c.link.forEach(j=>{const x=S.draft.ex[j];if(x&&x.s.length<c.giri)setN(x,c.giri)});
+  if(m==='emom'){T.slots=[];for(let g=0;g<c.giri;g++){c.ex.forEach((e,i)=>T.slots.push({g,i,sec:e.sec}));if(c.restOn&&g<c.giri-1)T.slots.push({g,i:-1,rest:true,sec:c.restSec})}if(c.restEnd)T.slots.push({g:c.giri-1,i:-1,rest:true,end:true,sec:c.restEndSec});T.total=T.slots.reduce((a,s)=>a+s.sec,0)*1000;T.slot=-1}
+  if(m==='edt'){Object.assign(T,{cur:0,adj:c.a.rep,log:[],totalMs:c.min*60000});const tot=T.totalMs;
+    const fr={half:[[1/2,'metà']],thirds:[[1/3,'un terzo'],[2/3,'due terzi']],quarters:[[1/4,'un quarto'],[1/2,'metà'],[3/4,'tre quarti']]}[c.frac]||[];
+    T.marks=fr.map(([f,say])=>({rem:tot*(1-f),k:'half',say})).concat(String(c.minsLeft||'').split(/[,;\s]+/).map(num).filter(x=>x>0&&x*60000<tot)
+      .map(x=>({rem:x*60000,k:'warn',say:x<1?`mancano ${Math.round(x*60)} secondi`:x===1?'manca un minuto':`mancano ${fmtN(x,x%1?1:0)} minuti`})))}
+  wake(true);clearInterval(loopId);loopId=setInterval(tick,100);render();
+}
+function tStop(){
+  if(!T)return;T.done=true;T.endClock=clk();T.paused=true;T.acc=T.endClock;clearInterval(loopId);loopId=null;wake(false);
+}
+function tReset(){if(T&&T.wl)wake(false);clearInterval(loopId);loopId=null;T=null;render()}
+function warnBeep(rem){if(T.cfg.warnSec>3&&rem<=T.cfg.warnSec*1000&&!T.warned){T.warned=true;sound('warn')}}
+function halfBeep(rem,total){if(T.cfg.half&&!T.halfDone&&total>=8000&&rem<=total/2&&rem>3500){T.halfDone=true;sound('half')}}
+function countdownBeeps(remMs){
+  const s=Math.ceil(remMs/1000);
+  if(s!==T.lastSec){if(s<=3&&s>=1&&T.lastSec!=null)sound('tick',s);T.lastSec=s}
+}
+function tick(){
+  if(!T||T.done||T.paused){updateRun();return}
+  const t=clk();
+  if(T.mode==='rec'){
+    if(T.phase==='rest'){const rem=T.restMs-(t-T.ph0);countdownBeeps(rem);warnBeep(rem);halfBeep(rem,T.restMs);
+      if(rem<=0){if(T.final){tStop();sound('end');render();return}T.set++;beepLong();if(T.cfg.auto){T.phase='work';T.ph0=t}else T.phase='ready';T.lastSec=null}}
+  }else if(T.mode==='emom'){
+    const lead=T.cfg.lead*1000;
+    if(t<lead){countdownBeeps(lead-t)}
+    else{let u=t-lead,acc=0,idx=-1;
+      for(let i=0;i<T.slots.length;i++){if(u<acc+T.slots[i].sec*1000){idx=i;break}acc+=T.slots[i].sec*1000}
+      if(idx===-1){emomAutoOk(T.slot);tStop();beepEnd();render();return}
+      if(idx!==T.slot){if(T.slot>=0)emomAutoOk(T.slot);T.slot=idx;T.marked='';T.warned=false;T.halfDone=false;const sl=T.slots[idx];sound('change',sl.rest?'riposo':T.cfg.ex[sl.i].n);T.lastSec=null}
+      T.rem=acc+T.slots[idx].sec*1000-u;countdownBeeps(T.rem);halfBeep(T.rem,T.slots[idx].sec*1000);
+      warnBeep(T.rem)}
+  }else if(T.mode==='edt'){
+    if(T.final){const rf=T.cfg.restEndSec*1000-(t-T.finalStart);countdownBeeps(rf);if(rf<=0){tStop();sound('end');render();return}updateRun();return}
+    const rem=T.totalMs-t;if(rem<=10500)countdownBeeps(rem);warnBeep(rem);
+    (T.marks||[]).forEach(mk=>{if(!mk.done&&rem<=mk.rem&&rem>3500){mk.done=true;sound(mk.k,mk.say)}});
+    if(rem<=0){if(T.cfg.restEnd){T.final=true;T.finalStart=t;T.workEnd=t;T.lastSec=null;sound('change','riposo');updateRun();return}tStop();beepEnd();render();return}
+  }
+  updateRun();
+}
+function updateRun(){
+  updateMini();
+  if(S.tab!=='timer'||!T)return;
+  const box=$('#runBox');if(!box)return;
+  const key=runKey();
+  if(box.dataset.key!==key){box.innerHTML=vRun();box.dataset.key=key;return}
+  const c=$('#tClock');if(c)c.textContent=clockText();
+  const r=$('#runPanel');if(r){r.className='run '+runClass();const pt=emomPaint();r.style.background=pt?pt.bg:'';r.style.color=pt?pt.fg:'';r.style.setProperty('--pbg',pt?pt.bg:'');r.style.setProperty('--pfg',pt?pt.fg:'')}
+}
+function runKey(){
+  if(T.done)return 'done';
+  if(T.mode==='rec')return `rec-${T.phase}-${T.set}-${T.paused}-${T.marked||''}-${!!T.final}`;
+  if(T.mode==='emom')return `emom-${T.slot}-${T.paused}-${clk()<T.cfg.lead*1000}-${T.marked||''}`;
+  return `edt-${T.cur}-${T.adj}-${T.log.length}-${T.paused}-${!!T.final}-${!!T.finalLogged}`;
+}
+function clockText(){
+  const t=clk();
+  if(T.mode==='rec'){if(T.phase==='work')return mmssUp(t-T.ph0);if(T.phase==='rest')return mmss(T.restMs-(t-T.ph0));return mmssUp(t)}
+  if(T.mode==='emom'){const lead=T.cfg.lead*1000;if(t<lead)return mmss(lead-t);return mmss(T.rem??0)}
+  if(T.final)return mmss(T.cfg.restEndSec*1000-(t-T.finalStart));
+  return mmss(T.totalMs-t);
+}
+function emomPaint(){
+  if(!T||T.done)return null;
+  const c=T.cfg,t=clk();let bg,rem=null;
+  if(T.mode==='emom'){if(T.slot<0||t<c.lead*1000)return null;const sl=T.slots[T.slot];bg=sl.rest?c.restCol:c.col[sl.i];rem=T.rem??0}
+  else if(T.mode==='rec'){if(T.phase==='work')bg=c.colWork;else{bg=c.colRest;if(T.phase==='rest')rem=T.restMs-(t-T.ph0)}}
+  else if(T.final){bg=c.restCol;rem=c.restEndSec*1000-(t-T.finalStart)}
+  else{bg=c.col[T.cur];rem=T.totalMs-t}
+  if(rem!=null&&rem<=c.warnSec*1000)bg=c.warnCol;
+  bg=bg||'#1D2830';return {bg,fg:fgFor(bg)};
+}
+function runClass(){
+  if(T.done)return 'done';
+  const t=clk();let rem=null,cls='';
+  if(T.mode==='emom'&&t<T.cfg.lead*1000){cls='rest';rem=T.cfg.lead*1000-t}else return '';
+  if(rem!=null&&rem<=3000&&rem>0&&!T.paused)cls='flash';
+  return cls;
+}
+function vRun(){
+  const pauseBtn=`<button class="btn" data-a="tPause">${T.paused?'Riprendi':'Pausa'}</button>`;
+  const stopBtn=`<button class="btn" data-a="tAskStop">Termina</button>`;
+  if(T.done)return vDone();
+  let ph='',ex='',sub='',main='',extra='';
+  if(T.mode==='rec'){
+    const n=T.cfg.n;const le=linkedEx();
+    if(T.phase==='ready'){ph=`Serie ${T.set+1} di ${n}`;sub=T.set?'Recupero finito':'Quando sei pronto';main=`<button class="btn primary big" data-a="tGo">Inizia serie ${T.set+1}</button>`}
+    else if(T.phase==='work'){ph=`Serie ${T.set+1} di ${n}`;sub=le?esc(le.n):'In corso';main=`<button class="btn primary big" data-a="tEndSet">Fine serie</button>`}
+    else{ph=T.final?'Riposo finale':'Recupero';sub=T.final?'Tutte le serie fatte':`Prossima: serie ${T.set+2} di ${n}`;main=`<button class="btn primary" data-a="tSkipRest">${T.final?'Termina il riposo':'Salta recupero'}</button>`;
+      const mt=markTarget();if(mt)extra=vMark(mt)}
+  }else if(T.mode==='emom'){
+    const lead=clk()<T.cfg.lead*1000;
+    const repOf=(i,g)=>{if(i<0)return null;const de=emomEx(i);const p=de?planned(de,g):null;return p??T.cfg.ex[i].rep};
+    const nameOf=sl=>sl.rest?(sl.end?'Riposo finale':'Riposo'):esc(T.cfg.ex[sl.i].n);
+    if(lead||T.slot<0){ph='Si parte tra';ex=esc(T.cfg.ex[0].n);const r0=repOf(0,0);sub=r0?`${r0} ripetizioni`:''}
+    else{const s=T.slots[T.slot],nx=T.slots[T.slot+1],r=repOf(s.i,s.g);
+      ph=`Giro ${s.g+1} di ${T.cfg.giri}`;ex=nameOf(s)+(r?` × ${r}`:'');sub=nx?`Poi: ${nameOf(nx)}${repOf(nx.i,nx.g)?` × ${repOf(nx.i,nx.g)}`:''}`:'Ultimo intervallo';
+      const mt=markTarget();if(mt)extra=vMark(mt)}
+  }else{
+    const c=T.cfg,k=T.cur?'b':'a';const e=c[k];
+    const tot=x=>T.log.filter(l=>l.k===x).reduce((a,l)=>a+l.rep,0),ser=x=>T.log.filter(l=>l.k===x).length;
+    if(T.final){ph='Riposo finale';ex='';sub=T.finalLogged?'Serie registrate':`Se stavi facendo una serie di ${esc(e.n)}, registrala`;
+      main=T.finalLogged?`<button class="btn primary" data-a="tSkipFinal">Termina il riposo</button>`:`<div class="repadj"><button data-a="eRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${T.adj}</output><button data-a="eRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
+        <button class="btn primary" data-a="eDone">Registra la serie in corso</button>`;}
+    else{
+    ph='Tempo rimasto';ex=esc(e.n);sub=`Target ${e.rep} ripetizioni`;
+    main=`<div class="repadj"><button data-a="eRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${T.adj}</output><button data-a="eRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
+      <button class="btn primary big" data-a="eDone">Fatto, passa a ${esc(c[T.cur?'a':'b'].n)}</button>`;
+    }
+    extra=`<div class="tot"><div>${esc(c.a.n)}<b>${tot('a')} rep</b>${ser('a')} serie</div><div>${esc(c.b.n)}<b>${tot('b')} rep</b>${ser('b')} serie</div></div>`;
+  }
+  const pt=emomPaint();
+  return `<div class="run ${runClass()}" id="runPanel"${pt?` style="background:${pt.bg};color:${pt.fg};--pbg:${pt.bg};--pfg:${pt.fg}"`:''}>
+    <p class="ph">${ph}${T.paused?' (in pausa)':''}</p>${ex?`<p class="ex-now">${ex}</p>`:''}
+    <div class="clock" id="tClock" role="timer">${clockText()}</div>
+    ${sub?`<p class="sub">${sub}</p>`:''}
+    <div class="ctl">${main}</div>${extra}
+    <div class="ctl">${pauseBtn}${stopBtn}${S.draft?`<button class="btn" data-a="toSession">Torna alla seduta</button>`:''}</div></div>`;
+}
+function vDone(){
+  const t=T.endClock;let body='',act='';
+  if(T.mode==='rec'){
+    body=`<p class="sub">${T.durs.length} serie in ${mmssUp(t)}</p><ol class="sumlist">${T.durs.map(d=>`<li>${mmssUp(d)}</li>`).join('')}</ol>`;
+    if(linkedEx())act=`<button class="btn primary" data-a="saveRecTime">Metti ${Math.max(1,Math.round((T.workEnd??t)/60000))}′ come tempo dell’esercizio</button>`;
+  }else if(T.mode==='emom'){
+    T.giriFatti=T.slot<0?0:T.slots[T.slot].g+1;
+    body=`<p class="sub">${emomName(T.cfg.ex.length)}: ${T.giriFatti} giri su ${T.cfg.giri} in ${mmssUp(Math.max(0,t-T.cfg.lead*1000))}</p>`;
+    if(T.giriFatti)act=T.cfg.link?`<button class="btn primary" data-a="emomBack">Torna alla seduta</button>`:`<button class="btn primary" data-a="saveEmom">Aggiungi alla seduta</button>`;
+  }else{
+    const c=T.cfg;const tot=x=>T.log.filter(l=>l.k===x);
+    body=`<div class="tot"><div>${esc(c.a.n)}<b>${tot('a').reduce((a,l)=>a+l.rep,0)} rep</b>${tot('a').map(l=>l.rep).join(' ')||'nessuna serie'}</div><div>${esc(c.b.n)}<b>${tot('b').reduce((a,l)=>a+l.rep,0)} rep</b>${tot('b').map(l=>l.rep).join(' ')||'nessuna serie'}</div></div>`;
+    if(T.log.length)act=`<button class="btn primary" data-a="saveEdt">${T.cfg.link?'Salva nella seduta':'Aggiungi alla seduta'}</button>`;
+  }
+  const back=S.draft&&!act.includes('emomBack')?`<button class="btn" data-a="toSession">Torna alla seduta</button>`:'';
+  return `<div class="run done" id="runPanel"><p class="ph">Finito</p>${body}<div class="ctl">${act}${back}<button class="btn" data-a="tReset">Nuovo timer</button></div></div>`;
+}
+function autoOk(e,j){const x=e&&e.s[j];if(x&&x[1]===''){x[1]='ok';if(x[0]===''||x[0]==null)x[0]=planned(e,j)??0;scheduleSave();if(S.tab==='diario'&&S.draft){const i=S.draft.ex.indexOf(e);if(i>=0)refreshCard(i)}}}
+function emomEx(i){return T&&T.cfg.link&&S.draft?S.draft.ex[T.cfg.link[i]]||null:null}
+function emomAutoOk(si){const s=T.slots[si];if(s)autoOk(emomEx(s.i),s.g)}
+function markTarget(){
+  if(!T||T.done||!S.draft)return null;
+  if(T.mode==='rec'){const le=linkedEx();return le&&T.phase==='rest'&&le.s[T.set]?{e:le,j:T.set}:null}
+  if(T.mode==='emom'){const now=T.cfg.mark==='during',k=now?T.slot:T.slot-1;if(k<0||clk()<T.cfg.lead*1000)return null;let s=T.slots[k];if(s.rest){if(k<1)return null;s=T.slots[k-1]}const e=emomEx(s.i);return e&&e.s[s.g]?{e,j:s.g,now:now&&!T.slots[T.slot].rest}:null}
+  return null;
+}
+function vMark(mt){
+  const x=mt.e.s[mt.j],p=planned(mt.e,mt.j);
+  return `<p class="sub" style="margin-top:14px">${T.mode==='emom'?esc(mt.e.n)+', s':'S'}erie ${mt.j+1} ${mt.now?'in corso':'appena fatta'}${p!=null?`, obiettivo ${p}`:''}</p>
+  <div class="repadj" style="margin-top:4px"><button data-a="lRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${x[0]===''?(p??0):x[0]}</output><button data-a="lRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
+  <div class="esito">${['ok','fat','ko'].map(k=>`<button class="o-${k}" data-a="lEsito" data-k="${k}" aria-pressed="${x[1]===k}">${ESITO[k]}</button>`).join('')}</div>`;
+}
+function linkedEx(){const l=S.tc.rec.link;return T&&T.mode==='rec'&&l!=null&&S.draft&&S.draft.ex[l]||null}
+function updateMini(){
+  const mi=$('#mini');if(!mi)return;
+  if(!T||T.done||S.tab==='timer'){mi.hidden=true;return}
+  mi.hidden=false;$('#miniBtn').textContent=`${T.mode==='rec'?(T.phase==='rest'?'Recupero':`Serie ${T.set+1}`):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT'} ${clockText()}`;
+}
+function ensureDraft(){if(!S.draft){newDraft(todayIso(),'',[])}return S.draft}
+
+/* ---------- foglio in basso ---------- */
+function sheet(html){$('#sheetRoot').innerHTML=`<div class="sheet-bg" data-a="closeSheet"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;const b=$('#sheetRoot button');if(b)b.focus()}
+function closeSheet(){$('#sheetRoot').innerHTML=''}
+function confirmSheet(title,text,okLabel,action,data=''){
+  sheet(`<h3>${title}</h3><p class="muted">${text}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="${action}" ${data}>${okLabel}</button><button class="btn" data-a="closeSheet">Annulla</button></div>`);
+}
+function chipSheet(i,j){
+  const e=S.draft.ex[i],x=e.s[j],p=planned(e,j);
+  S.chip={i,j,rep:x[0]===''||x[0]==null?(p??0):Number(x[0])};
+  sheet(`<h3>Serie ${j+1}, ${esc(e.n)}</h3><p class="muted" style="margin:0">${p!=null?`Obiettivo ${p} ripetizioni`:'Nessun obiettivo impostato'}</p>
+   <div class="repadj"><button data-a="cRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output id="cRep">${S.chip.rep}</output><button data-a="cRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
+   <div class="opts">${['ok','fat','ko','skip'].map(k=>`<button class="o-${k}" data-a="cSet" data-k="${k}">${ESITO[k]}</button>`).join('')}</div>
+   <div class="row" style="margin-top:12px"><button class="btn ghost" data-a="cSet" data-k="">Azzera</button><span class="spacer"></span><button class="btn" data-a="closeSheet">Chiudi</button></div>`);
+}
+
+/* ---------- azioni ---------- */
+const A={
+  tab(el){S.tab=el.dataset.tab;render();window.scrollTo(0,0)},
+  closeSheet(el,ev){if(ev&&el.classList.contains('sheet-bg')&&ev.target!==el)return;closeSheet()},
+  emptyDraft(){newDraft(S.newDate,'',[]);S.saveMsg='';lastSaved='';render()},
+  fromTpl(el){
+    const src=S.hist.find(s=>s.id===el.dataset.id);if(!src)return;
+    const iso=S.newDate;newDraft(iso,src.wo,src.ex.filter(e=>e.n).map(e=>exFromHistory(e.n,iso,null)));
+    S.saveMsg='';lastSaved='';render();
+  },
+  addEx(){
+    const inp=$('#addName');const n=inp.value.trim();if(!n){inp.focus();return}
+    S.draft.ex.push(exFromHistory(n,S.draft.d,S.draft.id));scheduleSave();render();
+    const c=$('#card-'+(S.draft.ex.length-1));if(c)c.scrollIntoView({block:'start',behavior:'smooth'});
+  },
+  delEx(el){const i=+el.dataset.i;S.draft.ex.splice(i,1);S.progOpen.clear();if(S.tc.rec.link===i)S.tc.rec.link=null;scheduleSave();render()},
+  toggleProg(el){const i=+el.dataset.i;S.progOpen.has(i)?S.progOpen.delete(i):S.progOpen.add(i);render()},
+  chip(el){
+    const i=+el.dataset.i,j=+el.dataset.j,e=S.draft.ex[i],x=e.s[j];
+    if(x[1]===''){const p=planned(e,j);if(x[0]===''||x[0]==null)x[0]=p??0;x[1]='ok';refreshCard(i);scheduleSave()}
+    else chipSheet(i,j);
+  },
+  cRep(el){S.chip.rep=Math.max(0,S.chip.rep+Number(el.dataset.d));$('#cRep').textContent=S.chip.rep},
+  cSet(el){
+    const {i,j,rep}=S.chip,e=S.draft.ex[i],k=el.dataset.k;
+    if(k===''){e.s[j]=[planned(e,j)??'','']}else e.s[j]=[rep,k];
+    closeSheet();refreshCard(i);scheduleSave();
+  },
+  closeDraft(){saveNow();S.draft=null;store('diario-bozza',null);S.saveMsg='';render()},
+  askDelDraft(){confirmSheet('Eliminare la seduta?','La seduta e i suoi esercizi vengono tolti dal diario.','Elimina','delDraft')},
+  async delDraft(){const id=S.draft.id;closeSheet();clearTimeout(saveTimer);S.draft=null;store('diario-bozza',null);await delSession(id);render()},
+  toggleSess(el){const id=el.dataset.id;S.open.has(id)?S.open.delete(id):S.open.add(id);render()},
+  moreWeeks(){S.storWeeks+=8;render()},
+  editSess(el){
+    const s=S.hist.find(x=>x.id===el.dataset.id);if(!s)return;
+    if(S.draft&&S.draft.ex.length)saveNow();
+    S.draft={...clone(s),isNew:false,_d0:s.d};S.draft.ex.forEach(e=>{e.s=e.s||[];e.k=e.k||0});persistDraft();
+    lastSaved=JSON.stringify({...sessionObj(S.draft),updated:0});S.saveMsg='';S.tab='diario';render();window.scrollTo(0,0);
+  },
+  askDelSess(el){confirmSheet('Eliminare la seduta?','La seduta viene tolta dallo storico.','Elimina','delSess',`data-id="${esc(el.dataset.id)}"`)},
+  async delSess(el){closeSheet();await delSession(el.dataset.id);render()},
+  async exportCsv(){
+    const rows=[['SET','GG','WO','Data','Esercizio','Protocollo','Tempo','Kg','Zavorra Kg','%Intensità','Rep previste','Serie a +1',...Array.from({length:20},(_,i)=>'S'+(i+1)),'Esiti','TotRep','Tonnellaggio','Volume','Serie fallite','Stato','Fatica','Note']];
+    const dec=v=>v==null||v===''?'':String(v).replace('.',',');
+    [...S.hist].reverse().forEach(s=>s.ex.forEach(e=>{const m=metrics(e,!!s.updated);const sv=(e.s||[]).map(x=>dec(x[0]));while(sv.length<20)sv.push('');
+      rows.push([s.set??weekOf(s.d),s.gg||ggOf(s.d),s.wo||'',fmtD(s.d),e.n,e.p||'',dec(e.t),dec(e.kg),dec(e.z),dec(e.pct),dec(e.b),dec(e.b!=null?e.k||0:''),...sv.slice(0,20),(e.s||[]).map(x=>x[1]||'-').join(' '),dec(m.tot),dec(m.ton),dec(m.vol!=null?Math.round(m.vol*100)/100:null),dec(m.fails),e.st||'',e.f||'',e.note||''])}));
+    const csv='\ufeff'+rows.map(r=>r.map(v=>{v=String(v??'');return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(';')).join('\r\n');
+    await saveFile(`diario-allenamento-${todayIso()}.csv`,csv);
+  },
+  /* timer */
+  tmode(el){S.tmode=el.dataset.m;render()},
+  tset(el){const [m,k]=el.dataset.f.split('.');const v=el.dataset.v;S.tc[m][k]=isNaN(Number(v))?v:Number(v);if(m==='snd'||(m==='emom'&&k==='mark'))savePrefs();render()},
+  sndTest(){ensureAudio();[['tick',3],['tick',2],['tick',1],['change','Trazioni'],['half'],['warn'],['end']].forEach(([k,n],i)=>setTimeout(()=>sound(k,n),i*1000))},
+  tcol(el){const e=S.tc[el.dataset.m||'emom'],k=el.dataset.k;if(k.startsWith('col.'))e.col[+k.slice(4)]=el.dataset.v;else e[k]=el.dataset.v;savePrefs();render()},
+  toSession(){S.tab='diario';render();const ix=T&&T.mode==='emom'&&T.cfg.link?T.cfg.link[0]:T&&T.mode==='rec'?S.tc.rec.link:null;const c=ix!=null&&$('#card-'+ix);if(c)c.scrollIntoView({block:'start'});else window.scrollTo(0,0)},
+  step(el){const [m,k]=el.dataset.f.split('.');S.tc[m][k]=Math.max(1,Math.min(50,(Number(S.tc[m][k])||0)+Number(el.dataset.d)));el.parentElement.querySelector('output').textContent=S.tc[m][k];
+    if(m==='emom')render()},
+  unlink(el){const m=el.dataset.m||'rec';S.tc[m].link=null;S.tc.from=null;render()},
+  linkTimer(el){
+    const i=+el.dataset.i;if(T&&!T.done){S.tab='timer';render();return}T=null;
+    const tp=timerPlan(i),ex=S.draft.ex,e=ex[i];
+    S.tc.rec.link=null;S.tc.emom.link=null;S.tc.edt.link=null;S.tc.from={p:e.p||'',ok:!!tp.pp};
+    if(tp.mode==='emom'){const c=S.tc.emom;c.k=tp.idx.length;c.link=tp.idx;c.giri=tp.pp.giri||Math.max(...tp.idx.map(j=>ex[j].s.length));
+      tp.idx.forEach((j,n)=>{const q=parseProto(ex[j].p);c.ex[n]={n:ex[j].n,rep:q.rep??ex[j].b??'',sec:q.sec}});
+      const rr=tp.idx.map(j=>String(ex[j].p||'').match(/(?:Rest|Riposo|Pausa)\s*(\d+)/i)).find(Boolean);if(rr){c.restOn=true;c.restSec=+rr[1]}}
+    else if(tp.mode==='edt'){const c=S.tc.edt;c.link=tp.idx;c.min=tp.pp.min;tp.idx.forEach((j,n)=>{const k=n?'b':'a';c[k]={n:ex[j].n,rep:ex[j].b??c[k].rep}})}
+    else{const c=S.tc.rec;c.link=i;c.n=e.s.length;if(tp.pp){c.rest='fix';c.sec=tp.pp.sec}}
+    S.tmode=tp.mode;S.tab='timer';render();window.scrollTo(0,0);
+  },
+  tStart(){tStart()},
+  tPause(){if(!T)return;if(T.paused){T.since=now();T.paused=false}else{T.acc=clk();T.paused=true}updateRun();const b=$('#runBox');if(b){b.dataset.key='';updateRun()}},
+  tAskStop(){confirmSheet('Terminare il timer?','Il conteggio si ferma e vedi il riepilogo.','Termina','tStopNow')},
+  tStopNow(){closeSheet();tStop();render()},
+  tReset(){tReset()},
+  tGo(){T.phase='work';T.ph0=clk();T.lastSec=null;beepLong();updateRun()},
+  tEndSet(){
+    const t=clk(),d=t-T.ph0;T.durs.push(d);
+    if(T.set>=T.cfg.n-1){const le=linkedEx();if(le){const x=le.s[T.set];if(x&&x[1]===''){x[1]='ok';x[0]=x[0]===''?(planned(le,T.set)??0):x[0];scheduleSave()}}
+      T.workEnd=t;if(T.cfg.restEnd){T.final=true;T.phase='rest';T.restMs=T.cfg.restEndSec*1000;T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;sound('change','riposo');updateRun();return}
+      tStop();beepEnd();render();return}
+    T.restMs=T.cfg.rest==='fix'?T.cfg.sec*1000:Math.round(d*T.cfg.mult);T.phase='rest';T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;
+    const le=linkedEx();if(le){const x=le.s[T.set];if(x&&x[1]===''){x[1]='ok';x[0]=x[0]===''?(planned(le,T.set)??0):x[0];scheduleSave()}}
+    updateRun();
+  },
+  tSkipRest(){T.ph0=clk()-T.restMs},
+  lRep(el){const mt=markTarget();if(!mt)return;const x=mt.e.s[mt.j];const p=planned(mt.e,mt.j);const cur=x[0]===''?(p??0):Number(x[0]);x[0]=Math.max(0,cur+Number(el.dataset.d));
+    if(p!=null&&x[1]!=='fat')x[1]=x[0]<p?'ko':'ok';T.marked=x.join(':');scheduleSave();updateRun()},
+  lEsito(el){const mt=markTarget();if(!mt)return;const x=mt.e.s[mt.j];const p=planned(mt.e,mt.j);if(x[0]==='')x[0]=p??0;
+    x[1]=el.dataset.k;if(el.dataset.k==='ko'&&p!=null&&Number(x[0])>=p)x[0]=Math.max(0,p-1);T.marked=x.join(':');scheduleSave();updateRun()},
+  saveRecTime(){const le=linkedEx();if(le){le.t=Math.max(1,Math.round((T.workEnd??T.endClock)/60000));scheduleSave()}tReset();S.tab='diario';render()},
+  tSkipFinal(){T.finalStart=clk()-T.cfg.restEndSec*1000},
+  saveEmom(){
+    const d=ensureDraft(),c=T.cfg,g=Math.max(1,T.giriFatti||1);
+    c.ex.forEach(e=>{const ex=exFromHistory(e.n,d.d,d.id);ex.p=`${emomName(c.ex.length)} ${g}×${e.sec}″`;ex.t=Math.round(g*c.ex.reduce((a,x)=>a+x.sec,0)/60);
+      if(e.rep){ex.b=e.rep;ex.k=0}delete ex._why;ex.s=[];setN(ex,g);d.ex.push(ex)});
+    scheduleSave();tReset();S.tab='diario';render();
+  },
+  emomBack(){const c=T.cfg,mins=Math.round((T.giriFatti*c.ex.reduce((a,x)=>a+x.sec,0)+(c.restOn?Math.max(0,T.giriFatti-1)*c.restSec:0))/60);
+    (c.link||[]).forEach(j=>{const x=S.draft&&S.draft.ex[j];if(x)x.t=mins});scheduleSave();tReset();S.tab='diario';render()},
+  saveEdt(){
+    const d=ensureDraft(),c=T.cfg;
+    ['a','b'].forEach((k,n)=>{const log=T.log.filter(l=>l.k===k);if(!log.length)return;
+      const lx=c.link&&c.link[n]!=null?d.ex[c.link[n]]:null;
+      if(lx){lx.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);lx.t=c.min;lx.b=c[k].rep;lx.k=0;return}
+      const ex=exFromHistory(c[k].n,d.d,d.id);
+      ex.p=`EDT ${c.min}′ × ${c[k].rep}`;ex.t=c.min;ex.b=c[k].rep;ex.k=0;delete ex._why;ex.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);d.ex.push(ex)});
+    scheduleSave();tReset();S.tab='diario';render();
+  },
+  exportBak(){
+    const all=new Map(S.stor);for(const [id,x] of S.sed)all.set(id,x);
+    saveFile(`diario-backup-${todayIso()}.json`,JSON.stringify({app:'diario-allenamento',v:1,exported:new Date().toISOString(),cfg:S.cfg,sedute:[...all.values()]}));
+  },
+  importBtn(){closeSheet();$('#fileImp').click()},
+  eRep(el){T.adj=Math.max(0,T.adj+Number(el.dataset.d));updateRun()},
+  eDone(){const k=T.cur?'b':'a';if(T.final){if(T.finalLogged)return;T.log.push({k,rep:T.adj});T.finalLogged=true;beepShort();updateRun();return}T.log.push({k,rep:T.adj});T.cur=1-T.cur;T.adj=T.cfg[T.cur?'b':'a'].rep;beepShort();updateRun()},
+};
+const canSave=()=>!!S.downloads||STANDALONE;
+async function saveFile(filename,data){
+  if(S.downloads){try{await S.downloads.save({filename,data})}catch(e){}return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:filename.endsWith('.json')?'application/json':'text/csv'}));
+  a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);
+}
+async function importBackup(obj){
+  if(!obj||obj.app!=='diario-allenamento'||!Array.isArray(obj.sedute))throw new Error('formato');
+  const cur=new Map(S.stor);for(const [id,x] of S.sed)cur.set(id,x);
+  const base=[],upd=[];
+  for(const x of obj.sedute){
+    if(!x||typeof x.id!=='string')continue;
+    if(!x.deleted&&(!x.d||!Array.isArray(x.ex)))continue;
+    const c=cur.get(x.id);if(c&&(c.updated||0)>=(x.updated||0))continue;
+    (x.updated||x.deleted?upd:base).push(x);
+  }
+  if(S.mode==='db'){for(const x of [...base,...upd])await S.base.collection('sedute').doc(x.id).set(x)}
+  else{
+    const st=new Map(S.stor);base.forEach(x=>st.set(x.id,x));
+    const sd=new Map(S.sed);upd.forEach(x=>sd.set(x.id,x));const m={};sd.forEach((v,k)=>m[k]=v);
+    if(!store('diario-storico',[...st.values()])||!store('diario-sedute',m))throw new Error('spazio');
+    S.stor=st;S.sed=sd;
+  }
+  let cfg=false;
+  if(obj.cfg){const c=obj.cfg;
+    if(c.esercizi)for(const k in c.esercizi)if(!S.cfg.esercizi[k]){S.cfg.esercizi[k]=c.esercizi[k];cfg=true}
+    if(c.timer&&!S.cfg.timer){S.cfg.timer=c.timer;S.prefsLoaded=false;loadPrefs();cfg=true}
+    if(cfg)saveCfg();
+  }
+  merge();return {n:base.length+upd.length,cfg};
+}
+async function delSession(id){
+  try{
+    if(S.mode==='db'){await S.base.collection('sedute').doc(id).set({id,deleted:true,updated:Date.now()})}
+    else{const all=load('diario-sedute')||{};all[id]={id,deleted:true};store('diario-sedute',all);S.sed.set(id,{id,deleted:true});merge()}
+  }catch(e){}
+}
+
+/* ---------- eventi ---------- */
+document.addEventListener('click',ev=>{
+  const el=ev.target.closest('[data-a]');if(!el)return;
+  const fn=A[el.dataset.a];if(fn){fn(el,ev)}
+});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&$('#sheetRoot').innerHTML)closeSheet()});
+let cfgTimer=null;
+function onField(el,isChange){
+  const f=el.dataset.f;if(!f)return;const v=el.type==='checkbox'?el.checked:el.value;
+  const [kind,a,b]=f.split(':');
+  if(kind==='new'){S.newDate=v||todayIso();return}
+  if(kind==='st'){S.storEx=v;render();return}
+  if(kind==='tc'){const path=a.split('.');let o=S.tc;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;if(/^(emom|rec|edt)\.(col|warn|rest|half|frac|minsLeft)/.test(a))savePrefs();if(/\.(restOn|restEnd)$/.test(a))render();return}
+  if(kind==='d'){if(!S.draft)return;
+    if(a==='d'){if(!v)return;S.draft.d=v;const m=$('#sessMeta');if(m)m.textContent=`${ggOf(v)}, settimana ${weekOf(v)}`}
+    else S.draft[a]=v;scheduleSave();return}
+  if(kind==='e'){
+    const i=+a,e=S.draft.ex[i];if(!e)return;
+    if(['kg','z','t'].includes(b))e[b]=num(v);
+    else if(b==='pct'){const n=num(v);e.pct=n==null?null:(n>1.5?n/100:n)}
+    else if(b==='b'){e.b=num(v);syncSets(e)}
+    else if(b==='k'){e.k=Math.max(0,num(v)||0);syncSets(e)}
+    else if(b==='n_s'){const n=num(v);if(n&&n>=1&&n<=20)setN(e,n);else return}
+    else e[b]=v;
+    if(b==='st'&&v==='Non eseguito')e.s.forEach(x=>{x[1]='skip'});
+    if(b==='st'&&v==='Eseguito')e.s.forEach(x=>{if(x[1]==='skip')x[1]=''});syncSets(e);
+    refreshCard(i);if(b==='p')S.draft.ex.forEach((x,j)=>{const el=$('#tb-'+j);if(el)el.textContent=timerPlan(j).label});scheduleSave();return}
+  if(kind==='c'){
+    const e=S.draft.ex[+a];if(!e||!e.n)return;const cfg=S.cfg.esercizi[e.n]=S.cfg.esercizi[e.n]||{};cfg[b]=num(v);
+    saveCfg();return}
+}
+document.addEventListener('input',ev=>{const el=ev.target;if(el.tagName==='SELECT'||el.type==='checkbox')return;onField(el)});
+document.addEventListener('change',ev=>{const el=ev.target;if(el.tagName==='SELECT'||el.type==='checkbox'||el.type==='date')onField(el,true)});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&T&&!T.done){wake(true);tick()}});
+window.addEventListener('pagehide',()=>{if(S.draft)persistDraft()});
+$('#fileImp').addEventListener('change',async ev=>{
+  const f=ev.target.files[0];ev.target.value='';if(!f)return;
+  const done=(t,m)=>sheet(`<h3>${t}</h3><p class="muted">${m}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Chiudi</button></div>`);
+  sheet('<h3>Importo il backup…</h3>');
+  try{const r=await importBackup(JSON.parse(await f.text()));
+    done('Backup importato',(r.n?`${r.n} sedute nuove o aggiornate.`:'Nessuna seduta nuova: era già tutto presente.')+(r.cfg?' Ho ripreso anche le impostazioni dei timer e della progressione.':''));render()}
+  catch(e){done('Backup non importato',e&&e.message==='spazio'?'Lo spazio del browser per questa app è pieno.':'Il file non è un backup del diario: scegli il file diario-backup….json esportato dall’app.')}
+});
+if(STANDALONE&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
+init();
+</script>
+</body>
+</html>
