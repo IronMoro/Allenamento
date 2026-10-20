@@ -61,9 +61,10 @@ h3{font-size:20px}
 /* tab in basso */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
   display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabs button{flex:1;max-width:220px;background:none;border:0;padding:12px 8px 14px;font-family:var(--f-num);font-size:19px;font-weight:600;color:var(--muted);border-top:3px solid transparent}
+.tabs button{flex:1;max-width:200px;background:none;border:0;padding:7px 2px 8px;font-family:var(--f-num);font-size:15px;font-weight:600;color:var(--muted);border-top:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button svg{width:25px;height:25px}
 .tabs button[aria-current="page"]{color:var(--ink);border-top-color:var(--ink)}
-.minitimer{position:fixed;left:0;right:0;z-index:19;bottom:calc(54px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;pointer-events:none}
+.minitimer{position:fixed;left:0;right:0;z-index:19;bottom:calc(64px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;pointer-events:none}
 .minitimer[hidden]{display:none}
 .minitimer button{pointer-events:auto;background:var(--accent);color:var(--on-accent);border:0;border-radius:20px;padding:6px 16px;font-family:var(--f-num);font-size:18px;font-weight:600;margin-bottom:8px}
 
@@ -269,6 +270,26 @@ body.lock{overflow:hidden}
 .run.full .tot{gap:calc(var(--u)*.5)}
 .run.full .tot div{font-size:calc(var(--u)*1);padding:calc(var(--u)*.3) calc(var(--u)*.6)}
 .run.full .tot b{font-size:calc(var(--u)*1.8)}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{font-size:12px;color:var(--muted);font-weight:600;text-align:right;padding:4px 6px;border-bottom:1px solid var(--line)}
+.tbl td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--line);font-family:var(--f-num);font-size:18px}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.exrow-b{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 12px;width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:0 0 8px}
+.exrow-b:focus-visible{outline:3px solid var(--skip)}
+.exrow-b b{font-size:16px}
+.exrow-b .exi{grid-row:span 2;align-self:center}
+.exi{display:inline-flex;align-items:center;justify-content:center;border-radius:24%;color:#fff;flex:none;vertical-align:middle}
+.exi svg{width:78%;height:78%}
+.exrow-b .rm{grid-row:span 2;align-self:center;font-family:var(--f-num);font-size:22px;font-weight:700;text-align:right}
+.exrow-b .rm small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+.exrow-b .when{font-size:13px;color:var(--muted)}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.trow:last-child{border-bottom:0}
+.trow .acts{display:flex;gap:6px;align-items:center}
+.big-rm{font-family:var(--f-num);font-size:44px;font-weight:700;line-height:1}
+.res{font-family:var(--f-num);font-size:22px;font-weight:600;margin:8px 0 0}
+.run.full .tstk{display:grid;grid-template-columns:1fr 1.7fr 1fr;gap:calc(var(--u)*.5);width:100%}
+.run.full .r-side .tstk .btn{min-height:calc(var(--u)*4.2*var(--hb,1));font-size:calc(var(--u)*2.6);width:auto}
 .sesbox{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 16px}
 .sesbox .row b{font-family:var(--f-num);font-size:26px}
 .tempi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
@@ -282,9 +303,11 @@ body.lock{overflow:hidden}
 <div class="wrap" id="main" aria-live="off"></div>
 <div class="minitimer" id="mini" hidden><button data-a="tab" data-tab="timer" id="miniBtn"></button></div>
 <nav class="tabs" aria-label="Sezioni">
-  <button data-a="tab" data-tab="diario">Diario</button>
-  <button data-a="tab" data-tab="timer">Timer</button>
-  <button data-a="tab" data-tab="storico">Storico</button>
+  <button data-a="tab" data-tab="diario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h11"/><path d="M9 8h5M9 11h5"/></svg><span>Diario</span></button>
+  <button data-a="tab" data-tab="timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 2.5h4M18.5 7l1.5-1.5"/></svg><span>Timer</span></button>
+  <button data-a="tab" data-tab="storico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/></svg><span>Storico</span></button>
+  <button data-a="tab" data-tab="esercizi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12h10"/><rect x="3.5" y="7.5" width="3.5" height="9" rx="1"/><rect x="17" y="7.5" width="3.5" height="9" rx="1"/><path d="M2 10v4M22 10v4"/></svg><span>Esercizi</span></button>
+  <button data-a="tab" data-tab="massimali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5.5a2.5 2.5 0 0 0 2.6 4M16 6h2.5a2.5 2.5 0 0 1-2.6 4M12 13v4M8.5 20.5h7M9.5 17h5"/></svg><span>Test</span></button>
 </nav>
 <div id="sheetRoot"></div>
 <input type="file" id="fileImp" accept=".json,application/json" hidden>
@@ -321,12 +344,16 @@ function store(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}ca
 function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 
 /* ---------- stato ---------- */
+const newTf=()=>({d:todayIso(),n:'',tipo:'1rm',kg:'',bw:'',rep:'',rir:0,parts:['','',''],rif:'',rifTouched:false,from:todayIso(),fromTouched:false,note:'',editId:null});
+const newMf=()=>({d:todayIso(),vals:{},note:'',editId:null});
 const STANDALONE=!(window.claude&&typeof window.claude.use==='function');
-const S={tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
+const S={misure:new Map(),mf:null,testSub:'test',tests:new Map(),testsLoaded:false,exSel:'',exQ:'',tf:null,tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
   saveMsg:'',storEx:'',storWeeks:8,open:new Set(),progOpen:new Set(),newDate:todayIso(),downloads:null,
-  tmode:'rec',tc:{rec:{n:6,rest:'fix',sec:90,mult:2,auto:true,link:null,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120},
+  tmode:'rec',tc:{tst:{tipo:'t30',n:'',kg:'',rif:'',rifTouched:false,step:5,lead:10,col:['#0284C7','#16A34A','#9333EA'],warnSec:10,warnCol:'#FFC000',half:false},
+  circ:{items:[{n:'',tipo:'time',val:40},{n:'',tipo:'time',val:40},{n:'',tipo:'time',val:40}],giri:3,restEx:15,restGiro:60,lead:10,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120},
+  rec:{n:6,rest:'fix',sec:90,mult:2,auto:true,links:null,mode:'sep',items:[{n:'',sets:6,rep:''}],between:90,tr:0,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120},
   emom:{k:2,giri:10,lead:10,mark:'next',giroFmt:'frac',col:['#0284C7','#16A34A','#9333EA'],warnSec:3,warnCol:'#FFC000',half:false,restOn:false,restSec:60,restEnd:false,restEndSec:120,restCol:'#E2E8F0',ex:[{n:'',rep:'',sec:60},{n:'',rep:'',sec:60},{n:'',rep:'',sec:60}]},
-  edt:{min:15,a:{n:'',rep:5},b:{n:'',rep:5},col:['#0284C7','#F97316'],warnSec:3,warnCol:'#FFC000',half:false,frac:'none',minsLeft:'',restEnd:false,restEndSec:120,restCol:'#E2E8F0'},snd:{style:'bip'},sess:{warmOn:false,warmAuto:true,warmMode:'fix',warmMin:10,coolOn:false,coolAuto:true,coolMode:'fix',coolMin:5,colWarm:'#F97316',colCool:'#0284C7'}}};
+  edt:{min:15,a:{n:'',rep:5},b:{n:'',rep:5},col:['#0284C7','#F97316'],warnSec:3,warnCol:'#FFC000',half:false,frac:'none',minsLeft:'',restEnd:false,restEndSec:120,restCol:'#E2E8F0'},snd:{style:'bip',fsAuto:true},sess:{warmOn:false,warmAuto:true,warmMode:'fix',warmMin:10,coolOn:false,coolAuto:true,coolMode:'fix',coolMin:5,colWarm:'#F97316',colCool:'#0284C7'}}};
 
 /* ---------- metriche ---------- */
 function metrics(e,strict){
@@ -339,6 +366,111 @@ function metrics(e,strict){
   if(e.b!=null&&exec){fails=0;(e.s||[]).forEach((x,i)=>{if(x[1]!=='skip'&&(x[1]!==''||!strict)&&x[0]!==''&&x[0]!=null&&Number(x[0])<planned(e,i))fails++;});}
   return {tot,ton:tot!=null?tot*kg:null,vol,dens:tot!=null&&t?tot/t:null,pi:tot!=null&&t?Math.floor(vol+1e-9)**2/t:null,
     rm:kg&&pct?kg/pct:null,rmx:pct?repMax(pct):null,fails,rpe:RPE[e.f]??null};
+}
+
+/* ---------- icone degli esercizi ---------- */
+const EXI={
+ trazioni:'<path d="M6 6h36M15 6l4 12M33 6l-4 12M19 18h10M24 18v13M24 31l-4 12M24 31l4 12"/><circle cx="24" cy="12.5" r="4" fill="currentColor" stroke="none"/>',
+ parallele:'<path d="M4 27h12M32 27h12M8 27v17M40 27v17M24 15v13M24 17l-7 4-3 6M24 17l7 4 3 6M24 28l4 8-5 6"/><circle cx="24" cy="9.5" r="4" fill="currentColor" stroke="none"/>',
+ squat:'<path d="M9 17h30M25 18l-8 12h14l-3 12h6M25 18l4-1"/><rect x="6" y="12" width="4" height="11" rx="1"/><rect x="38" y="12" width="4" height="11" rx="1"/><circle cx="27" cy="10" r="4" fill="currentColor" stroke="none"/>',
+ stacco:'<path d="M24 13v14M24 15l-6 19M24 15l6 19M24 27l-4 16M24 27l4 16M8 34h32"/><rect x="3.5" y="28" width="5" height="12" rx="1.5"/><rect x="39.5" y="28" width="5" height="12" rx="1.5"/><circle cx="24" cy="8" r="4" fill="currentColor" stroke="none"/>',
+ press:'<path d="M9 6h30M17 6l2 12M31 6l-2 12M19 18h10M24 18v13M24 31l-4 13M24 31l4 13"/><rect x="5.5" y="2" width="4" height="9" rx="1"/><rect x="38.5" y="2" width="4" height="9" rx="1"/><circle cx="24" cy="13" r="4" fill="currentColor" stroke="none"/>',
+ panca:'<path d="M6 32h30M10 32v10M32 32v10M12 28h20M27 28v-13M22 13h10M12 28l-3 13"/><path d="M22 10v6M32 10v6"/><circle cx="36.5" cy="27" r="4" fill="currentColor" stroke="none"/>',
+ verticale:'<path d="M8 44h32M15 44l5-14M33 44l-5-14M20 30h8M24 30V16M24 16l-2-12M24 16l2-12"/><circle cx="24" cy="36.5" r="3.6" fill="currentColor" stroke="none"/>',
+ calf:'<path d="M24 12v15M24 15l4 9M24 27v10l4 3M22 40h20v5H22zM36 30V17M32 21l4-4 4 4"/><circle cx="24" cy="7.5" r="4" fill="currentColor" stroke="none"/>',
+ pushup:'<path d="M4 42h40M13 26l29 10M15 27l-1 15M42 36l2 6"/><circle cx="9" cy="24" r="4" fill="currentColor" stroke="none"/>',
+ row:'<path d="M6 12h24M14 25l26 13M40 38l2 5M17 26l3-14M4 44h40"/><circle cx="10.5" cy="22.5" r="4" fill="currentColor" stroke="none"/>',
+ facepull:'<path d="M44 6v38M17 15v15M17 30l-4 13M17 30l4 13M17 18l11-2-6-5M22 11l22-2"/><circle cx="17" cy="9.5" r="4" fill="currentColor" stroke="none"/>',
+ frontlever:'<path d="M8 6h32M22 6v11M22 17h22"/><circle cx="17" cy="17.5" r="4" fill="currentColor" stroke="none"/>',
+ curl:'<path d="M20 13v15M20 28l-4 15M20 28l4 15M21 15l1 11 8-8M26 18h8M26 15v6M34 15v6"/><circle cx="20" cy="8" r="4" fill="currentColor" stroke="none"/>',
+ triceps:'<path d="M24 19v13M24 32l-4 12M24 32l4 12M21 20l-3-12 8-3M23 3h10M23 1v5M33 1v5"/><circle cx="24" cy="14" r="4" fill="currentColor" stroke="none"/>',
+ corsa:'<path d="M27 13l-5 13M26 15l7 5M25 15l-8 3M22 26l9 5-2 9M22 26l-7 7-6-2"/><circle cx="28" cy="8" r="4" fill="currentColor" stroke="none"/>',
+ stretch:'<path d="M20 14l4 14M24 28l-6 15M24 28l6 15M21 15c5-9 13-9 17-3M22 18l-8 4"/><circle cx="18" cy="9" r="4" fill="currentColor" stroke="none"/>',
+ core:'<path d="M4 42h40M13 30l29 6M15 31v10h7M42 36l2 6"/><circle cx="9" cy="27" r="4" fill="currentColor" stroke="none"/>',
+ generico:'<path d="M14 24h20"/><rect x="8" y="16" width="6" height="16" rx="2"/><rect x="34" y="16" width="6" height="16" rx="2"/><path d="M5 20v8M43 20v8"/>'
+};
+const EXRULES=[['frontlever',/front ?lever/i],['row',/australian|austalian|body ?row|rematore|tirat|\brow\b/i],['calf',/calf|polpacc/i],['squat',/leg ?curl|leg ?ext/i],
+ ['trazioni',/trazion|chin ?up|pull ?up|muscle|m\.u\./i],['parallele',/parallel|\bdip/i],['verticale',/verticale|handstand/i],['squat',/squat|affond|lunge|pistol|bulgar|step ?up/i],
+ ['stacco',/stacco|deadlift|good ?morning|hip ?thrust/i],['panca',/panca|bench/i],['press',/lento|press|military|cuban/i],['pushup',/push ?up|piegament|flession/i],
+ ['facepull',/face ?pull|trx|apertur|band/i],['curl',/curl|bicipit/i],['triceps',/tric|french|estens|\best\./i],['corsa',/corsa|run|tapis|camminat|bici/i],
+ ['stretch',/stretch|mobilit|allung/i],['core',/plank|addom|crunch|core|l-? ?sit|hollow|leg ?ri[sz]e|leg ?raise|planche|dragon/i]];
+const EXCOL={trazioni:'#0284C7',row:'#0284C7',facepull:'#0284C7',frontlever:'#0284C7',curl:'#0284C7',parallele:'#F97316',verticale:'#F97316',panca:'#F97316',press:'#F97316',pushup:'#F97316',triceps:'#F97316',
+ squat:'#16A34A',calf:'#16A34A',stacco:'#9333EA',core:'#475569',corsa:'#DC2626',stretch:'#0D9488',generico:'#64748B'};
+const exKindCache=new Map();
+function exKind(n){n=String(n||'');if(!exKindCache.has(n)){const r=EXRULES.find(([,re])=>re.test(n));exKindCache.set(n,r?r[0]:'generico')}return exKindCache.get(n)}
+function exIcon(n,size=32){const k=exKind(n);
+  return `<span class="exi" style="background:${EXCOL[k]};width:${size}px;height:${size}px" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">${EXI[k]}</svg></span>`}
+
+/* ---------- massimali ---------- */
+const RMPTS=[[1,1],[2,.95],[3,.93],[4,.9],[5,.87],[6,.85],[7,.83],[8,.8],[9,.77],[10,.75],[11,.7],[12,.67],[15,.65],[18,.63],[20,.6],[30,.5]];
+function pctOfReps(r){if(!(r>=1)||r>30)return null;for(let i=0;i<RMPTS.length-1;i++){const [a,pa]=RMPTS[i],[b,pb]=RMPTS[i+1];if(r>=a&&r<=b)return pa+(pb-pa)*(r-a)/(b-a)}return null}
+const brzRM=(w,r)=>(w>0&&r>=1&&r<36)?Math.ceil(w/(1.0278-0.0278*r)*2)/2:null;
+const BWRM=[[95,2],[93,3],[90,4],[87,5],[85,6],[83,7],[80,8],[77,9],[75,10],[70,11],[67,12],[65,15],[60,20]];
+const bwRepMax=pc=>{if(!(pc>60))return null;for(const [q,r] of BWRM)if(pc>=q)return r;return null};
+const ENDU={t30:{min:30,pct:70,parts:['1′–10′','11′–20′','21′–30′'],rate:[[110,'Ottimo'],[90,'Buono'],[70,'Discreto'],[50,'Sufficiente',1],[1,'Insufficiente',1]],rate2:[[150,'Ottimo'],[120,'Buono'],[90,'Discreto'],[60,'Sufficiente',1],[1,'Insufficiente',1]]},
+  t15:{min:15,pct:80,parts:['1′–5′','6′–10′','11′–15′'],rate:[[55,'Ottimo'],[45,'Buono'],[35,'Discreto'],[25,'Sufficiente',1],[1,'Insufficiente',1]]}};
+const rateOf=(tb,x)=>{for(const [th,l,ge] of tb)if(ge?x>=th:x>th)return l;return ''};
+const sugRepSet=pc=>{if(!(pc>60))return null;for(const [q,r] of [[90,1],[85,2],[80,3],[75,4],[70,5],[65,6],[60,8]])if(pc>=q)return r;return null};
+function enduCalc(t){
+  const E=ENDU[t.tipo],parts=(t.parts||[]).map(x=>num(x)||0),tot=parts.reduce((a,b)=>a+b,0),rif=num(t.rif),peso=num(t.kg);
+  const sug=rif>0?Math.ceil(rif*E.pct/100*2)/2:null,pct=peso>0&&rif>0?(peso!==sug?Math.ceil(peso/rif*100):E.pct):E.pct;
+  return {E,parts,tot,sug,pct,rate:tot?rateOf(E.rate,tot):'',rate2:E.rate2&&tot?rateOf(E.rate2,tot):'',vol:tot?tot*pct/100:null,ton:tot&&peso>0?tot*peso:null,dens:tot?tot/E.min:null,repset:t.tipo==='t15'?sugRepSet(pct):null};
+}
+function bwInfo(t){const rm=t.rm,bw=num(t.bw),reps=(num(t.rep)||0)+(num(t.rir)||0),tot=(bw||0)+(num(t.kg)||0);if(!(rm>0))return null;
+  const pc=Math.ceil(tot*100/rm),pbw=bw>0?Math.ceil(bw*100/rm):null,mr=pbw?bwRepMax(pbw):null;
+  return {pc,repset:Math.floor(reps*.5),pbw,mr,mrset:mr!=null?Math.floor(mr*.5):null}}
+function testRM(t){if(t.tipo==='brz')return brzRM((num(t.bw)||0)+(num(t.kg)||0),(num(t.rep)||0)+(num(t.rir)||0));if(t.tipo==='maxrep'||t.tipo==='t30'||t.tipo==='t15')return null;if(t.tipo==='reps'){const p=pctOfReps((Number(t.rep)||0)+(Number(t.rir)||0));return p&&Number(t.kg)>0?Number(t.kg)/p:null}return Number(t.tipo==='default'?t.rm:t.kg)||null}
+const cmpK=(a,b)=>{for(let i=0;i<a.length;i++){if(a[i]<b[i])return -1;if(a[i]>b[i])return 1}return 0};
+function maxFor(name,iso){let best=null;for(const t of S.tests.values()){if(t.deleted||t.n!==name||!(t.rm>0)||(t.from||t.d)>iso)continue;
+  const k=[t.from||t.d,t.tipo==='default'?0:1,t.d||'',t.updated||0];if(!best||cmpK(k,best.k)>0)best={t,k}}return best?best.t:null}
+const pctShowOf=e=>e.pct!=null?Math.round(e.pct*1000)/10:'';
+function autoPct(e,iso){if(e.pctMan||!e.n)return false;const t=maxFor(e.n,iso);if(!t||!(Number(e.kg)>0))return false;const p=Math.round(Number(e.kg)/t.rm*1000)/1000;if(p===e.pct)return false;e.pct=p;return true}
+const isRmType=k=>k==='1rm'||k==='reps'||k==='brz';
+const fk=x=>fmtN(x,x%1?1:0);
+function testDesc(t){
+  if(t.tipo==='brz')return `${num(t.bw)>0?`${fk(num(t.bw))} + `:''}${fk(num(t.kg)||0)} kg × ${t.rep}${t.rir?` (+${t.rir} in riserva)`:''}: 1RM ${fmtN(t.rm,1)} kg (Brzycki)`;
+  if(t.tipo==='maxrep')return `${t.rep} ripetizioni massime a corpo libero`;
+  if(t.tipo==='t30'||t.tipo==='t15'){const c=enduCalc(t);return `Test ${c.E.min}′ con ${fk(num(t.kg)||0)} kg: ${c.tot} ripetizioni (${c.parts.join(' + ')})${c.rate?`, ${c.rate.toLowerCase()}`:''}`}
+  if(t.tipo==='reps')return `${fmtN(t.kg,t.kg%1?1:0)} kg × ${t.rep}${t.rir?` (+${t.rir} in riserva)`:''}: 1RM stimato ${fmtN(t.rm,1)} kg`;
+  if(t.tipo==='default')return `1RM ${fmtN(t.rm,1)} kg (default)`;
+  return `1RM ${fmtN(t.rm,1)} kg`;
+}
+const slug=n=>String(n).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'x';
+const isoMinus=(iso,days)=>{const t=new Date(isoUTC(iso)-days*864e5);return `${t.getUTCFullYear()}-${pad(t.getUTCMonth()+1)}-${pad(t.getUTCDate())}`};
+async function saveMisDoc(m){
+  try{if(S.mode==='db')await S.base.collection('misure').doc(m.id).set(m);
+    else{const o={};S.misure.forEach((v,k)=>o[k]=v);store('diario-misure',o)}}catch(e){}
+}
+const MIS=[['peso','Peso corporeo','kg'],['torace','Torace braccia aperte','cm'],['spalle','Spalle','cm'],['braccio','Braccio contratto destro','cm'],['coscia','Coscia sotto gluteo','cm'],['polpaccio','Polpaccio max destro','cm'],['vita','Ombelico','cm']];
+const misList=()=>[...S.misure.values()].filter(m=>!m.deleted&&m.d).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
+function lastBW(n){const m=misList().find(x=>x.vals&&num(x.vals.peso)>0);if(m)return num(m.vals.peso);
+  const t=[...S.tests.values()].filter(x=>!x.deleted&&num(x.bw)>0&&(!n||x.n===n)).sort((a,b)=>a.d<b.d?1:-1)[0];return t?num(t.bw):''}
+async function saveTestDoc(t){
+  try{if(S.mode==='db')await S.base.collection('test').doc(t.id).set(t);
+    else{const m={};S.tests.forEach((v,k)=>m[k]=v);store('diario-test',m)}}catch(e){}
+}
+async function writeSession(c){
+  if(S.mode==='db')await S.base.collection('sedute').doc(c.id).set(c);
+  else{const all=load('diario-sedute')||{};all[c.id]=c;store('diario-sedute',all);S.sed.set(c.id,c);merge()}
+}
+function ensureDefaults(force){
+  if(!S.testsLoaded||!S.stor.size)return 0;
+  if(!force&&S.tests.size)return 0;
+  const ds=[...S.stor.values()].map(x=>x.d).sort(),lim=isoMinus(ds[ds.length-1],56),best={};
+  [...S.stor.values()].filter(x=>x.d>=lim).sort((a,b)=>a.d<b.d?-1:1).forEach(x=>x.ex.forEach(e=>{
+    if(e.st!=='Non eseguito'&&Number(e.kg)>0&&Number(e.pct)>0)best[e.n]={d:x.d,kg:Number(e.kg),pct:Number(e.pct)}}));
+  const now=Date.now();let n=0;
+  Object.entries(best).forEach(([nm,b])=>{const t={id:'def_'+slug(nm),d:b.d,n:nm,tipo:'default',kg:b.kg,pct:b.pct,rm:Math.round(b.kg/b.pct*10)/10,from:'2023-01-01',
+    note:`Dal foglio Excel: ${fmtN(b.kg,b.kg%1?1:0)} kg al ${fmtN(b.pct*100)}% il ${fmtD(b.d)}`,updated:now};S.tests.set(t.id,t);saveTestDoc(t);n++});
+  return n;
+}
+async function applyTest(t){
+  const from=t.from||t.d;let n=0;
+  if(S.draft&&S.draft.d>=from){S.draft.ex.forEach(e=>{if(e.n===t.n&&autoPct(e,S.draft.d))n++});if(n)scheduleSave()}
+  for(const [id,x] of [...S.sed]){if(x.deleted||!x.updated||x.d<from||(S.draft&&S.draft.id===id))continue;
+    const c=clone(x);let ch=false;c.ex.forEach(e=>{if(e.n===t.n&&autoPct(e,c.d))ch=true});
+    if(ch){c.updated=Date.now();try{await writeSession(c);n++}catch(e){}}}
+  return n;
 }
 
 /* ---------- storico: unione ---------- */
@@ -377,11 +509,12 @@ function nextPlan(e,cfg){
 function exFromHistory(name,iso,skipId){
   const last=lastOf(name,iso,skipId);
   const e={n:name,p:'',t:null,kg:null,z:null,pct:null,b:null,k:0,s:[],st:'Eseguito',f:'',note:''};
-  if(!last){e.s=[];setN(e,4);return e}
+  if(!last){e.s=[];setN(e,4);autoPct(e,iso);return e}
   const p=last.e;Object.assign(e,{p:p.p||'',t:p.t??null,kg:p.kg??null,z:p.z??null,pct:p.pct??null});
   const plan=nextPlan(p,S.cfg.esercizi[name]);
   if(plan){e.b=plan.b;e.k=plan.k;e.kg=plan.kg;e._why=`Ultima volta il ${fmtD(last.s.d)}: ${plan.why}.`;setN(e,plan.n)}
   else setN(e,p.s.length||4);
+  autoPct(e,iso);
   return e;
 }
 function setN(e,n){
@@ -436,7 +569,9 @@ async function init(){
     const all=load('diario-sedute')||{};S.sed=new Map(Object.entries(all));
     (load('diario-storico')||[]).forEach(x=>x&&x.id&&S.stor.set(x.id,x));
     S.cfg=load('diario-config')||{esercizi:{}};loadPrefs();
-    merge();render();return;
+    S.tests=new Map(Object.entries(load('diario-test')||{}));S.testsLoaded=true;
+    S.misure=new Map(Object.entries(load('diario-misure')||{}));
+    merge();ensureDefaults();render();return;
   }
   S.base=db.doc(`data/users/${uid}/diario`);
   try{
@@ -451,17 +586,24 @@ async function init(){
   S.base.onSnapshot(d=>{
     const v=d.exists?d.data():null;S.cfg={esercizi:{},...(v?clone(v):{})};loadPrefs();
   },()=>{});
+  S.base.collection('test').onSnapshot(q=>{
+    S.tests=new Map(q.docs.map(d=>[d.id,d.data()]));S.testsLoaded=true;ensureDefaults();
+    if(S.tab==='esercizi'||S.tab==='massimali')render();
+  },()=>{});
+  S.base.collection('misure').onSnapshot(q=>{
+    S.misure=new Map(q.docs.map(d=>[d.id,d.data()]));if(S.tab==='massimali')render();
+  },()=>{});
 }
 
-const PREFKEYS={emom:['mark','giroFmt','col','warnSec','warnCol','half','restOn','restSec','restEnd','restEndSec','restCol'],rec:['colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],edt:['col','warnSec','warnCol','frac','minsLeft','restEnd','restEndSec','restCol'],snd:['style'],sess:['warmOn','warmAuto','warmMode','warmMin','coolOn','coolAuto','coolMode','coolMin','colWarm','colCool']};
+const PREFKEYS={tst:['tipo','step','lead','col','warnSec','warnCol','half'],circ:['items','giri','restEx','restGiro','lead','colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],emom:['mark','giroFmt','col','warnSec','warnCol','half','restOn','restSec','restEnd','restEndSec','restCol'],rec:['colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],edt:['col','warnSec','warnCol','frac','minsLeft','restEnd','restEndSec','restCol'],snd:['style','fsAuto'],sess:['warmOn','warmAuto','warmMode','warmMin','coolOn','coolAuto','coolMode','coolMin','colWarm','colCool']};
 function loadPrefs(){
   if(S.prefsLoaded||!S.cfg.timer)return;
   for(const m in PREFKEYS){const p=S.cfg.timer[m];if(!p)continue;
-    PREFKEYS[m].forEach(k=>{if(p[k]==null)return;if(Array.isArray(p[k]))p[k].forEach((c,i)=>{if(c)S.tc[m][k][i]=bright(c)});else S.tc[m][k]=/col/i.test(k)?bright(p[k]):p[k]})}
+    PREFKEYS[m].forEach(k=>{if(p[k]==null)return;if(k==='items'){if(Array.isArray(p[k])&&p[k].length)S.tc[m].items=clone(p[k]);return}if(Array.isArray(p[k]))p[k].forEach((c,i)=>{if(c)S.tc[m][k][i]=bright(c)});else S.tc[m][k]=/col/i.test(k)?bright(p[k]):p[k]})}
   S.prefsLoaded=true;if(S.tab==='timer'&&!T)render();
 }
 function savePrefs(){
-  const t={};for(const m in PREFKEYS){t[m]={};PREFKEYS[m].forEach(k=>{const v=S.tc[m][k];t[m][k]=Array.isArray(v)?[...v]:k==='warnSec'?(num(v)??3):v})}
+  const t={};for(const m in PREFKEYS){t[m]={};PREFKEYS[m].forEach(k=>{const v=S.tc[m][k];t[m][k]=Array.isArray(v)?clone(v):k==='warnSec'?(num(v)??3):v})}
   S.cfg.timer=t;S.prefsLoaded=true;saveCfg();
 }
 function saveCfg(){clearTimeout(cfgTimer);cfgTimer=setTimeout(async()=>{try{if(S.mode==='db')await S.base.set(clone(S.cfg));else store('diario-config',S.cfg)}catch(e){}},1000)}
@@ -479,14 +621,15 @@ function vWarn(m,what){
     <p class="muted small" style="margin:6px 0 0">Gli ultimi 3 secondi suonano sempre; se l’avviso parte prima, un segnale ne segna l’inizio.</p>
     ${m==='edt'?`<label class="f" style="max-width:260px;margin-top:8px">Avvisi durante il tempo<select data-f="tc:edt.frac">${[['none','Nessuno'],['half','A metà'],['thirds','A 1/3 e 2/3'],['quarters','A 1/4, metà e 3/4']].map(([k,l])=>`<option value="${k}" ${c.frac===k?'selected':''}>${l}</option>`).join('')}</select></label>
     <label class="f" style="max-width:260px;margin-top:8px">Avvisa quando mancano (minuti)<input type="text" inputmode="decimal" placeholder="es. 5, 1" value="${esc(c.minsLeft)}" data-f="tc:edt.minsLeft"></label>`
-    :`<label class="row" style="flex-wrap:nowrap;margin-top:8px"><input type="checkbox" ${c.half?'checked':''} data-f="tc:${m}.half" style="width:22px;height:22px"> ${{emom:'Avviso a metà di ogni intervallo',rec:'Avviso a metà del recupero'}[m]}</label>`}</div>
+    :`<label class="row" style="flex-wrap:nowrap;margin-top:8px"><input type="checkbox" ${c.half?'checked':''} data-f="tc:${m}.half" style="width:22px;height:22px"> ${{emom:'Avviso a metà di ogni intervallo',rec:'Avviso a metà del recupero',circ:'Avviso a metà di ogni pausa',tst:'Avviso a metà di ogni blocco'}[m]}</label>`}</div>
   ${vSound()}`;
 }
-const STILI=[['bip','Bip'],['campanello','Campanello'],['fischietto','Fischietto'],['legno','Legno'],['voce','Voce']];
+const STILI=[['bip','Bip'],['campanello','Campanello'],['fischietto','Fischietto'],['legno','Legno'],['gong','Gong'],['digitale','Digitale'],['marimba','Marimba'],['ring','Campana del ring'],['arcade','Arcade'],['tamburo','Tamburo'],['voce','Voce']];
 function vSound(){
   const st=S.tc.snd.style;
   return `<div><div class="muted small" style="margin-bottom:4px">Suono degli avvisi (vale per tutti i timer)</div>
     <div class="seg sm" role="group" aria-label="Suono degli avvisi" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));max-width:520px">${STILI.map(([k,l])=>`<button data-a="tset" data-f="snd.style" data-v="${k}" aria-pressed="${st===k}">${l}</button>`).join('')}</div>
+    <label class="row" style="flex-wrap:nowrap;margin-top:10px"><input type="checkbox" ${S.tc.snd.fsAuto!==false?'checked':''} data-f="tc:snd.fsAuto" style="width:22px;height:22px"> Apri il timer a schermo intero (nasconde anche le barre di Android)</label>
     <div class="row" style="margin-top:8px"><button class="btn" data-a="sndTest">Prova il suono</button><span class="muted small">${st==='voce'?'Conta gli ultimi secondi e dice il nome dell’esercizio a ogni cambio.':''}</span></div></div>`;
 }
 function fgFor(hex){const n=parseInt(String(hex).slice(1),16);if(!isFinite(n))return '#FFFFFF';const l=(0.2126*(n>>16)+0.7152*(n>>8&255)+0.0722*(n&255))/255;return l>0.55?'#1D2830':'#FFFFFF'}
@@ -504,6 +647,8 @@ function render(){
   const m=$('#main');
   if(S.tab==='diario')m.innerHTML=vDiario();
   else if(S.tab==='timer')m.innerHTML=vTimer();
+  else if(S.tab==='esercizi')m.innerHTML=vEsercizi();
+  else if(S.tab==='massimali')m.innerHTML=vMassimali();
   else m.innerHTML=vStorico();
   document.body.classList.toggle('lock',S.tab==='timer'&&!!((T&&!T.done)||(SES&&['pre','warm','cool'].includes(SES.phase))));
   if(document.querySelector('.run.full'))fitRun();
@@ -552,15 +697,15 @@ function vNuova(){
 }
 function vCard(e,i){
   const cfg=S.cfg.esercizi[e.n]||{};
-  const pctShow=e.pct!=null?Math.round(e.pct*1000)/10:'';
+  const pctShow=pctShowOf(e),pAuto=!e.pctMan&&!!maxFor(e.n,S.draft.d);
   return `<section class="card" id="card-${i}">
-  <div class="card-h"><input type="text" value="${esc(e.n)}" data-f="e:${i}:n" list="names" aria-label="Esercizio"></div>
+  <div class="card-h">${exIcon(e.n,38)}<input type="text" value="${esc(e.n)}" data-f="e:${i}:n" list="names" aria-label="Esercizio"></div>
   ${e._why?`<p class="sugg">${esc(e._why)}</p>`:''}
   <div class="grid">
     <label class="f wide">Protocollo<input type="text" value="${esc(e.p)}" data-f="e:${i}:p"></label>
     <label class="f">Kg<input type="number" inputmode="decimal" step="any" value="${e.kg??''}" data-f="e:${i}:kg"></label>
     <label class="f">Zavorra<input type="number" inputmode="decimal" step="any" value="${e.z??''}" data-f="e:${i}:z"></label>
-    <label class="f">% 1RM<input type="number" inputmode="decimal" step="any" value="${pctShow}" data-f="e:${i}:pct"></label>
+    <label class="f">% 1RM${pAuto?' auto':''}<input type="number" inputmode="decimal" step="any" value="${pctShow}" id="pct-${i}" data-f="e:${i}:pct"></label>
     <label class="f">Tempo ′<input type="number" inputmode="decimal" step="any" value="${e.t??''}" data-f="e:${i}:t"></label>
     <label class="f">Rep previste<input type="number" inputmode="numeric" value="${e.b??''}" data-f="e:${i}:b"></label>
     <label class="f">Serie a +1<input type="number" inputmode="numeric" value="${e.k??0}" data-f="e:${i}:k"></label>
@@ -607,6 +752,131 @@ function refreshCard(i){
   const m=$('#m-'+i);if(m)m.innerHTML=vMetrics(e);
 }
 
+/* ----- esercizi ----- */
+function allNames(){const x=new Set(S.names||[]);for(const t of S.tests.values())if(!t.deleted&&t.n)x.add(t.n);return [...x]}
+function exInfo(){const m=new Map();for(const s of S.hist)for(const e of s.ex){if(!e.n)continue;const o=m.get(e.n)||{n:0,last:null};o.n++;if(!o.last)o.last=s.d;m.set(e.n,o)}return m}
+function vExList(){
+  const info=exInfo(),q=S.exQ.trim().toLowerCase(),today=todayIso();
+  const list=allNames().filter(n=>!q||n.toLowerCase().includes(q)).sort((a,b)=>{const x=(info.get(a)||{}).last||'',y=(info.get(b)||{}).last||'';return x<y?1:x>y?-1:a.localeCompare(b,'it')});
+  if(!list.length)return `<p class="empty">Nessun esercizio trovato.</p>`;
+  return list.map(n=>{const o=info.get(n)||{n:0},t=maxFor(n,today);
+    return `<button class="exrow-b" data-a="exOpen" data-n="${esc(n)}">${exIcon(n,44)}<b>${esc(n)}</b><span class="rm">${t?`${fmtN(t.rm,1)}<small>kg 1RM</small>`:''}</span>
+      <span class="when">${o.last?`Ultima volta ${fmtD(o.last)}, ${o.n} ${o.n===1?'seduta':'sedute'}`:'Solo test'}</span></button>`}).join('');
+}
+function vEsercizi(){
+  if(S.exSel)return vEsercizio(S.exSel);
+  return `<div class="top"><h1>Esercizi</h1></div>${banner()}
+  <label class="f" style="margin-bottom:14px">Cerca<input type="text" value="${esc(S.exQ)}" data-f="ex:q" placeholder="Nome dell’esercizio"></label>
+  <div id="exList">${vExList()}</div>`;
+}
+function vEsercizio(n){
+  const today=todayIso(),t=maxFor(n,today),cfg=S.cfg.esercizi[n]||{};
+  const tests=[...S.tests.values()].filter(x=>!x.deleted&&x.n===n).sort((a,b)=>(b.from||b.d)<(a.from||a.d)?-1:1);
+  return `<div class="top"><button class="btn ghost" data-a="exBack" style="padding-left:0">← Tutti gli esercizi</button></div>
+  <h1 style="margin-bottom:14px;display:flex;align-items:center;gap:12px">${exIcon(n,56)}<span>${esc(n)}</span></h1>
+  <section class="card"><div class="row"><div><div class="muted small">Massimale in uso oggi</div>
+    ${t?`<div class="big-rm">${fmtN(t.rm,1)} kg</div><div class="muted small">${esc(testDesc(t))}${t.tipo==='default'?'':`, test del ${fmtD(t.d)}`}, applicato dal ${fmtD(t.from||t.d)}</div>`:'<p class="muted" style="margin:4px 0">Nessun massimale registrato.</p>'}</div>
+    <span class="spacer"></span><button class="btn primary" data-a="newTest" data-n="${esc(n)}">Nuovo test</button></div></section>
+  ${t?`<section class="card"><h3 style="margin-bottom:8px">Tabella carichi</h3><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>% 1RM</th><th>Rip. massime</th><th>Kg</th></tr></thead><tbody>
+    ${[...REPMAX].reverse().map(([q,r])=>`<tr><td>${fmtN(q*100)}%</td><td>${r}</td><td>${fmtN(Math.ceil(t.rm*q))}</td></tr>`).join('')}</tbody></table></div>
+    <p class="muted small" style="margin:8px 0 0">Kg arrotondati per eccesso al chilo, come nel foglio Excel.</p></section>`:''}
+  <section class="card"><h3 style="margin-bottom:8px">Progressione</h3>
+    <div class="prog" style="margin:0"><p>Quando tutte le serie arrivano al tetto, la seduta dopo riparte dalla base con più carico.</p>
+    <label class="f">Tetto rep<input type="number" inputmode="numeric" value="${cfg.tetto??''}" data-f="cx:tetto"></label>
+    <label class="f">Riparti da<input type="number" inputmode="numeric" value="${cfg.rip??''}" data-f="cx:rip"></label>
+    <label class="f">Kg in più<input type="number" inputmode="decimal" step="any" value="${cfg.inc??''}" data-f="cx:inc"></label></div></section>
+  ${(()=>{const bz=tests.filter(x=>x.tipo==='brz'&&num(x.bw)>0).sort((a,b)=>a.d<b.d?1:-1)[0],mr=tests.filter(x=>x.tipo==='maxrep').sort((a,b)=>a.d<b.d?1:-1)[0];if(!bz&&!mr)return '';
+    const b=bz?bwInfo(bz):null;
+    return `<section class="card"><h3 style="margin-bottom:8px">Corpo libero</h3>
+      ${b?`<p style="margin:0 0 8px">Dal test del ${fmtD(bz.d)}: il solo peso corporeo (${fk(num(bz.bw))} kg) è il <b>${b.pbw}%</b> del massimale${b.mr?`, circa <b>${b.mr}</b> ripetizioni massime e ${b.mrset} per serie`:''}.</p>`:''}
+      ${mr?`<div class="muted small">Massime ripetizioni del ${fmtD(mr.d)}: ${mr.rep}</div><div style="overflow-x:auto"><table class="tbl"><thead><tr>${[40,50,60,70,80].map(q=>`<th>${q}%</th>`).join('')}</tr></thead><tbody><tr>${[40,50,60,70,80].map(q=>`<td>${Math.floor(mr.rep*q/100)}</td>`).join('')}</tr></tbody></table></div>`:''}</section>`})()}
+  ${tests.length?`<section class="card"><h3>Test e massimali</h3>${tests.map(vTestRow).join('')}</section>`:''}
+  <h3 style="margin:18px 0 10px">Andamento</h3>${vExHistory(n)}`;
+}
+function vTestRow(t){
+  const rmT=t.rm>0&&t.tipo!=='default';
+  return `<div class="trow"><div><b>${t.tipo==='default'?'Default':fmtD(t.d)}</b>${rmT?` <span class="muted small">applicato dal ${fmtD(t.from||t.d)}</span>`:''}
+    <div>${esc(S.tab==='massimali'?t.n+': ':'')}${esc(testDesc(t))}</div>${t.note?`<div class="muted small">${esc(t.note)}</div>`:''}</div>
+    <div class="acts">${t.tipo==='default'?'':`<button class="btn" data-a="tfEdit" data-id="${esc(t.id)}">Modifica</button>`}<button class="btn ghost danger" data-a="tfAskDel" data-id="${esc(t.id)}">Elimina</button></div></div>`;
+}
+const TIPI=[['1rm','1RM'],['reps','Ripetizioni con carico'],['brz','5RM / corpo libero'],['maxrep','Max rip. corpo libero'],['t30','Test 30′'],['t15','Test 15′']];
+const TIPI_INFO={'1rm':'Il carico massimo sollevato per una ripetizione.',
+  reps:'Carico e ripetizioni fatte: il massimale si stima con la tabella del tuo foglio (ripetizioni massime ↔ % del massimale), contando anche quelle in riserva.',
+  brz:'Come nel foglio TabelleForzaCorpoLibero: peso corporeo + sovraccarico e ripetizioni (5RM a RPE 9). Il massimale si stima con la formula di Brzycki. Per gli esercizi con bilanciere lascia il peso corporeo vuoto.',
+  maxrep:'Il massimo numero di ripetizioni a corpo libero: ne ricavo gli schemi di lavoro al 40–80%.',
+  t30:'Massimo di ripetizioni tecniche in 30′ con circa il 70% del massimale, segnate ogni 10′.',
+  t15:'Massimo di ripetizioni tecniche in 15′ con circa l’80% del massimale, segnate ogni 5′.'};
+function tfResult(){
+  const f=S.tf,kg=num(f.kg),k=f.tipo;
+  if(k==='brz'){const t={tipo:'brz',bw:f.bw,kg:f.kg,rep:f.rep,rir:f.rir};t.rm=testRM(t);if(!t.rm)return '';const b=bwInfo(t);
+    return `1RM stimato <b>${fmtN(t.rm,1)} kg</b> <span class="muted small">(${b.pc}% del massimale, ${b.repset} ripetizioni per serie)</span>${b.pbw?`<br><span class="small">Solo peso corporeo: ${b.pbw}% del massimale${b.mr?`, circa ${b.mr} ripetizioni massime, ${b.mrset} per serie`:''}</span>`:''}`}
+  if(k==='maxrep'){const r=num(f.rep);if(!(r>0))return '';return `Schemi di lavoro: ${[40,50,60,70,80].map(q=>`${q}% <b>${Math.floor(r*q/100)}</b>`).join(', ')} ripetizioni`}
+  if(k==='t30'||k==='t15'){const c=enduCalc({tipo:k,kg:f.kg,rif:f.rif,parts:f.parts});
+    const sug=c.sug?`<span class="small">Peso consigliato ${fmtN(c.sug,1)} kg (${c.E.pct}% di ${fmtN(num(f.rif),1)} kg)${c.repset?`, ${c.repset} ripetizioni per serie`:''}</span>`:'<span class="muted small">Indica il 1RM di riferimento per avere il peso consigliato.</span>';
+    if(!c.tot)return sug;
+    return `${c.tot} ripetizioni: <b>${c.rate}</b>${c.rate2?` <span class="muted small">(scala Miletto: ${c.rate2})</span>`:''}<br><span class="small">${c.pct}% del massimale, volume ${fmtN(c.vol,2)}${c.ton?`, tonnellaggio ${fmtN(c.ton)}`:''}, densità ${fmtN(c.dens,1)} rip/min</span><br>${sug}`}
+  if(!(kg>0))return '';
+  if(k==='reps'){const r=(num(f.rep)||0)+(num(f.rir)||0);if(!r)return '';const p=pctOfReps(r);
+    return p?`1RM stimato <b>${fmtN(kg/p,1)} kg</b> <span class="muted small">(${r} ripetizioni massime = ${fmtN(p*100,1)}% del massimale)</span>`:'<span class="muted small">Oltre 30 ripetizioni la tabella non permette una stima.</span>'}
+  return `1RM <b>${fmtN(kg,1)} kg</b>`;
+}
+function vTestForm(){
+  const f=S.tf,k=f.tipo,E=ENDU[k],inp=(lbl,key,extra='')=>`<label class="f">${lbl}<input type="number" inputmode="decimal" step="any" value="${esc(f[key])}" data-f="tf:${key}" ${extra}></label>`;
+  let fields='';
+  if(k==='1rm')fields=inp('Carico massimo (kg)','kg');
+  else if(k==='reps')fields=inp('Carico (kg)','kg')+inp('Ripetizioni fatte','rep')+inp('In riserva (volute)','rir','min="0"');
+  else if(k==='brz')fields=inp('Peso corporeo (kg)','bw')+inp('Sovraccarico (kg)','kg')+inp('Ripetizioni fatte','rep')+inp('In riserva (volute)','rir','min="0"');
+  else if(k==='maxrep')fields=inp('Peso corporeo (kg)','bw')+inp('Ripetizioni massime','rep');
+  else fields=inp('Peso usato (kg)','kg')+inp('1RM di riferimento (kg)','rif','id="tfRif"')+E.parts.map((pl,i)=>`<label class="f">Ripetizioni ${pl}<input type="number" inputmode="numeric" value="${esc(f.parts[i])}" data-f="tf:parts.${i}"></label>`).join('');
+  return `<section class="card"><h3 style="margin-bottom:10px">${f.editId?'Modifica test':'Nuovo test'}</h3>
+    <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+      <label class="f">Data del test<input type="date" value="${f.d}" data-f="tf:d"></label>
+      <label class="f">Esercizio<input type="text" list="names" value="${esc(f.n)}" data-f="tf:n"></label></div>
+    <div class="seg sm" role="group" aria-label="Tipo di test" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:8px">
+      ${TIPI.map(([v,l])=>`<button data-a="tfTipo" data-v="${v}" aria-pressed="${k===v}">${l}</button>`).join('')}</div>
+    <p class="muted small" style="margin:0 0 10px">${TIPI_INFO[k]}</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">${fields}</div>
+    ${ENDU[k]?'<button class="btn" data-a="tstFromForm" style="margin:4px 0 0">Fai il test con il timer</button>':''}
+    <p class="res" id="tfRes">${tfResult()}</p>
+    <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:10px">
+      ${isRmType(k)?`<label class="f">Applica da<input type="date" id="tfFrom" value="${f.from}" data-f="tf:from"></label>`:''}
+      <label class="f">Note<input type="text" value="${esc(f.note)}" data-f="tf:note"></label></div>
+    ${isRmType(k)?'<p class="muted small" style="margin:0 0 10px">Dalla data «Applica da» la % 1RM degli allenamenti di questo esercizio si calcola su questo massimale, salvo che tu la scriva a mano.</p>':'<p class="muted small" style="margin:0 0 10px">Questo test non cambia il massimale: resta nello storico dell’esercizio.</p>'}
+    <div class="row"><button class="btn primary" data-a="tfSave">Salva test</button>${f.editId?'<button class="btn" data-a="tfCancel">Annulla</button>':''}</div></section>`;
+}
+function vMisure(){
+  if(!S.mf)S.mf=newMf();const f=S.mf,list=misList();
+  const delta=(m,i,k)=>{const prev=list.slice(i+1).find(x=>num(x.vals&&x.vals[k])>0),a=num(m.vals&&m.vals[k]);if(!(a>0)||!prev)return '';const d=a-num(prev.vals[k]);if(!d)return '';return ` <span class="muted small">${d>0?'+':'−'}${fmtN(Math.abs(d),d%1?1:0)}</span>`};
+  return `<section class="card"><h3 style="margin-bottom:10px">${f.editId?'Modifica misurazione':'Nuova misurazione'}</h3>
+    <label class="f" style="max-width:200px;margin-bottom:10px">Data<input type="date" value="${f.d}" data-f="mf:d"></label>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">${MIS.map(([k,l,u])=>`<label class="f">${l} (${u})<input type="number" inputmode="decimal" step="any" value="${esc(f.vals[k]??'')}" data-f="mf:v.${k}"></label>`).join('')}</div>
+    <label class="f" style="margin-top:8px">Note<input type="text" value="${esc(f.note)}" data-f="mf:note"></label>
+    <div class="row" style="margin-top:12px"><button class="btn primary" data-a="mfSave">Salva misure</button>${f.editId?'<button class="btn" data-a="mfCancel">Annulla</button>':''}</div></section>
+  <section class="card"><h3 style="margin-bottom:8px">Storico misure</h3>
+    ${list.length?`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th>${MIS.map(([,l,u])=>`<th>${l} (${u})</th>`).join('')}<th></th></tr></thead><tbody>
+      ${list.map((m,i)=>`<tr><td>${fmtD(m.d)}</td>${MIS.map(([k])=>`<td>${num(m.vals&&m.vals[k])>0?fmtN(num(m.vals[k]),num(m.vals[k])%1?1:0):'–'}${delta(m,i,k)}</td>`).join('')}
+        <td style="white-space:nowrap"><button class="btn" data-a="mfEdit" data-id="${esc(m.id)}">Modifica</button> <button class="btn ghost danger" data-a="mfAskDel" data-id="${esc(m.id)}">Elimina</button></td></tr>`).join('')}</tbody></table></div>
+      <p class="muted small" style="margin:8px 0 0">Accanto a ogni valore la differenza rispetto alla misurazione precedente.</p>`:'<p class="muted">Ancora nessuna misurazione.</p>'}</section>`;
+}
+function vMassimali(){
+  if(!S.tf)S.tf=newTf();
+  const sub=`<div class="seg" role="group" aria-label="Sezione" style="max-width:520px">
+    <button data-a="testSub" data-v="test" aria-pressed="${S.testSub!=='misure'}">Test e massimali</button>
+    <button data-a="testSub" data-v="misure" aria-pressed="${S.testSub==='misure'}">Misure</button></div>`;
+  if(S.testSub==='misure')return `<div class="top"><h1>Test</h1></div>${banner()}${sub}${vMisure()}`;
+  const all=[...S.tests.values()].filter(t=>!t.deleted);
+  const tests=all.filter(t=>t.tipo!=='default').sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0),defs=all.filter(t=>t.tipo==='default').sort((a,b)=>a.n.localeCompare(b.n,'it'));
+  return `<div class="top"><h1>Test</h1></div>${banner()}${sub}
+  ${vTestForm()}
+  <section class="card"><h3>Test registrati</h3>${tests.length?tests.map(vTestRow).join(''):'<p class="muted">Ancora nessun test.</p>'}</section>
+  <section class="card"><h3>Massimali di default</h3>
+    <p class="muted small" style="margin:4px 0 8px">Ricavati dalle ultime settimane del foglio Excel (kg ÷ % di intensità). Valgono finché non registri un test; puoi correggerli qui.</p>
+    ${defs.map(t=>`<div class="trow"><div><b>${exIcon(t.n,22)} ${esc(t.n)}</b><div class="muted small">${esc(t.note||'')}</div></div>
+      <div class="acts"><input type="number" inputmode="decimal" step="any" value="${t.rm}" data-f="dm:${esc(t.id)}" style="width:116px" aria-label="1RM di ${esc(t.n)} in kg"><span>kg</span>
+      <button class="btn ghost danger" data-a="tfAskDel" data-id="${esc(t.id)}">Elimina</button></div></div>`).join('')||'<p class="muted">Nessun massimale di default.</p>'}
+    ${S.stor.size?'<button class="btn" data-a="defRebuild" style="margin-top:8px">Ricalcola dai dati Excel</button>':''}</section>`;
+}
+
 /* ----- storico ----- */
 function vStorico(){
   const ex=S.storEx;
@@ -633,7 +903,7 @@ function vSess(s){
   const open=S.open.has(s.id);
   return `<article class="sess"><button data-a="toggleSess" data-id="${esc(s.id)}" aria-expanded="${open}">
     <div class="sess-t">${s.wo?`<span class="wo">${esc(s.wo)}</span>`:''}<b>${ggOf(s.d)} ${fmtD(s.d)}</b></div>
-    <div class="exl">${s.ex.map(e=>`<span class="nm">${esc(e.n)}${e.kg?` <span class="muted">${fmtN(e.kg,e.kg%1?1:0)} kg</span>`:''}</span><span class="mini">${(e.s||[]).map(x=>`<i class="e-${e.st==='Non eseguito'?'skip':x[1]}"></i>`).join('')}</span>`).join('')}</div>
+    <div class="exl">${s.ex.map(e=>`<span class="nm">${exIcon(e.n,22)} ${esc(e.n)}${e.kg?` <span class="muted">${fmtN(e.kg,e.kg%1?1:0)} kg</span>`:''}</span><span class="mini">${(e.s||[]).map(x=>`<i class="e-${e.st==='Non eseguito'?'skip':x[1]}"></i>`).join('')}</span>`).join('')}</div>
   </button>${open?`<div class="sess-d">${s.ex.map(e=>{const m=metrics(e,!!s.updated);return `<div class="ex"><b>${esc(e.n)}</b>${e.p?` <span class="muted small">${esc(e.p)}</span>`:''}
     <p>${e.st==='Non eseguito'?'Non eseguito':`${(e.s||[]).map(x=>x[0]).join(' ')}${e.b!=null?` <span class="muted">(piano: ${e.b}${e.k?`, prime ${e.k} a ${e.b+1}`:''})</span>`:''}`}</p>
     <p class="muted">TotRep ${fmtN(m.tot)}, tonnellaggio ${fmtN(m.ton)}, volume ${fmtN(m.vol,2)}${m.fails?`, ${m.fails} fallite`:''}${e.f?`, ${esc(e.f.toLowerCase())}`:''}</p>
@@ -683,9 +953,9 @@ function vTimer(){
   const m=S.tmode;
   return `<div class="top"><h1>Timer</h1></div>${vSesBox()}${T&&T.done?`<div id="runBox" style="margin-bottom:18px">${vRun()}</div>`:''}
   <div class="seg" role="group" aria-label="Tipo di timer">
-    ${[['rec','Recupero'],['emom','EMOM'],['edt','EDT']].map(([k,l])=>`<button data-a="tmode" data-m="${k}" aria-pressed="${m===k}">${l}</button>`).join('')}
+    ${[['rec','Set&amp;Pause'],['emom','EMOM'],['edt','EDT'],['circ','Circuito'],['tst','Test']].map(([k,l])=>`<button data-a="tmode" data-m="${k}" aria-pressed="${m===k}">${l}</button>`).join('')}
   </div>
-  <div class="tcfg">${m==='rec'?vCfgRec():m==='emom'?vCfgEmom():vCfgEdt()}</div>`;
+  <div class="tcfg">${m==='rec'?vCfgRec():m==='emom'?vCfgEmom():m==='circ'?vCfgCirc():m==='tst'?vCfgTst():vCfgEdt()}</div>`;
 }
 const stepper=(f,v,lbl)=>`<div class="stepper" role="group" aria-label="${lbl}"><button data-a="step" data-f="${f}" data-d="-1" aria-label="Meno">−</button><output>${v}</output><button data-a="step" data-f="${f}" data-d="1" aria-label="Più">+</button></div>`;
 function emomName(k){return k===1?'EMOM':`E${k}MOM`}
@@ -704,6 +974,16 @@ function parseProto(p){
   return null;
 }
 const emomSig=q=>`${q.giri||''}x${q.sec}`;
+const grpName=k=>k===2?'Superset':k===3?'Triset':'Giant set';
+const normN=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function recPartners(i){
+  const ex=S.draft.ex,e=ex[i],out=[i];
+  String(e.p||'').split('+').slice(1).forEach(tok=>{
+    const t=normN(tok.replace(/(rest|pausa|rec)\s*\d+.*$/i,'').replace(/\d+\s*["″']*/g,''));if(t.length<3)return;
+    const j=ex.findIndex((x,k)=>k!==i&&!out.includes(k)&&x.n&&(normN(x.n).startsWith(t)||t.startsWith(normN(x.n).slice(0,Math.max(4,normN(x.n).length)))));
+    if(j>=0&&out.length<6)out.push(j)});
+  return out;
+}
 function timerPlan(i){
   const ex=S.draft.ex,e=ex[i],pp=parseProto(e.p);
   if(pp&&pp.type==='emom'){
@@ -712,11 +992,12 @@ function timerPlan(i){
     return {mode:'emom',idx,pp,label:`Timer ${emomName(idx.length)}`};
   }
   if(pp&&pp.type==='edt'){const o=ex.findIndex((x,j)=>j!==i&&(parseProto(x.p)||{}).type==='edt');return {mode:'edt',idx:o<0?[i]:[i,o].sort((a,b)=>a-b),pp,label:'Timer EDT'}}
-  return {mode:'rec',idx:[i],pp:pp&&pp.type==='rest'?pp:null,label:pp&&pp.type==='rest'?`Timer recupero ${pp.sec}″`:'Timer recupero'};
+  const idx=recPartners(i),rp=idx.map(j=>parseProto(ex[j].p)).find(q=>q&&q.type==='rest')||null;
+  return {mode:'rec',idx,pp:rp,label:idx.length>1?`Timer ${grpName(idx.length)}${rp?` ${rp.sec}″`:''}`:rp?`Set&Pause ${rp.sec}″`:'Set&Pause'};
 }
 function fromBanner(m){
   const f=S.tc.from;const c=S.tc[m];
-  const names=m==='rec'?(c.link!=null&&S.draft&&S.draft.ex[c.link]?[S.draft.ex[c.link].n]:[]):(c.link||[]).map(j=>S.draft&&S.draft.ex[j]?S.draft.ex[j].n:'').filter(Boolean);
+  const names=(m==='rec'?(c.links||[]):(c.link||[])).map(j=>S.draft&&S.draft.ex[j]?S.draft.ex[j].n:'').filter(Boolean);
   if(!names.length)return '';
   const what={rec:'durante il recupero segni l’esito della serie appena fatta e alla fine il tempo totale va nell’esercizio',
     emom:'segni l’esito di ogni serie, durante l’intervallo o in quello dopo come scegli più sotto, e con «Torna alla seduta» puoi correggere qualsiasi serie anche a timer avviato',
@@ -725,21 +1006,88 @@ function fromBanner(m){
   return `<p class="banner" style="border-left-color:var(--ok)">${src}Collegato a ${esc(names.join(' e '))}: ${what}. <button class="btn ghost" data-a="unlink" data-m="${m}">Scollega</button></p>`;
 }
 function vCfgRec(){
-  const c=S.tc.rec;
+  const c=S.tc.rec,linked=!!c.links,its=c.items,multi=its.length>1,sup=multi&&c.mode==='super';
   return `<p class="lead">Avvii ogni serie tu; alla fine parte il recupero e, se vuoi, la serie dopo parte da sola.</p>
   ${fromBanner('rec')}
-  <div><div class="muted small">Serie totali</div>${stepper('rec.n',c.n,'Serie totali')}</div>
-  <div><div class="muted small" style="margin-bottom:4px">Recupero</div>
+  <div><div class="muted small" style="margin-bottom:4px">Esercizi</div>
+  ${its.map((it,i)=>`<div class="exrow" style="grid-template-columns:minmax(0,1fr) 66px 66px 40px;margin-bottom:6px">
+     <label class="f">${multi?`Esercizio ${i+1}`:'Esercizio (facoltativo)'}<input type="text" list="names" value="${esc(it.n)}" data-f="tc:rec.items.${i}.n" ${linked?'disabled':''}></label>
+     <label class="f">Serie<input type="number" inputmode="numeric" value="${esc(it.sets)}" data-f="tc:rec.items.${i}.sets" ${linked?'disabled':''}></label>
+     <label class="f">Rep<input type="number" inputmode="numeric" value="${esc(it.rep)}" data-f="tc:rec.items.${i}.rep" ${linked?'disabled':''}></label>
+     ${multi&&!linked?`<button class="btn ghost" data-a="recDel" data-i="${i}" aria-label="Togli l’esercizio ${i+1}" style="align-self:end">✕</button>`:'<span></span>'}</div>`).join('')}
+  ${!linked&&its.length<6?`<button class="btn" data-a="recAdd">+ Aggiungi esercizio</button>`:''}</div>
+  ${multi?`<div><div class="muted small" style="margin-bottom:4px">Come li fai</div>
+    <div class="seg sm" role="group" aria-label="Come fare gli esercizi" style="max-width:440px">
+      <button data-a="tset" data-f="rec.mode" data-v="sep" aria-pressed="${!sup}">Uno dopo l’altro</button>
+      <button data-a="tset" data-f="rec.mode" data-v="super" aria-pressed="${sup}">${grpName(its.length)}</button></div>
+    <p class="muted small" style="margin:6px 0 0">${sup?'Una serie di ogni esercizio di fila, poi il recupero; si ripete per il numero di serie.':'Tutte le serie del primo esercizio, poi quelle del secondo, e così via.'}</p></div>`:''}
+  ${sup?`<label class="f" style="max-width:300px">Pausa tra gli esercizi del ${grpName(its.length).toLowerCase()} (s, 0 = subito)<input type="number" inputmode="numeric" value="${c.tr}" data-f="tc:rec.tr"></label>`:''}
+  ${multi&&!sup?`<label class="f" style="max-width:300px">Pausa per cambiare esercizio (s)<input type="number" inputmode="numeric" value="${c.between}" data-f="tc:rec.between"></label>`:''}
+  <div><div class="muted small" style="margin-bottom:4px">${sup?'Recupero dopo ogni giro':'Recupero tra le serie'}</div>
     <div class="seg sm" role="group" aria-label="Tipo di recupero" style="max-width:360px">
       <button data-a="tset" data-f="rec.rest" data-v="fix" aria-pressed="${c.rest==='fix'}">Fisso</button>
       <button data-a="tset" data-f="rec.rest" data-v="mult" aria-pressed="${c.rest==='mult'}">Multiplo della serie</button></div></div>
   ${c.rest==='fix'?`<label class="f" style="max-width:200px">Secondi di recupero<input type="number" inputmode="numeric" value="${c.sec}" data-f="tc:rec.sec"></label>`
-   :`<label class="f" style="max-width:260px">Recupero = durata della serie ×<input type="number" inputmode="decimal" step="0.25" value="${c.mult}" data-f="tc:rec.mult"></label>`}
+   :`<label class="f" style="max-width:300px">Recupero = durata ${sup?'del giro':'della serie'} ×<input type="number" inputmode="decimal" step="0.25" value="${c.mult}" data-f="tc:rec.mult"></label>`}
   <label class="row" style="flex-wrap:nowrap"><input type="checkbox" ${c.auto?'checked':''} data-f="tc:rec.auto" style="width:22px;height:22px"> La serie successiva parte da sola a fine recupero</label>
   <div class="emx"><div class="muted small">Colore durante la serie</div>${swatches('rec','colWork',c.colWork,PAL,'Colore durante la serie')}</div>
   <div class="emx"><div class="muted small">Colore durante il recupero</div>${swatches('rec','colRest',c.colRest,PAL,'Colore durante il recupero')}</div>
   ${vRestEnd('rec')}
   ${vWarn('rec','recupero')}
+  ${vSesCfg()}
+  <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
+}
+function tstSugTxt(){const c=S.tc.tst,x=enduCalc({tipo:c.tipo,kg:c.kg,rif:c.rif,parts:[]});
+  return x.sug?`Peso consigliato ${fmtN(x.sug,1)} kg (${x.E.pct}% di ${fmtN(num(c.rif),1)} kg)${x.repset?`; ripetizioni per serie consigliate: ${x.repset}`:''}.`:'Indica il 1RM di riferimento per avere il peso consigliato.'}
+function vCfgTst(){
+  const c=S.tc.tst,E=ENDU[c.tipo];
+  if(!c.rifTouched&&c.n&&!c.rif){const t=maxFor(c.n,todayIso());if(t)c.rif=t.rm}
+  return `<p class="lead">${TIPI_INFO[c.tipo]} Tocca +1 a ogni ripetizione: l’app le mette nel blocco da ${E.min/3}′ in corso, somma il totale e alla fine ti dà il risultato.</p>
+  <div class="seg sm" role="group" aria-label="Durata del test" style="max-width:360px">
+    <button data-a="tset" data-f="tst.tipo" data-v="t30" aria-pressed="${c.tipo==='t30'}">Test 30′</button>
+    <button data-a="tset" data-f="tst.tipo" data-v="t15" aria-pressed="${c.tipo==='t15'}">Test 15′</button></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:0">
+    <label class="f">Esercizio<input type="text" list="names" value="${esc(c.n)}" data-f="tc:tst.n"></label>
+    <label class="f">1RM di riferimento (kg)<input type="number" inputmode="decimal" step="any" id="tstRif" value="${esc(c.rif)}" data-f="tc:tst.rif"></label>
+    <label class="f">Peso usato (kg)<input type="number" inputmode="decimal" step="any" value="${esc(c.kg)}" data-f="tc:tst.kg"></label>
+    <label class="f">Ripetizioni del tasto +N<input type="number" inputmode="numeric" value="${c.step}" data-f="tc:tst.step"></label>
+    <label class="f">Preparazione (s)<input type="number" inputmode="numeric" value="${c.lead}" data-f="tc:tst.lead"></label></div>
+  <p class="muted small" id="tstSug" style="margin:0">${tstSugTxt()}</p>
+  <div class="emx"><div class="muted small">Colori dei tre blocchi</div>${[0,1,2].map(i=>swatches('tst','col.'+i,c.col[i],PAL,`Colore del blocco ${i+1}`)).join('')}</div>
+  ${vWarn('tst','blocco')}
+  ${vSesCfg()}
+  <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
+}
+function nextRate(tb,x){for(const [th,l,ge] of [...tb].reverse()){if(l==='Insufficiente')continue;const need=ge?th:th+1;if(x<need)return {l,need:need-x}}return null}
+function tstTick(t){
+  if(t<T.lead){countdownBeeps(T.lead-t);return false}
+  const u=t-T.lead;
+  if(u>=T.total){tStop();sound('end');render();return true}
+  const idx=Math.min(2,Math.floor(u/T.bms));
+  if(idx!==T.blk){sound('change',T.blk<0?'via':`blocco ${idx+1}`);T.blk=idx;T.warned=false;T.halfDone=false;T.lastSec=null}
+  const rem=T.bms*(idx+1)-u;countdownBeeps(rem);warnBeep(rem);halfBeep(rem,T.bms);return false;
+}
+function vCfgCirc(){
+  const c=S.tc.circ;
+  const dur=c.items.reduce((a,it)=>a+(it.tipo==='rep'?0:(num(it.val)||0)),0)*c.giri+(num(c.restEx)||0)*Math.max(0,c.items.length-1)*c.giri+(num(c.restGiro)||0)*Math.max(0,c.giri-1);
+  return `<p class="lead">Fai le stazioni una dopo l’altro con una breve pausa, poi riposi e ripeti il giro.</p>
+  ${c.items.map((it,i)=>`<div class="emx"><div class="exrow" style="grid-template-columns:minmax(0,1fr) 40px">
+      <label class="f">Stazione ${i+1}<input type="text" list="names" value="${esc(it.n)}" data-f="tc:circ.items.${i}.n"></label>
+      ${c.items.length>1?`<button class="btn ghost" data-a="circDel" data-i="${i}" aria-label="Togli la stazione ${i+1}" style="align-self:end">✕</button>`:'<span></span>'}</div>
+    <div class="row" style="margin-top:6px;align-items:flex-end"><div class="seg sm" role="group" aria-label="Tipo della stazione ${i+1}" style="width:260px">
+      <button data-a="circTipo" data-i="${i}" data-v="time" aria-pressed="${it.tipo!=='rep'}">A tempo</button>
+      <button data-a="circTipo" data-i="${i}" data-v="rep" aria-pressed="${it.tipo==='rep'}">A ripetizioni</button></div>
+      <label class="f" style="width:110px">${it.tipo==='rep'?'Ripetizioni':'Secondi'}<input type="number" inputmode="numeric" value="${esc(it.val)}" data-f="tc:circ.items.${i}.val"></label></div></div>`).join('')}
+  ${c.items.length<12?`<button class="btn" data-a="circAdd">+ Aggiungi stazione</button>`:''}
+  <div class="row" style="gap:16px;align-items:flex-end"><div><div class="muted small">Giri</div>${stepper('circ.giri',c.giri,'Giri')}</div>
+    <label class="f" style="width:150px">Pausa tra le stazioni (s)<input type="number" inputmode="numeric" value="${c.restEx}" data-f="tc:circ.restEx"></label>
+    <label class="f" style="width:150px">Riposo tra i giri (s)<input type="number" inputmode="numeric" value="${c.restGiro}" data-f="tc:circ.restGiro"></label>
+    <label class="f" style="width:130px">Preparazione (s)<input type="number" inputmode="numeric" value="${c.lead}" data-f="tc:circ.lead"></label></div>
+  <p class="muted small" style="margin:0">Durata delle parti a tempo e delle pause: ${mmss(dur*1000)}. Le stazioni a ripetizioni finiscono quando tocchi «Fatto».</p>
+  <div class="emx"><div class="muted small">Colore durante le stazioni</div>${swatches('circ','colWork',c.colWork,PAL,'Colore durante le stazioni')}</div>
+  <div class="emx"><div class="muted small">Colore durante pause e riposi</div>${swatches('circ','colRest',c.colRest,PAL,'Colore durante pause e riposi')}</div>
+  ${vRestEnd('circ')}
+  ${vWarn('circ','pausa')}
   ${vSesCfg()}
   <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
 }
@@ -814,10 +1162,22 @@ function whistle(f,d,v,when=0){
   o.connect(g);g.connect(AC.destination);o.start(t0);l.start(t0);o.stop(t0+d+.05);l.stop(t0+d+.05)}catch(e){}
 }
 const wood=(f,v,when=0)=>tone(f,.08,v,'triangle',when,f*.6);
+const gong=(f,d,v,when=0)=>[[1,1],[1.48,.55],[2.03,.4],[2.76,.25]].forEach(([m,a])=>tone(f*m,d*(1.2-m*.15),v*a,'sine',when));
+const digi=(n,gap,when=0,f=2200)=>{for(let i=0;i<n;i++)tone(f,.07,.12,'square',when+i*gap)};
+const mar=(f,when=0)=>{tone(f,.55,.35,'sine',when);tone(f*4,.12,.07,'sine',when)};
+const ring=(n,gap,when=0)=>{for(let i=0;i<n;i++)bell(1250,.5,.28,when+i*gap)};
+const zap=(f1,f2,d,when=0)=>tone(f1,d,.14,'square',when,f2);
+const drum=(when=0,f=150)=>{tone(f,.28,.6,'sine',when,42);tone(f*2.2,.06,.15,'triangle',when,f)};
 const SOUNDS={
   bip:{tick:()=>tone(880,.12,.3),change:()=>tone(1320,.55,.4),warn:()=>tone(660,.25,.35),half:()=>{tone(990,.12,.3);tone(990,.12,.3,'sine',.18)},end:()=>{tone(1320,.4,.4);tone(990,.7,.4,'sine',.45)}},
   campanello:{tick:()=>bell(1568,.35,.25),change:()=>bell(784,1.4,.35),warn:()=>bell(1046,.8,.3),half:()=>{bell(1318,.5,.25);bell(1318,.5,.25,.25)},end:()=>{bell(784,1.2,.35);bell(523,1.8,.35,.5)}},
   fischietto:{tick:()=>whistle(2600,.12,.18),change:()=>whistle(2400,.7,.22),warn:()=>whistle(1800,.35,.2),half:()=>{whistle(2600,.12,.18);whistle(2600,.12,.18,.2)},end:()=>{whistle(2400,.5,.22);whistle(2400,.9,.22,.65)}},
+  gong:{tick:()=>gong(523,.6,.18),change:()=>gong(196,2.6,.42),warn:()=>gong(330,1.4,.3),half:()=>{gong(440,.9,.22);gong(440,.9,.22,.35)},end:()=>{gong(196,2.6,.42);gong(147,3.2,.42,.9)}},
+  digitale:{tick:()=>digi(1,0),change:()=>digi(3,.11),warn:()=>digi(2,.14,0,1800),half:()=>digi(2,.1,0,2600),end:()=>{digi(4,.1);digi(4,.1,.6)}},
+  marimba:{tick:()=>mar(1046),change:()=>[523,659,784].forEach((f,i)=>mar(f,i*.11)),warn:()=>{mar(659);mar(659,.16)},half:()=>{mar(880);mar(1175,.12)},end:()=>[523,659,784,1046].forEach((f,i)=>mar(f,i*.13))},
+  ring:{tick:()=>bell(1250,.25,.22),change:()=>ring(3,.16),warn:()=>ring(2,.18),half:()=>ring(1,0),end:()=>ring(8,.12)},
+  arcade:{tick:()=>zap(900,1200,.08),change:()=>{zap(440,880,.12);zap(660,1320,.12,.13);zap(880,1760,.18,.26)},warn:()=>{zap(1200,600,.12);zap(1200,600,.12,.16)},half:()=>zap(700,1400,.15),end:()=>[523,659,784,1046,1318].forEach((f,i)=>zap(f,f*1.01,.12,i*.1))},
+  tamburo:{tick:()=>drum(0,180),change:()=>{drum();drum(.16);drum(.32,120)},warn:()=>{drum(0,200);drum(.14,200)},half:()=>{drum(0,160);drum(.12,220)},end:()=>{for(let i=0;i<10;i++)drum(i*.07,170);drum(.8,110)}},
   legno:{tick:()=>wood(1200,.5),change:()=>{wood(800,.6);wood(800,.6,.12);wood(600,.6,.24)},warn:()=>{wood(1000,.5);wood(1000,.5,.15)},half:()=>{wood(1400,.45);wood(1400,.45,.1)},end:()=>[0,.15,.3,.6].forEach((w,i)=>wood(i<3?800:500,.6,w))},
 };
 const VOCE={tick:n=>n?String(n):'',change:n=>n||'via',warn:n=>n||'attenzione',half:n=>n||'metà',end:()=>'fine'};
@@ -838,9 +1198,14 @@ function tStart(){
   if(m==='emom'){c.ex=c.ex.slice(0,c.k).map((e,i)=>({n:e.n||`Esercizio ${i+1}`,rep:num(e.rep),sec:Math.max(5,num(e.sec)||60)}));c.giri=Math.max(1,c.giri);c.lead=Math.max(0,num(c.lead)||0);c.restSec=Math.max(5,num(c.restSec)||60);c.restEndSec=Math.max(5,num(c.restEndSec)||120);c.warnSec=Math.max(0,num(c.warnSec)??3)}
   if(m!=='emom'){c.warnSec=Math.max(0,num(c.warnSec)??3);c.restEndSec=Math.max(5,num(c.restEndSec)||120)}
   if(m==='edt'){c.min=Math.max(1,num(c.min)||15);['a','b'].forEach((k,i)=>{c[k].n=c[k].n||(i?'Esercizio B':'Esercizio A');c[k].rep=num(c[k].rep)||5})}
-  if(m==='rec'){c.n=Math.max(1,c.n);c.sec=Math.max(5,num(c.sec)||90);c.mult=Math.max(.25,num(c.mult)||2)}
-  T={mode:m,cfg:c,acc:0,since:now(),paused:false,done:false,lastSec:null};
-  if(m==='rec'){Object.assign(T,{set:0,phase:'ready',ph0:0,durs:[],restMs:0});const le=linkedEx();if(le){const f=le.s.findIndex(x=>x[1]==='');T.set=f<0?0:f;c.n=le.s.length}}
+  if(m==='rec'){c.sec=Math.max(5,num(c.sec)||90);c.mult=Math.max(.25,num(c.mult)||2);c.tr=Math.max(0,num(c.tr)||0);c.between=Math.max(0,num(c.between)??90)}
+  if(m==='circ'){c.giri=Math.max(1,c.giri);c.lead=Math.max(0,num(c.lead)||0);c.tr=Math.max(0,num(c.restEx)??15);c.sec=Math.max(0,num(c.restGiro)??60);c.rest='fix';c.auto=true;c.mode='super'}
+  T={mode:m==='circ'?'rec':m,kind:m,cfg:c,acc:0,since:now(),paused:false,done:false,lastSec:null};
+  if(m==='tst'){const E=ENDU[c.tipo];c.lead=Math.max(0,num(c.lead)||0);c.step=Math.max(1,num(c.step)||5);c.warnSec=Math.max(0,num(c.warnSec)??10);
+    Object.assign(T,{counts:[0,0,0],blk:-1,lead:c.lead*1000,total:E.min*60000,bms:E.min*20000})}
+  if(m==='rec'||m==='circ'){const b=buildSP(c,m);Object.assign(T,{exs:b.exs,steps:b.steps,linked:b.linked,k:0,phase:'ready',ph0:0,durs:[],restMs:0,blk:0,mk:null,done_k:-1});
+    if(T.linked){const f=T.steps.findIndex(st=>T.exs[st.i].s[st.j][1]==='');T.k=f<0?0:f}
+    if(m==='circ'){if(c.lead>0)T.phase='lead';else{T.restKind=null;spGo(0,true)}}}
   if(m==='emom'&&c.link&&S.draft)c.link.forEach(j=>{const x=S.draft.ex[j];if(x&&x.s.length<c.giri)setN(x,c.giri)});
   if(m==='emom'){T.slots=[];for(let g=0;g<c.giri;g++){c.ex.forEach((e,i)=>T.slots.push({g,i,sec:e.sec}));if(c.restOn&&g<c.giri-1)T.slots.push({g,i:-1,rest:true,sec:c.restSec})}if(c.restEnd)T.slots.push({g:c.giri-1,i:-1,rest:true,end:true,sec:c.restEndSec});T.total=T.slots.reduce((a,s)=>a+s.sec,0)*1000;T.slot=-1}
   if(m==='edt'){Object.assign(T,{cur:0,adj:c.a.rep,log:[],totalMs:c.min*60000});const tot=T.totalMs;
@@ -849,6 +1214,43 @@ function tStart(){
       .map(x=>({rem:x*60000,k:'warn',say:x<1?`mancano ${Math.round(x*60)} secondi`:x===1?'manca un minuto':`mancano ${fmtN(x,x%1?1:0)} minuti`})))}
   wake(true);ensureLoop();render();
 }
+function buildSP(c,kind){
+  const exs=[],steps=[];let linked=false;
+  if(kind==='circ'){
+    c.items.forEach((it,i)=>{const rep=it.tipo==='rep'?Math.max(1,num(it.val)||10):null;
+      exs.push({n:String(it.n||'').trim()||`Stazione ${i+1}`,b:rep,k:0,st:'Eseguito',_w:it.tipo==='rep'?null:Math.max(5,num(it.val)||40),s:Array.from({length:c.giri},()=>[rep??'',''])})});
+    for(let g=0;g<c.giri;g++)exs.forEach((e,i)=>steps.push({i,j:g,rest:i<exs.length-1?'tr':'main',w:e._w}));
+  }else{
+    if(c.links&&S.draft){c.links.forEach(j=>{const x=S.draft.ex[j];if(x)exs.push(x)});linked=exs.length>0}
+    if(!linked)c.items.forEach((it,i)=>{const sets=Math.max(1,Math.min(20,num(it.sets)||1)),rep=num(it.rep);
+      exs.push({n:String(it.n||'').trim()||(c.items.length>1?`Esercizio ${i+1}`:''),b:rep,k:0,st:'Eseguito',s:Array.from({length:sets},()=>[rep??'',''])})});
+    if(c.mode==='super'&&exs.length>1){const R=Math.max(...exs.map(e=>e.s.length));
+      for(let r=0;r<R;r++){const g=exs.map((e,i)=>i).filter(i=>exs[i].s.length>r);g.forEach((i,q)=>steps.push({i,j:r,rest:q<g.length-1?'tr':'main'}))}}
+    else exs.forEach((e,i)=>{for(let j=0;j<e.s.length;j++)steps.push({i,j,rest:j<e.s.length-1?'main':'between'})});
+  }
+  if(steps.length)steps[steps.length-1].rest='end';
+  return {exs,steps,linked};
+}
+const spStep=()=>T.steps[T.k];
+function spGo(t,immediate){
+  const st=spStep();if(!st)return;
+  if(T.restKind!=='tr')T.blk=t;
+  T.lastSec=null;T.warned=false;T.halfDone=false;
+  if(immediate||T.cfg.auto||st.w){T.phase='work';T.ph0=t;sound('change',T.exs[st.i].n||'via')}
+  else{T.phase='ready';sound('change')}
+}
+function spEndSet(t){
+  const st=spStep();if(!st)return;
+  T.durs.push(t-T.ph0);autoOk(T.exs[st.i],st.j);T.mk=T.k;T.done_k=T.k;T.marked='';
+  if(st.rest==='end'){T.workEnd=t;
+    if(T.cfg.restEnd){T.final=true;T.phase='rest';T.restKind='end';T.restMs=T.cfg.restEndSec*1000;T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;sound('change','riposo');return}
+    tStop();sound('end');return 'stop'}
+  let ms=st.rest==='tr'?T.cfg.tr*1000:st.rest==='between'?T.cfg.between*1000:(T.cfg.rest==='mult'?Math.round((t-T.blk)*T.cfg.mult):T.cfg.sec*1000);
+  T.restKind=st.rest;
+  if(ms<=0){T.k++;spGo(t,true);return}
+  T.phase='rest';T.restMs=ms;T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;
+}
+function spBlockStart(k){while(k>0&&T.steps[k-1].rest==='tr')k--;return k}
 function tStop(){
   if(!T)return;T.done=true;T.endClock=clk();T.paused=true;T.acc=T.endClock;autoApply();
   if(!sesActive()){clearInterval(loopId);loopId=null;wake(false)}
@@ -857,7 +1259,7 @@ function tStop(){
 function tReset(){T=null;if(!sesActive()){clearInterval(loopId);loopId=null;wake(false)}render()}
 function autoApply(){
   if(!S.draft||T.applied)return;const c=T.cfg;
-  if(T.mode==='rec'){const le=linkedEx();if(le){le.t=Math.max(1,Math.round((T.workEnd??T.endClock)/60000));T.applied=true}}
+  if(T.mode==='rec'){if(T.linked&&T.durs.length){const mins=Math.max(1,Math.round((T.workEnd??T.endClock)/60000));T.exs.forEach(x=>x.t=mins);T.applied=true}}
   else if(T.mode==='emom'&&c.link){T.giriFatti=T.slot<0?0:T.slots[T.slot].g+1;
     if(T.giriFatti){const mins=Math.round((T.giriFatti*c.ex.reduce((a,x)=>a+x.sec,0)+(c.restOn?Math.max(0,T.giriFatti-1)*c.restSec:0))/60);c.link.forEach(j=>{const x=S.draft.ex[j];if(x)x.t=mins});T.applied=true}}
   else if(T.mode==='edt'&&c.link&&T.log.length&&T.log.every(l=>c.link[l.k==='a'?0:1]!=null)){
@@ -903,6 +1305,7 @@ function sesTick(){
   if(pc.fixed){const x=Math.ceil(pc.rem/1000);if(x!==SES._ls){if(x<=3&&x>=1&&SES._ls!=null)sound('tick',x);SES._ls=x}
     if(pc.rem<=0){SES.phase==='warm'?endWarm():endSession()}}
 }
+function enterFs(){if(S.tc.snd.fsAuto===false||!document.fullscreenEnabled||document.fullscreenElement)return;try{document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}}
 const fsBtn=()=>document.fullscreenEnabled?`<button class="fsb" data-a="fs" aria-label="Schermo intero">⛶</button>`:'';
 const sesTop=title=>`<div class="r-top"><span class="r-title">${title}</span>${SES&&SES.start?`<span class="r-ses">Seduta <b class="sClock">${fmtDur(Date.now()-SES.start)}</b></span>`:''}${fsBtn()}</div>`;
 function vPhase(){
@@ -955,9 +1358,12 @@ function tick(){
   if(!T&&!sesActive()){clearInterval(loopId);loopId=null}
   if(!T||T.done||T.paused){updateRun();return}
   const t=clk();
-  if(T.mode==='rec'){
-    if(T.phase==='rest'){const rem=T.restMs-(t-T.ph0);countdownBeeps(rem);warnBeep(rem);halfBeep(rem,T.restMs);
-      if(rem<=0){if(T.final){tStop();sound('end');render();return}T.set++;beepLong();if(T.cfg.auto){T.phase='work';T.ph0=t}else T.phase='ready';T.lastSec=null}}
+  if(T.mode==='tst'){if(tstTick(t))return}
+  else if(T.mode==='rec'){
+    if(T.phase==='lead'){const rem=T.cfg.lead*1000-t;countdownBeeps(rem);if(rem<=0){T.restKind=null;spGo(t,true)}}
+    else if(T.phase==='work'){const st=spStep();if(st&&st.w){const rem=st.w*1000-(t-T.ph0);countdownBeeps(rem);warnBeep(rem);halfBeep(rem,st.w*1000);if(rem<=0&&spEndSet(t)==='stop'){render();return}}}
+    else if(T.phase==='rest'){const rem=T.restMs-(t-T.ph0);countdownBeeps(rem);warnBeep(rem);halfBeep(rem,T.restMs);
+      if(rem<=0){if(T.final){tStop();sound('end');render();return}T.k++;spGo(t,false)}}
   }else if(T.mode==='emom'){
     const lead=T.cfg.lead*1000;
     if(t<lead){countdownBeeps(lead-t)}
@@ -1012,13 +1418,15 @@ function updateRun(){
 }
 function runKey(){
   if(T.done)return 'done';
-  if(T.mode==='rec')return `rec-${T.phase}-${T.set}-${T.paused}-${T.marked||''}-${!!T.final}`;
+  if(T.mode==='tst')return `tst-${clk()<T.lead}-${T.blk}-${T.counts.join(',')}-${T.paused}`;
+  if(T.mode==='rec')return `rec-${T.phase}-${T.k}-${T.paused}-${T.marked||''}-${!!T.final}-${T.mk}`;
   if(T.mode==='emom')return `emom-${T.slot}-${T.paused}-${clk()<T.cfg.lead*1000}-${T.marked||''}`;
   return `edt-${T.cur}-${T.adj}-${T.log.length}-${T.paused}-${!!T.final}-${!!T.finalLogged}`;
 }
 function clockText(){
   const t=clk();
-  if(T.mode==='rec'){if(T.phase==='work')return mmssUp(t-T.ph0);if(T.phase==='rest')return mmss(T.restMs-(t-T.ph0));return mmssUp(t)}
+  if(T.mode==='tst')return t<T.lead?mmss(T.lead-t):mmss(T.total-(t-T.lead));
+  if(T.mode==='rec'){const st=spStep();if(T.phase==='lead')return mmss(T.cfg.lead*1000-t);if(T.phase==='work')return st&&st.w?mmss(st.w*1000-(t-T.ph0)):mmssUp(t-T.ph0);if(T.phase==='rest')return mmss(T.restMs-(t-T.ph0));return mmssUp(t)}
   if(T.mode==='emom'){const lead=T.cfg.lead*1000;if(t<lead)return mmss(lead-t);return mmss(T.rem??0)}
   if(T.final)return mmss(T.cfg.restEndSec*1000-(t-T.finalStart));
   return mmss(T.totalMs-t);
@@ -1026,8 +1434,9 @@ function clockText(){
 function emomPaint(){
   if(!T||T.done)return null;
   const c=T.cfg,t=clk();let bg,rem=null;
+  if(T.mode==='tst'){if(t<T.lead)return null;const u=t-T.lead,i=Math.min(2,Math.floor(u/T.bms));bg=c.col[i]||'#0284C7';if(T.bms*(i+1)-u<=c.warnSec*1000)bg=c.warnCol;return {bg,fg:fgFor(bg)}}
   if(T.mode==='emom'){if(T.slot<0||t<c.lead*1000)return null;const sl=T.slots[T.slot];bg=sl.rest?c.restCol:c.col[sl.i];rem=T.rem??0}
-  else if(T.mode==='rec'){if(T.phase==='work')bg=c.colWork;else{bg=c.colRest;if(T.phase==='rest')rem=T.restMs-(t-T.ph0)}}
+  else if(T.mode==='rec'){if(T.phase==='work'){bg=c.colWork;const st=spStep();if(st&&st.w)rem=st.w*1000-(t-T.ph0)}else{bg=c.colRest;if(T.phase==='rest')rem=T.restMs-(t-T.ph0);if(T.phase==='lead')rem=c.lead*1000-t}}
   else if(T.final){bg=c.restCol;rem=c.restEndSec*1000-(t-T.finalStart)}
   else{bg=c.col[T.cur];rem=T.totalMs-t}
   if(rem!=null&&rem<=c.warnSec*1000)bg=c.warnCol;
@@ -1036,7 +1445,7 @@ function emomPaint(){
 function runClass(){
   if(T.done)return 'done';
   const t=clk();let rem=null,cls='';
-  if(T.mode==='emom'&&t<T.cfg.lead*1000){cls='rest';rem=T.cfg.lead*1000-t}else return '';
+  if(T.mode==='emom'&&t<T.cfg.lead*1000){cls='rest';rem=T.cfg.lead*1000-t}else if(T.mode==='tst'&&t<T.lead){cls='rest';rem=T.lead-t}else return '';
   if(rem!=null&&rem<=3000&&rem>0&&!T.paused)cls='flash';
   return cls;
 }
@@ -1045,11 +1454,29 @@ function vRun(){
   const stopBtn=`<button class="btn" data-a="tAskStop">Termina</button>`;
   if(T.done)return vDone();
   let ph='',ex='',sub='',main='',extra='',giro='';
-  if(T.mode==='rec'){
-    const n=T.cfg.n;const le=linkedEx();
-    if(T.phase==='ready'){ph=`Serie ${T.set+1} di ${n}`;sub=T.set?'Recupero finito':'Quando sei pronto';main=`<button class="btn primary big" data-a="tGo">Inizia serie ${T.set+1}</button>`}
-    else if(T.phase==='work'){ph=`Serie ${T.set+1} di ${n}`;sub=le?esc(le.n):'In corso';main=`<button class="btn primary big" data-a="tEndSet">Fine serie</button>`}
-    else{ph=T.final?'Riposo finale':'Recupero';sub=T.final?'Tutte le serie fatte':`Prossima: serie ${T.set+2} di ${n}`;main=`<button class="btn primary" data-a="tSkipRest">${T.final?'Termina il riposo':'Salta recupero'}</button>`;
+  if(T.mode==='tst'){
+    const c=T.cfg,E=ENDU[c.tipo],t=clk(),u=Math.max(0,t-T.lead),idx=Math.min(2,Math.floor(u/T.bms)),tot=T.counts.reduce((a,b)=>a+b,0);
+    const nome=`${esc(c.n||'')}${num(c.kg)>0?`${c.n?', ':''}${fk(num(c.kg))} kg`:''}`;
+    if(t<T.lead){ph='Si parte tra';ex=nome}
+    else{const r=rateOf(E.rate,tot),nx=nextRate(E.rate,tot),left=T.bms*(idx+1)-u;
+      giro=`<p class="giro" aria-label="${tot} ripetizioni">${tot}</p>`;ph=`Blocco ${idx+1} di 3, ${E.parts[idx]}`;ex=nome;
+      sub=`${r||'Ancora nessun giudizio'}${nx?`: mancano ${nx.need} per ${nx.l.toLowerCase()}`:''}`;
+      main=`<div class="tstk"><button class="btn" data-a="tstAdd" data-n="-1" aria-label="Togli una ripetizione">−1</button><button class="btn primary big" data-a="tstAdd" data-n="1" aria-label="Aggiungi una ripetizione">+1</button><button class="btn" data-a="tstAdd" data-n="${c.step}" aria-label="Aggiungi ${c.step} ripetizioni">+${c.step}</button></div>`;
+      extra=`<div class="tot" style="grid-template-columns:repeat(3,minmax(0,1fr))">${T.counts.map((n,i)=>`<div style="${i===idx?'outline:3px solid currentColor;outline-offset:-3px':'opacity:.75'}">${E.parts[i]}<b>${n}</b></div>`).join('')}</div>`}
+  }
+  else if(T.mode==='rec'){
+    const circ=T.kind==='circ',st=spStep(),e=st?T.exs[st.i]:null,p=e?planned(e,st.j):null;
+    const lbl=(x,s2)=>`${x.n?esc(x.n):'Serie'}${planned(x,s2.j)!=null?` × ${planned(x,s2.j)}`:''}`;
+    const serie=st?(circ?'':`Serie ${st.j+1} di ${e.s.length}`):'';
+    if(circ&&st)giro=T.phase==='lead'?'':(S.tc.emom.giroFmt==='down'?`<p class="giro" aria-label="Mancano ${T.cfg.giri-st.j} giri compreso questo">${T.cfg.giri-st.j}</p>`:`<p class="giro" aria-label="Giro ${st.j+1} di ${T.cfg.giri}">${st.j+1}/${T.cfg.giri}</p>`);
+    const nx=T.steps[T.k+1],nxTxt=nx?`Poi: ${lbl(T.exs[nx.i],nx)}${!circ&&T.exs.length>1?`, serie ${nx.j+1}`:''}`:'Ultima serie';
+    if(T.phase==='lead'){ph='Si parte tra';ex=e?lbl(e,st):'';}
+    else if(T.phase==='ready'){ph=serie;ex=e&&e.n?lbl(e,st):(p!=null?`${p} ripetizioni`:'');sub=T.k?'Recupero finito':'Quando sei pronto';main=`<button class="btn primary big" data-a="tGo">Inizia</button>`}
+    else if(T.phase==='work'){ph=serie;ex=e?(e.n?lbl(e,st):(p!=null?`${p} ripetizioni`:'')):'';sub=st&&st.rest==='tr'?nxTxt:'';
+      if(circ&&st&&!st.w){const x=e.s[st.j];main=`<div class="repadj"><button data-a="lRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${x[0]===''?(p??0):x[0]}</output><button data-a="lRep" data-d="1" aria-label="Una ripetizione in più">+</button></div><button class="btn primary big" data-a="tEndSet">Fatto</button>`}
+      else main=`<button class="btn primary big" data-a="tEndSet">${circ?'Fine stazione':'Fine serie'}</button>`}
+    else{ph=T.final?'Riposo finale':{tr:circ?'Pausa':'Cambio',between:'Cambio esercizio',main:circ?'Riposo tra i giri':'Recupero'}[T.restKind]||'Recupero';
+      sub=T.final?'Tutto fatto':nxTxt;main=`<button class="btn primary" data-a="tSkipRest">${T.final?'Termina il riposo':'Salta'}</button>`;
       const mt=markTarget();if(mt)extra=vMark(mt)}
   }else if(T.mode==='emom'){
     const lead=clk()<T.cfg.lead*1000;
@@ -1073,7 +1500,7 @@ function vRun(){
     extra=`<div class="tot"><div>${esc(c.a.n)}<b>${tot('a')} rep</b>${ser('a')} serie</div><div>${esc(c.b.n)}<b>${tot('b')} rep</b>${ser('b')} serie</div></div>`;
   }
   const pt=emomPaint();
-  const title=T.mode==='rec'?(linkedEx()?esc(linkedEx().n):'Recupero'):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT';
+  const title=T.mode==='tst'?`Test ${ENDU[T.cfg.tipo].min}′`:T.mode==='rec'?(T.kind==='circ'?'Circuito':T.exs.length>1?(T.cfg.mode==='super'?grpName(T.exs.length):'Set&amp;Pause'):(T.exs[0]&&T.exs[0].n?esc(T.exs[0].n):'Set&amp;Pause')):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT';
   return `<div class="run full ${runClass()}" id="runPanel"${pt?` style="background:${pt.bg};color:${pt.fg};--pbg:${pt.bg};--pfg:${pt.fg}"`:''}>
     ${sesTop(title)}
     <div class="r-main">${giro}${ph||T.paused?`<p class="ph">${ph}${T.paused?' (in pausa)':''}</p>`:''}${ex?`<p class="ex-now">${ex}</p>`:''}
@@ -1083,38 +1510,49 @@ function vRun(){
 }
 function vDone(){
   const t=T.endClock;let body='',act='';
-  if(T.mode==='rec'){
-    body=`<p class="sub">${T.durs.length} serie in ${mmssUp(t)}</p><ol class="sumlist">${T.durs.map(d=>`<li>${mmssUp(d)}</li>`).join('')}</ol>`;
-    if(linkedEx())act=`<button class="btn primary" data-a="saveRecTime">Metti ${Math.max(1,Math.round((T.workEnd??t)/60000))}′ come tempo dell’esercizio</button>`;
+  if(T.mode==='tst'){const c=T.cfg,x=enduCalc({tipo:c.tipo,kg:c.kg,rif:c.rif,parts:T.counts});
+    body=`<p class="sub">${esc(c.n||'Test')}${num(c.kg)>0?`, ${fk(num(c.kg))} kg`:''}: <b>${x.tot}</b> ripetizioni (${x.parts.join(' + ')})</p>
+      <p class="sub"><b>${x.rate||'nessun giudizio'}</b>${x.rate2?` (scala Miletto: ${x.rate2})`:''}, ${x.pct}% del massimale, volume ${fmtN(x.vol,2)}${x.ton?`, tonnellaggio ${fmtN(x.ton)}`:''}, densità ${fmtN(x.dens,1)} rip/min${x.repset?`, ${x.repset} ripetizioni per serie consigliate`:''}</p>`;
+    if(x.tot)act=`<button class="btn primary" data-a="tstSave">Salva il test</button><button class="btn" data-a="tstSave" data-d="1">Salva e inserisci nel diario</button><button class="btn" data-a="tReset">Non salvare</button>`}
+  else if(T.mode==='rec'){
+    const rows=T.exs.map(e=>{const d=e.s.filter(x=>x[1]);return `<li><b>${esc(e.n||'Serie')}</b>: ${d.length?d.map(x=>x[0]===''?'✓':x[0]).join(' '):'nessuna serie'}</li>`}).join('');
+    body=`<p class="sub">${T.durs.length} ${T.kind==='circ'?'stazioni':'serie'} in ${mmssUp(T.workEnd??t)}</p><ul class="sumlist">${rows}</ul>`;
+    if(!T.linked&&T.durs.length)act=`<button class="btn primary" data-a="spSave">Inserisci nel diario</button><button class="btn" data-a="tReset">Non inserire</button>`;
   }else if(T.mode==='emom'){
     T.giriFatti=T.slot<0?0:T.slots[T.slot].g+1;
     body=`<p class="sub">${emomName(T.cfg.ex.length)}: ${T.giriFatti} giri su ${T.cfg.giri} in ${mmssUp(Math.max(0,t-T.cfg.lead*1000))}</p>`;
-    if(T.giriFatti)act=T.cfg.link?`<button class="btn primary" data-a="emomBack">Torna alla seduta</button>`:`<button class="btn primary" data-a="saveEmom">Aggiungi alla seduta</button>`;
+    if(T.giriFatti)act=T.cfg.link?`<button class="btn primary" data-a="emomBack">Torna alla seduta</button>`:`<button class="btn primary" data-a="saveEmom">Inserisci nel diario</button><button class="btn" data-a="tReset">Non inserire</button>`;
   }else{
     const c=T.cfg;const tot=x=>T.log.filter(l=>l.k===x);
     body=`<div class="tot"><div>${esc(c.a.n)}<b>${tot('a').reduce((a,l)=>a+l.rep,0)} rep</b>${tot('a').map(l=>l.rep).join(' ')||'nessuna serie'}</div><div>${esc(c.b.n)}<b>${tot('b').reduce((a,l)=>a+l.rep,0)} rep</b>${tot('b').map(l=>l.rep).join(' ')||'nessuna serie'}</div></div>`;
-    if(T.log.length)act=`<button class="btn primary" data-a="saveEdt">${T.cfg.link?'Salva nella seduta':'Aggiungi alla seduta'}</button>`;
+    if(T.log.length)act=T.cfg.link?`<button class="btn primary" data-a="saveEdt">Salva nella seduta</button>`:`<button class="btn primary" data-a="saveEdt">Inserisci nel diario</button><button class="btn" data-a="tReset">Non inserire</button>`;
   }
   if(T.applied){act='';body+=`<p class="sub">Già salvato nella seduta.</p>`}
   const back=S.draft&&!act.includes('emomBack')?`<button class="btn" data-a="toSession">Torna alla seduta</button>`:'';
-  return `<div class="run done" id="runPanel"><p class="ph">Finito</p>${body}<div class="ctl">${act}${back}<button class="btn" data-a="tReset">Nuovo timer</button></div></div>`;
+  return `<div class="run done" id="runPanel"><p class="ph">Finito</p>${body}<div class="ctl">${act}${back}${act.includes('Non inserire')||act.includes('Non salvare')?'':'<button class="btn" data-a="tReset">Nuovo timer</button>'}</div></div>`;
 }
-function autoOk(e,j){const x=e&&e.s[j];if(x&&x[1]===''){x[1]='ok';if(x[0]===''||x[0]==null)x[0]=planned(e,j)??0;scheduleSave();if(S.tab==='diario'&&S.draft){const i=S.draft.ex.indexOf(e);if(i>=0)refreshCard(i)}}}
+function autoOk(e,j){const x=e&&e.s[j];if(x&&x[1]===''){x[1]='ok';if((x[0]===''||x[0]==null)&&planned(e,j)!=null)x[0]=planned(e,j);scheduleSave();if(S.tab==='diario'&&S.draft){const i=S.draft.ex.indexOf(e);if(i>=0)refreshCard(i)}}}
 function emomEx(i){return T&&T.cfg.link&&S.draft?S.draft.ex[T.cfg.link[i]]||null:null}
 function emomAutoOk(si){const s=T.slots[si];if(s)autoOk(emomEx(s.i),s.g)}
 function markTarget(){
-  if(!T||T.done||!S.draft)return null;
-  if(T.mode==='rec'){const le=linkedEx();return le&&T.phase==='rest'&&le.s[T.set]?{e:le,j:T.set}:null}
+  if(!T||T.done)return null;
+  if(T.mode==='rec'){
+    if(T.phase==='work'&&T.kind==='circ'){const st=spStep();return st&&!st.w?{e:T.exs[st.i],j:st.j,now:true}:null}
+    if(T.phase!=='rest'||T.mk==null)return null;const st=T.steps[T.mk],b=spBlockStart(T.mk);
+    return {e:T.exs[st.i],j:st.j,nav:T.exs.length>1?{prev:T.mk>b,next:T.mk<T.done_k}:null}}
+  if(!S.draft)return null;
   if(T.mode==='emom'){const now=T.cfg.mark==='during',k=now?T.slot:T.slot-1;if(k<0||clk()<T.cfg.lead*1000)return null;let s=T.slots[k];if(s.rest){if(k<1)return null;s=T.slots[k-1]}const e=emomEx(s.i);return e&&e.s[s.g]?{e,j:s.g,now:now&&!T.slots[T.slot].rest}:null}
   return null;
 }
 function vMark(mt){
   const x=mt.e.s[mt.j],p=planned(mt.e,mt.j);
-  return `<p class="sub msub">${T.mode==='emom'?esc(mt.e.n)+', s':'S'}erie ${mt.j+1} ${mt.now?'in corso':'appena fatta'}${p!=null?`, obiettivo ${p}`:''}</p>
+  const multi=T.mode==='emom'?T.cfg.ex.length>1:T.exs.length>1,txt=mt.now?`Serie ${mt.j+1} in corso`:multi?`${esc(mt.e.n)}: serie ${mt.j+1} appena fatta`:`Serie ${mt.j+1} appena fatta`;
+  if(T.mode==='rec'&&mt.now)return '';
+  return `<p class="sub msub">${mt.nav?`<button class="btn" data-a="mkMove" data-d="-1" ${mt.nav.prev?'':'disabled'} aria-label="Serie precedente" style="min-height:0;padding:6px 18px;font-size:1.2em">‹</button> `:''}${txt}${mt.nav?` <button class="btn" data-a="mkMove" data-d="1" ${mt.nav.next?'':'disabled'} aria-label="Serie successiva" style="min-height:0;padding:6px 18px;font-size:1.2em">›</button>`:''}</p>
   <div class="repadj"><button data-a="lRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${x[0]===''?(p??0):x[0]}</output><button data-a="lRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
   <div class="esito">${['ok','fat','ko'].map(k=>`<button class="o-${k}" data-a="lEsito" data-k="${k}" aria-pressed="${x[1]===k}">${ESITO[k]}</button>`).join('')}</div>`;
 }
-function linkedEx(){const l=S.tc.rec.link;return T&&T.mode==='rec'&&l!=null&&S.draft&&S.draft.ex[l]||null}
+
 function updateMini(){
   const mi=$('#mini');if(!mi)return;
   if(S.tab==='timer'){mi.hidden=true;return}
@@ -1122,7 +1560,7 @@ function updateMini(){
     if(SES.phase==='warm'||SES.phase==='cool'){const pc=phaseClock(n);$('#miniBtn').textContent=`${SES.phase==='warm'?'Riscaldamento':'Defaticamento'} ${pc.fixed?mmss(pc.rem):fmtDur(pc.el)}`}
     else $('#miniBtn').textContent=`Seduta ${fmtDur(n-SES.start)}`;return}
   if(!T||T.done){mi.hidden=true;return}
-  mi.hidden=false;$('#miniBtn').textContent=`${T.mode==='rec'?(T.phase==='rest'?'Recupero':`Serie ${T.set+1}`):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT'} ${clockText()}`;
+  mi.hidden=false;$('#miniBtn').textContent=`${T.mode==='tst'?`Test ${T.counts.reduce((a,b)=>a+b,0)} rip.`:T.mode==='rec'?(T.phase==='rest'?(T.kind==='circ'?'Pausa':'Recupero'):(spStep()?`${T.exs[spStep().i].n||'Serie'} ${spStep().j+1}`:'')):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT'} ${clockText()}`;
 }
 function ensureDraft(){if(!S.draft){newDraft(todayIso(),'',[])}return S.draft}
 
@@ -1156,7 +1594,7 @@ const A={
     S.draft.ex.push(exFromHistory(n,S.draft.d,S.draft.id));scheduleSave();render();
     const c=$('#card-'+(S.draft.ex.length-1));if(c)c.scrollIntoView({block:'start',behavior:'smooth'});
   },
-  delEx(el){const i=+el.dataset.i;S.draft.ex.splice(i,1);S.progOpen.clear();if(S.tc.rec.link===i)S.tc.rec.link=null;scheduleSave();render()},
+  delEx(el){const i=+el.dataset.i;S.draft.ex.splice(i,1);S.progOpen.clear();S.tc.rec.links=null;S.tc.emom.link=null;S.tc.edt.link=null;scheduleSave();render()},
   toggleProg(el){const i=+el.dataset.i;S.progOpen.has(i)?S.progOpen.delete(i):S.progOpen.add(i);render()},
   chip(el){
     const i=+el.dataset.i,j=+el.dataset.j,e=S.draft.ex[i],x=e.s[j];
@@ -1192,36 +1630,37 @@ const A={
   },
   /* timer */
   tmode(el){S.tmode=el.dataset.m;render()},
-  tset(el){const [m,k]=el.dataset.f.split('.');const v=el.dataset.v;S.tc[m][k]=v==='true'?true:v==='false'?false:isNaN(Number(v))?v:Number(v);if(m==='snd'||m==='sess'||(m==='emom'&&(k==='mark'||k==='giroFmt')))savePrefs();render()},
+  tset(el){const [m,k]=el.dataset.f.split('.');const v=el.dataset.v;S.tc[m][k]=v==='true'?true:v==='false'?false:isNaN(Number(v))?v:Number(v);if(m==='snd'||m==='sess'||m==='tst'||(m==='emom'&&(k==='mark'||k==='giroFmt')))savePrefs();render()},
   sndTest(){ensureAudio();[['tick',3],['tick',2],['tick',1],['change','Trazioni'],['half'],['warn'],['end']].forEach(([k,n],i)=>setTimeout(()=>sound(k,n),i*1000))},
   tcol(el){const e=S.tc[el.dataset.m||'emom'],k=el.dataset.k;if(k.startsWith('col.'))e.col[+k.slice(4)]=el.dataset.v;else e[k]=el.dataset.v;savePrefs();render()},
-  toSession(){S.tab='diario';render();const ix=T&&T.mode==='emom'&&T.cfg.link?T.cfg.link[0]:T&&T.mode==='rec'?S.tc.rec.link:null;const c=ix!=null&&$('#card-'+ix);if(c)c.scrollIntoView({block:'start'});else window.scrollTo(0,0)},
+  toSession(){S.tab='diario';render();const ix=T&&T.mode==='emom'&&T.cfg.link?T.cfg.link[0]:T&&T.mode==='rec'&&T.linked&&S.tc.rec.links?S.tc.rec.links[0]:null;const c=ix!=null&&$('#card-'+ix);if(c)c.scrollIntoView({block:'start'});else window.scrollTo(0,0)},
   step(el){const [m,k]=el.dataset.f.split('.');S.tc[m][k]=Math.max(1,Math.min(50,(Number(S.tc[m][k])||0)+Number(el.dataset.d)));el.parentElement.querySelector('output').textContent=S.tc[m][k];
-    if(m==='emom')render()},
-  unlink(el){const m=el.dataset.m||'rec';S.tc[m].link=null;S.tc.from=null;render()},
+    if(m==='emom'||m==='circ'){if(m==='circ')savePrefs();render()}},
+  unlink(el){const m=el.dataset.m||'rec';if(m==='rec')S.tc.rec.links=null;else S.tc[m].link=null;S.tc.from=null;render()},
   linkTimer(el){
     const i=+el.dataset.i;if(T&&!T.done){S.tab='timer';render();return}T=null;
     const tp=timerPlan(i),ex=S.draft.ex,e=ex[i];
-    S.tc.rec.link=null;S.tc.emom.link=null;S.tc.edt.link=null;S.tc.from={p:e.p||'',ok:!!tp.pp};
+    S.tc.rec.links=null;S.tc.emom.link=null;S.tc.edt.link=null;S.tc.from={p:e.p||'',ok:!!tp.pp};
     if(tp.mode==='emom'){const c=S.tc.emom;c.k=tp.idx.length;c.link=tp.idx;c.giri=tp.pp.giri||Math.max(...tp.idx.map(j=>ex[j].s.length));
       tp.idx.forEach((j,n)=>{const q=parseProto(ex[j].p);c.ex[n]={n:ex[j].n,rep:q.rep??ex[j].b??'',sec:q.sec}});
       const rr=tp.idx.map(j=>String(ex[j].p||'').match(/(?:Rest|Riposo|Pausa)\s*(\d+)/i)).find(Boolean);if(rr){c.restOn=true;c.restSec=+rr[1]}}
     else if(tp.mode==='edt'){const c=S.tc.edt;c.link=tp.idx;c.min=tp.pp.min;tp.idx.forEach((j,n)=>{const k=n?'b':'a';c[k]={n:ex[j].n,rep:ex[j].b??c[k].rep}})}
-    else{const c=S.tc.rec;c.link=i;c.n=e.s.length;if(tp.pp){c.rest='fix';c.sec=tp.pp.sec}}
+    else{const c=S.tc.rec;c.links=tp.idx;c.items=tp.idx.map(j=>({n:ex[j].n,sets:ex[j].s.length,rep:ex[j].b??''}));c.mode=tp.idx.length>1?'super':'sep';if(tp.pp){c.rest='fix';c.sec=tp.pp.sec}}
     S.tmode=tp.mode;S.tab='timer';render();window.scrollTo(0,0);
   },
   tStart(){
+    enterFs();
     if(!sesActive()){sesNew();const c=SES.cfg;
       if(c.warmOn&&c.warmAuto)return startWarm();
       if(c.warmOn){SES.phase='pre';sesSave();render();return}
       return startTrain()}
     SES.mode=S.tmode;startTrain();
   },
-  sesWarm(){startWarm()},
-  sesSkipWarm(){startTrain()},
+  sesWarm(){enterFs();startWarm()},
+  sesSkipWarm(){enterFs();startTrain()},
   sesCancel(){SES=null;sesSave();render()},
   sesWarmEnd(){endWarm()},
-  sesCool(){startCool()},
+  sesCool(){enterFs();startCool()},
   sesAskEnd(){confirmSheet('Terminare la seduta?','Il cronometro della seduta si ferma e vedi il tempo di ogni fase.','Termina','sesEndNow')},
   sesEndNow(){closeSheet();endSession()},
   sesClose(){SES=null;sesSave();render()},
@@ -1230,22 +1669,29 @@ const A={
   tAskStop(){confirmSheet('Terminare il timer?','Il conteggio si ferma e vedi il riepilogo.','Termina','tStopNow')},
   tStopNow(){closeSheet();tStop();render()},
   tReset(){tReset()},
-  tGo(){T.phase='work';T.ph0=clk();T.lastSec=null;beepLong();updateRun()},
-  tEndSet(){
-    const t=clk(),d=t-T.ph0;T.durs.push(d);
-    if(T.set>=T.cfg.n-1){const le=linkedEx();if(le){const x=le.s[T.set];if(x&&x[1]===''){x[1]='ok';x[0]=x[0]===''?(planned(le,T.set)??0):x[0];scheduleSave()}}
-      T.workEnd=t;if(T.cfg.restEnd){T.final=true;T.phase='rest';T.restMs=T.cfg.restEndSec*1000;T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;sound('change','riposo');updateRun();return}
-      tStop();beepEnd();render();return}
-    T.restMs=T.cfg.rest==='fix'?T.cfg.sec*1000:Math.round(d*T.cfg.mult);T.phase='rest';T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;
-    const le=linkedEx();if(le){const x=le.s[T.set];if(x&&x[1]===''){x[1]='ok';x[0]=x[0]===''?(planned(le,T.set)??0):x[0];scheduleSave()}}
-    updateRun();
-  },
+  tGo(){const t=clk();if(!T.durs.length&&T.k===0)T.blk=t;T.phase='work';T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;beepLong();updateRun()},
+  tEndSet(){if(spEndSet(clk())==='stop'){render();return}updateRun()},
+  mkMove(el){if(T.mk==null)return;const b=spBlockStart(T.mk),n=T.mk+Number(el.dataset.d);if(n<b||n>T.done_k)return;T.mk=n;T.marked='';updateRun()},
   tSkipRest(){T.ph0=clk()-T.restMs},
   lRep(el){const mt=markTarget();if(!mt)return;const x=mt.e.s[mt.j];const p=planned(mt.e,mt.j);const cur=x[0]===''?(p??0):Number(x[0]);x[0]=Math.max(0,cur+Number(el.dataset.d));
     if(p!=null&&x[1]!=='fat')x[1]=x[0]<p?'ko':'ok';T.marked=x.join(':');scheduleSave();updateRun()},
   lEsito(el){const mt=markTarget();if(!mt)return;const x=mt.e.s[mt.j];const p=planned(mt.e,mt.j);if(x[0]==='')x[0]=p??0;
     x[1]=el.dataset.k;if(el.dataset.k==='ko'&&p!=null&&Number(x[0])>=p)x[0]=Math.max(0,p-1);T.marked=x.join(':');scheduleSave();updateRun()},
-  saveRecTime(){const le=linkedEx();if(le){le.t=Math.max(1,Math.round((T.workEnd??T.endClock)/60000));scheduleSave()}tReset();S.tab='diario';render()},
+  spSave(){
+    const d=ensureDraft(),c=T.cfg,circ=T.kind==='circ',mins=Math.max(1,Math.round((T.workEnd??T.endClock)/60000));
+    const grp=!circ&&T.exs.length>1&&c.mode==='super'?grpName(T.exs.length)+' ':'';
+    T.exs.filter(e=>e.s.some(x=>x[1])).forEach(e=>{
+      const ex=exFromHistory(e.n||'Esercizio',d.d,d.id);delete ex._why;ex.s=e.s.filter(x=>x[1]).map(x=>[x[0],x[1]]);
+      if(e.b!=null){ex.b=e.b;ex.k=0}ex.t=mins;
+      ex.p=circ?`Circuito ${c.giri} giri, ${e._w?`${e._w}″`:`${e.b} rep`}, pausa ${c.tr}″, riposo ${c.sec}″`:`${grp}${ex.s.length}x${e.b??'?'} + Rest ${c.rest==='fix'?`${c.sec}″`:`×${c.mult}`}`;
+      d.ex.push(ex)});
+    scheduleSave();tReset();S.tab='diario';render();window.scrollTo(0,0);
+  },
+  recAdd(){const c=S.tc.rec;c.items.push({n:'',sets:c.items[0]?c.items[0].sets:3,rep:''});render()},
+  recDel(el){S.tc.rec.items.splice(+el.dataset.i,1);render()},
+  circAdd(){const c=S.tc.circ;const l=c.items[c.items.length-1]||{tipo:'time',val:40};c.items.push({n:'',tipo:l.tipo,val:l.val});savePrefs();render()},
+  circDel(el){S.tc.circ.items.splice(+el.dataset.i,1);savePrefs();render()},
+  circTipo(el){const it=S.tc.circ.items[+el.dataset.i];it.tipo=el.dataset.v;const v=num(it.val)||0;if(it.tipo==='rep'&&v>30)it.val=10;if(it.tipo==='time'&&v<10)it.val=40;savePrefs();render()},
   tSkipFinal(){T.finalStart=clk()-T.cfg.restEndSec*1000},
   saveEmom(){
     const d=ensureDraft(),c=T.cfg,g=Math.max(1,T.giriFatti||1);
@@ -1264,9 +1710,62 @@ const A={
       ex.p=`EDT ${c.min}′ × ${c[k].rep}`;ex.t=c.min;ex.b=c[k].rep;ex.k=0;delete ex._why;ex.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);d.ex.push(ex)});
     scheduleSave();tReset();S.tab='diario';render();
   },
+  exOpen(el){S.exSel=el.dataset.n;render();window.scrollTo(0,0)},
+  exBack(){S.exSel='';render();window.scrollTo(0,0)},
+  newTest(el){S.tf=newTf();S.tf.n=el.dataset.n;S.tab='massimali';render();window.scrollTo(0,0)},
+  tfTipo(el){const f=S.tf;f.tipo=el.dataset.v;
+    if((f.tipo==='brz'||f.tipo==='maxrep')&&!num(f.bw)){const b=lastBW(f.n);if(b)f.bw=b}
+    if(f.tipo==='brz'&&!num(f.rep))f.rep=5;
+    if(ENDU[f.tipo]&&!f.rifTouched){const t=maxFor(f.n,f.d);f.rif=t?t.rm:''}
+    render()},
+  testSub(el){S.testSub=el.dataset.v;render()},
+  tstFromForm(){const f=S.tf,c=S.tc.tst;c.tipo=f.tipo;c.n=f.n;c.kg=f.kg;c.rif=f.rif;c.rifTouched=!!f.rifTouched;
+    if(f.tipo==='t15'){const x=enduCalc({tipo:'t15',kg:f.kg,rif:f.rif,parts:[]});if(x.repset)c.step=x.repset}
+    S.tmode='tst';S.tab='timer';render();window.scrollTo(0,0)},
+  tstAdd(el){if(!T||T.mode!=='tst'||T.done)return;const t=clk();if(t<T.lead)return;const i=Math.min(2,Math.floor((t-T.lead)/T.bms)),n=Number(el.dataset.n);
+    T.counts[i]=Math.max(0,T.counts[i]+n);if(n>0){if(AC)tone(1500,.04,.12);if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}}updateRun()},
+  async tstSave(el){const c=T.cfg,E=ENDU[c.tipo],n=String(c.n||'').trim()||'Test';
+    const t={id:'t'+Date.now().toString(36),d:todayIso(),n,tipo:c.tipo,kg:num(c.kg)||0,rif:num(c.rif)||null,parts:[...T.counts],tot:T.counts.reduce((a,b)=>a+b,0),note:'Registrato con il timer',updated:Date.now()};
+    S.tests.set(t.id,t);await saveTestDoc(t);
+    if(el.dataset.d){const d=ensureDraft(),ex=exFromHistory(n,d.d,d.id);delete ex._why;ex.p=`Test ${E.min}′`;if(t.kg)ex.kg=t.kg;ex.b=null;ex.k=0;ex.s=T.counts.map(x=>[x,'ok']);ex.t=E.min;ex.pctMan=false;autoPct(ex,d.d);d.ex.push(ex);scheduleSave()}
+    const msg=`${esc(n)}: ${esc(testDesc(t))}.${el.dataset.d?' Inserito anche nella seduta di oggi.':''}`;
+    tReset();S.tab='massimali';S.testSub='test';render();window.scrollTo(0,0);
+    sheet(`<h3>Test salvato</h3><p class="muted">${msg}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`)},
+  mfCancel(){S.mf=newMf();render()},
+  mfEdit(el){const m=S.misure.get(el.dataset.id);if(!m)return;S.mf={d:m.d,vals:{...(m.vals||{})},note:m.note||'',editId:m.id};render();window.scrollTo(0,0)},
+  mfAskDel(el){confirmSheet('Eliminare la misurazione?','I valori di quella data vengono tolti dallo storico.','Elimina','mfDel',`data-id="${esc(el.dataset.id)}"`)},
+  async mfDel(el){closeSheet();const x={id:el.dataset.id,deleted:true,updated:Date.now()};S.misure.set(x.id,x);await saveMisDoc(x);render()},
+  async mfSave(){const f=S.mf,vals={};MIS.forEach(([k])=>{const v=num(f.vals[k]);if(v>0)vals[k]=v});
+    if(!Object.keys(vals).length)return sheet('<h3>Misure non salvate</h3><p class="muted">Inserisci almeno un valore.</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>');
+    const m={id:f.editId||('m'+Date.now().toString(36)),d:f.d||todayIso(),vals,note:String(f.note||'').trim(),updated:Date.now()};
+    S.misure.set(m.id,m);await saveMisDoc(m);S.mf=newMf();render()},
+  tfCancel(){S.tf=newTf();render()},
+  tfEdit(el){const t=S.tests.get(el.dataset.id);if(!t)return;S.tf={d:t.d,n:t.n,tipo:t.tipo,kg:t.kg??'',bw:t.bw??'',rep:t.rep??'',rir:t.rir??0,parts:[...(t.parts||['','',''])],rif:t.rif??'',rifTouched:true,from:t.from||t.d,fromTouched:true,note:t.note||'',editId:t.id};S.testSub='test';S.tab='massimali';render();window.scrollTo(0,0)},
+  tfAskDel(el){confirmSheet('Eliminare il massimale?','Le percentuali già calcolate restano come sono.','Elimina','tfDel',`data-id="${esc(el.dataset.id)}"`)},
+  async tfDel(el){closeSheet();const t=S.tests.get(el.dataset.id);if(!t)return;const x={id:t.id,n:t.n,deleted:true,updated:Date.now()};S.tests.set(x.id,x);await saveTestDoc(x);render()},
+  async tfSave(){
+    const f=S.tf,n=String(f.n||'').trim(),k=f.tipo,kg=num(f.kg);
+    const err=m=>sheet(`<h3>Test non salvato</h3><p class="muted">${m}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`);
+    if(!n)return err('Indica l’esercizio.');
+    const t={id:f.editId||('t'+Date.now().toString(36)),d:f.d||todayIso(),n,tipo:k,note:String(f.note||'').trim(),updated:Date.now()};
+    if(k==='1rm'){if(!(kg>0))return err('Indica il carico in kg.');t.kg=kg}
+    if(k==='reps'){if(!(kg>0))return err('Indica il carico in kg.');t.kg=kg;t.rep=num(f.rep);t.rir=Math.max(0,num(f.rir)||0);if(!(t.rep>0))return err('Indica quante ripetizioni hai fatto.')}
+    if(k==='brz'){t.bw=num(f.bw)||0;t.kg=kg||0;t.rep=num(f.rep);t.rir=Math.max(0,num(f.rir)||0);if(!(t.bw+t.kg>0))return err('Indica il peso corporeo, il sovraccarico o entrambi.');if(!(t.rep>0))return err('Indica quante ripetizioni hai fatto.')}
+    if(k==='maxrep'){t.rep=num(f.rep);t.bw=num(f.bw)||null;if(!(t.rep>0))return err('Indica le ripetizioni massime.')}
+    if(ENDU[k]){t.kg=kg;t.rif=num(f.rif)||null;t.parts=f.parts.map(x=>num(x)||0);if(!(kg>0))return err('Indica il peso usato.');if(!t.parts.some(x=>x>0))return err('Indica le ripetizioni fatte in almeno un blocco.');t.tot=t.parts.reduce((a,b)=>a+b,0)}
+    let msg='';
+    if(isRmType(k)){t.from=f.from||t.d;const rm=testRM(t);if(!rm)return err(k==='brz'?'Con 36 ripetizioni o più la formula non permette una stima.':'Con più di 30 ripetizioni la tabella non permette di stimare il massimale.');
+      t.rm=Math.round(rm*10)/10;S.tests.set(t.id,t);await saveTestDoc(t);const c=await applyTest(t);
+      msg=`${esc(n)}: 1RM ${fmtN(t.rm,1)} kg, usato dal ${fmtD(t.from)}.${c?` Ho aggiornato la % 1RM in ${c} ${c===1?'esercizio':'esercizi'} delle sedute da quella data.`:''}`}
+    else{S.tests.set(t.id,t);await saveTestDoc(t);msg=`${esc(n)}: ${esc(testDesc(t))}.`}
+    S.tf=newTf();render();
+    sheet(`<h3>Test salvato</h3><p class="muted">${msg}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`);
+  },
+  defRebuild(){confirmSheet('Ricalcolare i massimali di default?','Li ricavo di nuovo dalle ultime settimane del foglio Excel; i tuoi test non vengono toccati.','Ricalcola','defRebuildNow')},
+  defRebuildNow(){closeSheet();const n=ensureDefaults(true);render();sheet(`<h3>Fatto</h3><p class="muted">${n} massimali di default ricalcolati.</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`)},
   exportBak(){
     const all=new Map(S.stor);for(const [id,x] of S.sed)all.set(id,x);
-    saveFile(`diario-backup-${todayIso()}.json`,JSON.stringify({app:'diario-allenamento',v:1,exported:new Date().toISOString(),cfg:S.cfg,sedute:[...all.values()]}));
+    saveFile(`diario-backup-${todayIso()}.json`,JSON.stringify({app:'diario-allenamento',v:1,exported:new Date().toISOString(),cfg:S.cfg,sedute:[...all.values()],test:[...S.tests.values()],misure:[...S.misure.values()]}));
   },
   importBtn(){closeSheet();$('#fileImp').click()},
   eRep(el){T.adj=Math.max(0,T.adj+Number(el.dataset.d));updateRun()},
@@ -1301,7 +1800,15 @@ async function importBackup(obj){
     if(c.timer&&!S.cfg.timer){S.cfg.timer=c.timer;S.prefsLoaded=false;loadPrefs();cfg=true}
     if(cfg)saveCfg();
   }
-  merge();return {n:base.length+upd.length,cfg};
+  let nt=0;
+  for(const t of Array.isArray(obj.test)?obj.test:[]){if(!t||typeof t.id!=='string')continue;const c=S.tests.get(t.id);
+    if(!c||(t.updated||0)>(c.updated||0)){S.tests.set(t.id,t);nt++;if(S.mode==='db')await saveTestDoc(t)}}
+  if(nt&&S.mode!=='db')await saveTestDoc({});
+  let nm=0;
+  for(const m of Array.isArray(obj.misure)?obj.misure:[]){if(!m||typeof m.id!=='string')continue;const c=S.misure.get(m.id);
+    if(!c||(m.updated||0)>(c.updated||0)){S.misure.set(m.id,m);nm++;if(S.mode==='db')await saveMisDoc(m)}}
+  if(nm&&S.mode!=='db')await saveMisDoc({});
+  merge();if(!nt)ensureDefaults();return {n:base.length+upd.length,cfg,nt,nm};
 }
 async function delSession(id){
   try{
@@ -1322,18 +1829,36 @@ function onField(el,isChange){
   const [kind,a,b]=f.split(':');
   if(kind==='new'){S.newDate=v||todayIso();return}
   if(kind==='st'){S.storEx=v;render();return}
-  if(kind==='tc'){const path=a.split('.');let o=S.tc;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;if(/^(emom|rec|edt)\.(col|warn|rest|half|frac|minsLeft)|^sess\./.test(a))savePrefs();if(/\.(restOn|restEnd|warmOn|coolOn)$/.test(a))render();return}
+  if(kind==='ex'){S.exQ=v;const l=$('#exList');if(l)l.innerHTML=vExList();return}
+  if(kind==='cx'){if(!S.exSel)return;const c=S.cfg.esercizi[S.exSel]=S.cfg.esercizi[S.exSel]||{};c[a]=num(v);saveCfg();return}
+  if(kind==='mf'){const f=S.mf;if(a.startsWith('v.'))f.vals[a.slice(2)]=v;else f[a]=v;return}
+  if(kind==='tf'){const f=S.tf;if(a.startsWith('parts.'))f.parts[+a.slice(6)]=v;else f[a]=v;
+    if(a==='d'&&!f.fromTouched){f.from=v;const el=$('#tfFrom');if(el)el.value=v}
+    if(a==='from')f.fromTouched=true;
+    if(a==='rif')f.rifTouched=true;
+    if((a==='n'||a==='d')&&ENDU[f.tipo]&&!f.rifTouched){const t=maxFor(f.n,f.d);f.rif=t?t.rm:'';const el=$('#tfRif');if(el)el.value=f.rif}
+    const r=$('#tfRes');if(r)r.innerHTML=tfResult();return}
+  if(kind==='dm'){const t=S.tests.get(a);if(!t)return;const n=num(v);if(!(n>0))return;t.rm=n;t.updated=Date.now();
+    clearTimeout(S.dmT);S.dmT=setTimeout(async()=>{await saveTestDoc(t);await applyTest(t)},1200);return}
+  if(kind==='tc'){const path=a.split('.');let o=S.tc;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;if(/^(emom|rec|edt)\.(col|warn|rest|half|frac|minsLeft)|^sess\.|^snd\.|^circ\./.test(a))savePrefs();if(/\.(restOn|restEnd|warmOn|coolOn)$/.test(a))render();
+    if(a.startsWith('tst.')){const c=S.tc.tst;if(a==='tst.rif')c.rifTouched=true;
+      if(a==='tst.n'&&!c.rifTouched){const t=maxFor(c.n,todayIso());c.rif=t?t.rm:'';const el=$('#tstRif');if(el)el.value=c.rif}
+      if(/^tst\.(step|lead|warn|half|col)/.test(a))savePrefs();const sg=$('#tstSug');if(sg)sg.textContent=tstSugTxt()}
+    return}
   if(kind==='d'){if(!S.draft)return;
-    if(a==='d'){if(!v)return;S.draft.d=v;const m=$('#sessMeta');if(m)m.textContent=`${ggOf(v)}, settimana ${weekOf(v)}`}
+    if(a==='d'){if(!v)return;S.draft.d=v;const m=$('#sessMeta');if(m)m.textContent=`${ggOf(v)}, settimana ${weekOf(v)}`;
+      S.draft.ex.forEach((e,i)=>{if(autoPct(e,v)){const el=$('#pct-'+i);if(el)el.value=pctShowOf(e);refreshCard(i)}})}
     else S.draft[a]=v;scheduleSave();return}
   if(kind==='e'){
     const i=+a,e=S.draft.ex[i];if(!e)return;
-    if(['kg','z','t'].includes(b))e[b]=num(v);
-    else if(b==='pct'){const n=num(v);e.pct=n==null?null:(n>1.5?n/100:n)}
+    const setP=()=>{const el=$('#pct-'+i);if(el&&document.activeElement!==el)el.value=pctShowOf(e)};
+    if(['kg','z','t'].includes(b)){e[b]=num(v);if(b==='kg'&&autoPct(e,S.draft.d))setP()}
+    else if(b==='pct'){const n=num(v);if(n==null){e.pctMan=false;e.pct=null;autoPct(e,S.draft.d)}else{e.pct=n>1.5?n/100:n;e.pctMan=true}}
     else if(b==='b'){e.b=num(v);syncSets(e)}
     else if(b==='k'){e.k=Math.max(0,num(v)||0);syncSets(e)}
     else if(b==='n_s'){const n=num(v);if(n&&n>=1&&n<=20)setN(e,n);else return}
     else e[b]=v;
+    if(b==='n'){if(autoPct(e,S.draft.d))setP();const ic=document.querySelector('#card-'+i+' .card-h .exi');if(ic)ic.outerHTML=exIcon(v,38)}
     if(b==='st'&&v==='Non eseguito')e.s.forEach(x=>{x[1]='skip'});
     if(b==='st'&&v==='Eseguito')e.s.forEach(x=>{if(x[1]==='skip')x[1]=''});syncSets(e);
     refreshCard(i);if(b==='p')S.draft.ex.forEach((x,j)=>{const el=$('#tb-'+j);if(el)el.textContent=timerPlan(j).label});scheduleSave();return}
@@ -1350,7 +1875,7 @@ $('#fileImp').addEventListener('change',async ev=>{
   const done=(t,m)=>sheet(`<h3>${t}</h3><p class="muted">${m}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Chiudi</button></div>`);
   sheet('<h3>Importo il backup…</h3>');
   try{const r=await importBackup(JSON.parse(await f.text()));
-    done('Backup importato',(r.n?`${r.n} sedute nuove o aggiornate.`:'Nessuna seduta nuova: era già tutto presente.')+(r.cfg?' Ho ripreso anche le impostazioni dei timer e della progressione.':''));render()}
+    done('Backup importato',(r.n?`${r.n} sedute nuove o aggiornate.`:'Nessuna seduta nuova: era già tutto presente.')+(r.nt?` ${r.nt} test e massimali importati.`:'')+(r.nm?` ${r.nm} misurazioni importate.`:'')+(r.cfg?' Ho ripreso anche le impostazioni dei timer e della progressione.':''));render()}
   catch(e){done('Backup non importato',e&&e.message==='spazio'?'Lo spazio del browser per questa app è pieno.':'Il file non è un backup del diario: scegli il file diario-backup….json esportato dall’app.')}
 });
 if(STANDALONE&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
