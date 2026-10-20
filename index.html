@@ -290,6 +290,18 @@ body.lock{overflow:hidden}
 .res{font-family:var(--f-num);font-size:22px;font-weight:600;margin:8px 0 0}
 .run.full .tstk{display:grid;grid-template-columns:1fr 1.7fr 1fr;gap:calc(var(--u)*.5);width:100%}
 .run.full .r-side .tstk .btn{min-height:calc(var(--u)*4.2*var(--hb,1));font-size:calc(var(--u)*2.6);width:auto}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0 4px}
+.kpi div{background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.kpi span{display:block;font-size:12px;color:var(--muted)}
+.kpi b{font-family:var(--f-num);font-size:26px;font-weight:700;line-height:1.1}
+.kpi small{display:block;font-size:13px}
+.up{color:#16A34A}.down{color:#DC2626}.flat{color:var(--muted)}
+.prow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) 90px auto;gap:2px 12px;align-items:center;width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:0 0 8px}
+.prow:focus-visible{outline:3px solid var(--skip)}
+.prow .v{font-family:var(--f-num);font-size:22px;font-weight:700;text-align:right;line-height:1.05}
+.prow .v small{display:block;font-size:14px;font-weight:600}
+.prow svg{width:90px;height:30px}
+.lead2{font-size:17px;margin:4px 0 0}
 .sesbox{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 16px}
 .sesbox .row b{font-family:var(--f-num);font-size:26px}
 .tempi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
@@ -347,7 +359,7 @@ function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null
 const newTf=()=>({d:todayIso(),n:'',tipo:'1rm',kg:'',bw:'',rep:'',rir:0,parts:['','',''],rif:'',rifTouched:false,from:todayIso(),fromTouched:false,note:'',editId:null});
 const newMf=()=>({d:todayIso(),vals:{},note:'',editId:null});
 const STANDALONE=!(window.claude&&typeof window.claude.use==='function');
-const S={misure:new Map(),mf:null,testSub:'test',tests:new Map(),testsLoaded:false,exSel:'',exQ:'',tf:null,tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
+const S={prog:'6m',exView:'list',misure:new Map(),mf:null,testSub:'test',tests:new Map(),testsLoaded:false,exSel:'',exQ:'',tf:null,tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
   saveMsg:'',storEx:'',storWeeks:8,open:new Set(),progOpen:new Set(),newDate:todayIso(),downloads:null,
   tmode:'rec',tc:{tst:{tipo:'t30',n:'',kg:'',rif:'',rifTouched:false,step:5,lead:10,col:['#0284C7','#16A34A','#9333EA'],warnSec:10,warnCol:'#FFC000',half:false},
   circ:{items:[{n:'',tipo:'time',val:40},{n:'',tipo:'time',val:40},{n:'',tipo:'time',val:40}],giri:3,restEx:15,restGiro:60,lead:10,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120},
@@ -688,7 +700,7 @@ function vNuova(){
   const seen=new Map();
   for(const s of S.hist){if(s.wo&&!seen.has(s.wo))seen.set(s.wo,s);if(seen.size>=8)break}
   const tpls=[...seen.values()];
-  return `<div class="top"><h1>Nuova seduta</h1></div>${banner()}
+  return `<div class="top" style="align-items:center"><svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true" style="flex:none"><defs><linearGradient id="lgbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3B46"/><stop offset="1" stop-color="#141B20"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#lgbg)"/><g fill="none" stroke-width="5.4" stroke-linecap="round"><path d="M36.2 16.0A19.5 19.5 0 0 1 51.0 30.8" stroke="#92D050"/><path d="M51.0 39.2A19.5 19.5 0 0 1 36.2 54.0" stroke="#FFC000"/><path d="M27.8 54.0A19.5 19.5 0 0 1 13.0 39.2" stroke="#E3342F"/><path d="M13.0 30.8A19.5 19.5 0 0 1 27.8 16.0" stroke="#0070C0"/></g><rect x="27" y="5.5" width="10" height="4" rx="1.6" fill="#E6EBE8"/><rect x="30.4" y="8.5" width="3.2" height="5" fill="#E6EBE8"/><g fill="#fff"><rect x="22" y="33.4" width="20" height="3.2" rx="1.6"/><rect x="21.4" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="38.2" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="18.4" y="30.2" width="3.4" height="9.6" rx="1.3"/><rect x="42.2" y="30.2" width="3.4" height="9.6" rx="1.3"/></g></svg><h1>Nuova seduta</h1></div>${banner()}
   <label class="f" style="max-width:220px">Data<input type="date" value="${S.newDate}" data-f="new:date"></label>
   ${tpls.length?`<p class="muted small" style="margin:16px 0 0">Riparti da un allenamento: copio gli esercizi dell’ultima volta e propongo il piano successivo.</p>
   <div class="tpl">${tpls.map(s=>`<button data-a="fromTpl" data-id="${esc(s.id)}"><span class="wo">${esc(s.wo)}</span>
@@ -752,6 +764,95 @@ function refreshCard(i){
   const m=$('#m-'+i);if(m)m.innerHTML=vMetrics(e);
 }
 
+/* ----- andamento ----- */
+const RIRF={'Facile':3.5,'Facile/Liscia':2.5,'Liscia':2,'Liscia/Difficile':1.5,'Difficile':1,'Difficile/Dura':.5,'Dura':0,'Dura/Fallito':0,'Fallito':0};
+function sessE1(e){
+  const kg=Number(e.kg);if(e.st==='Non eseguito'||!(kg>0))return null;let best=null;
+  (e.s||[]).forEach(x=>{const r=Number(x[0]);if(!(r>0)||x[1]==='skip')return;
+    const rir=x[1]==='ko'?0:x[1]==='fat'?.5:(RIRF[e.f]??1.5),p=pctOfReps(Math.min(30,r+rir));if(p){const v=kg/p;if(best==null||v>best)best=v}});
+  return best;
+}
+const PERIODI=[['3m','3 mesi',3],['6m','6 mesi',6],['12m','1 anno',12],['all','Tutto',0]];
+function periodStart(){const p=PERIODI.find(x=>x[0]===S.prog)||PERIODI[1];if(!p[2])return '0000-00-00';const d=new Date();d.setMonth(d.getMonth()-p[2]);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function exSeries(name,from){
+  const out=[];
+  for(const s of S.hist){if(s.d<from)continue;for(const e of s.ex){if(e.n!==name||e.st==='Non eseguito')continue;const m=metrics(e,!!s.updated);
+    out.push({d:s.d,e1:sessE1(e),kg:Number(e.kg)||null,tot:m.tot||0,vol:m.vol||0,ton:m.ton||0,fails:m.fails||0,sets:(e.s||[]).filter(x=>x[1]!=='skip').length})}}
+  return out.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+}
+function trendOf(vals){const n=vals.length;if(n<4)return null;const k=Math.max(2,Math.floor(n/4)),avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  const a=avg(vals.slice(0,k)),b=avg(vals.slice(-k));return {a,b,pct:(b/a-1)*100}}
+const trCls=pc=>pc>1?'up':pc<-1?'down':'flat',trArr=pc=>pc>1?'▲':pc<-1?'▼':'●';
+const fmtPct=pc=>`${pc>0?'+':pc<0?'−':''}${fmtN(Math.abs(pc),1)}%`;
+function spark(vals,cls){if(vals.length<2)return '';const lo=Math.min(...vals),hi=Math.max(...vals)||1,W=90,H=30;
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*(W-4)+2).toFixed(1)},${(H-3-(hi===lo?.5:(v-lo)/(hi-lo))*(H-6)).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" class="${cls}" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" points="${pts}"/></svg>`}
+function tChart(title,pts,dec=1,note=''){
+  if(pts.length<2)return '';
+  const W=640,H=230,L=52,R=14,T=14,B=30,xs=pts.map(p=>isoUTC(p.d)),x0=Math.min(...xs),x1=Math.max(...xs);
+  const vs=pts.map(p=>p.v);let lo=Math.min(...vs),hi=Math.max(...vs);const pd=(hi-lo)*.12||Math.max(1,hi*.05);lo-=pd;hi+=pd;
+  const X=t=>L+(W-L-R)*(x1===x0?.5:(t-x0)/(x1-x0)),Y=v=>H-B-(H-T-B)*(v-lo)/(hi-lo);
+  const ma=pts.map((p,i)=>{const w=pts.slice(Math.max(0,i-4),i+1);return [X(xs[i]),Y(w.reduce((a,b)=>a+b.v,0)/w.length)]});
+  const grid=[0,1,2,3].map(i=>{const v=lo+(hi-lo)*(i+.5)/4;return `<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${L-6}" y="${Y(v)+5}" font-size="15" fill="var(--muted)" text-anchor="end">${fmtN(v,dec)}</text>`}).join('');
+  const mid=pts[Math.floor(pts.length/2)];
+  return `<div class="chart"><h3>${title}</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}: da ${fmtN(pts[0].v,dec)} a ${fmtN(pts[pts.length-1].v,dec)} tra ${fmtD(pts[0].d)} e ${fmtD(pts[pts.length-1].d)}">
+    ${grid}<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="var(--line)"/>
+    ${[pts[0],mid,pts[pts.length-1]].map((p,i)=>`<text x="${X(isoUTC(p.d))}" y="${H-8}" font-size="15" fill="var(--muted)" text-anchor="${['start','middle','end'][i]}">${fmtD(p.d)}</text>`).join('')}
+    <polyline fill="none" stroke="var(--muted)" stroke-width="1.2" opacity=".55" points="${pts.map((p,i)=>`${X(xs[i])},${Y(p.v)}`).join(' ')}"/>
+    <polyline fill="none" stroke="var(--ink)" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round" points="${ma.map(q=>q.join(',')).join(' ')}"/>
+    ${pts.map((p,i)=>`<circle cx="${X(xs[i])}" cy="${Y(p.v)}" r="4" fill="${p.f?'var(--ko)':'var(--ok)'}" stroke="var(--surface)" stroke-width="1.2"/>`).join('')}
+  </svg><div class="legend"><span><i style="background:var(--ink);border-radius:2px;height:4px;width:16px"></i>media delle ultime 5 sedute</span><span><i style="background:var(--ok)"></i>tutte riuscite</span><span><i style="background:var(--ko)"></i>con serie fallite</span></div>${note?`<p class="muted small" style="margin:6px 0 0">${note}</p>`:''}</div>`;
+}
+function barChart(title,rows,dec=0){
+  if(rows.length<2)return '';
+  const W=640,H=200,L=52,R=10,T=10,B=30,hi=Math.max(...rows.map(r=>r.v))||1,bw=(W-L-R)/rows.length;
+  return `<div class="chart"><h3>${title}</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}">
+    ${[.5,1].map(f=>`<line x1="${L}" x2="${W-R}" y1="${H-B-(H-T-B)*f}" y2="${H-B-(H-T-B)*f}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${L-6}" y="${H-B-(H-T-B)*f+5}" font-size="15" fill="var(--muted)" text-anchor="end">${fmtN(hi*f,dec)}</text>`).join('')}
+    ${rows.map((r,i)=>`<rect x="${L+i*bw+bw*.15}" y="${H-B-(H-T-B)*r.v/hi}" width="${bw*.7}" height="${(H-T-B)*r.v/hi}" rx="2" fill="var(--skip)" opacity="${r.v?1:.25}"/>`).join('')}
+    <text x="${L}" y="${H-8}" font-size="15" fill="var(--muted)">${rows[0].l}</text><text x="${W-R}" y="${H-8}" font-size="15" fill="var(--muted)" text-anchor="end">${rows[rows.length-1].l}</text>
+  </svg></div>`;
+}
+const pSeg=()=>`<div class="seg sm" role="group" aria-label="Periodo" style="max-width:480px;margin-bottom:12px">${PERIODI.map(([k,l])=>`<button data-a="setProg" data-v="${k}" aria-pressed="${S.prog===k}">${l}</button>`).join('')}</div>`;
+function vProgList(){
+  const from=periodStart(),info=exInfo();
+  const rows=[...info.entries()].filter(([,o])=>o.last>=from).map(([n,o])=>{const sr=exSeries(n,from).filter(x=>x.e1);const vals=sr.map(x=>x.e1);return {n,o,vals,tr:trendOf(vals)}}).filter(r=>r.tr)
+    .sort((a,b)=>a.o.last<b.o.last?1:a.o.last>b.o.last?-1:0);
+  const up=rows.filter(r=>r.tr.pct>1).length,down=rows.filter(r=>r.tr.pct<-1).length;
+  return `${pSeg()}<p class="lead2">${rows.length?`In questo periodo migliori in <b class="up">${up}</b> ${up===1?'esercizio':'esercizi'}, peggiori in <b class="down">${down}</b>, stabile negli altri ${rows.length-up-down}.`:'Servono almeno 4 sedute nel periodo per vedere una tendenza.'}</p>
+    <p class="muted small" style="margin:4px 0 14px">Forza stimata dagli allenamenti: carico e ripetizioni fatte, più quelle che probabilmente avevi in riserva (dalla fatica e dal colore delle serie). Confronto l’inizio e la fine del periodo.</p>
+    ${rows.map(r=>{const c=trCls(r.tr.pct);return `<button class="prow" data-a="exOpen" data-n="${esc(r.n)}">${exIcon(r.n,40)}<span><b>${esc(r.n)}</b><br><span class="muted small">${r.vals.length} sedute, ultima ${fmtD(r.o.last)}</span></span>${spark(r.vals,c)}
+      <span class="v">${fmtN(r.tr.b,1)}<small class="${c}">${trArr(r.tr.pct)} ${fmtPct(r.tr.pct)}</small></span></button>`}).join('')}`;
+}
+function vProgDetail(n){
+  const from=periodStart(),sr=exSeries(n,from),e1=sr.filter(x=>x.e1),tr=trendOf(e1.map(x=>x.e1));
+  const pl={'3m':'Negli ultimi 3 mesi','6m':'Negli ultimi 6 mesi','12m':'Nell’ultimo anno',all:'Da quando registri'}[S.prog]||'Nel periodo';
+  if(!sr.length)return `${pSeg()}<p class="muted">Nessuna seduta di questo esercizio nel periodo scelto.</p>`;
+  const best=e1.reduce((a,x)=>!a||x.e1>a.e1?x:a,null),maxKg=sr.reduce((a,x)=>Math.max(a,x.kg||0),0),sets=sr.reduce((a,x)=>a+x.sets,0),fails=sr.reduce((a,x)=>a+x.fails,0);
+  // volume per settimana o per mese
+  const span=(isoUTC(sr[sr.length-1].d)-isoUTC(sr[0].d))/864e5,byM=span>280,g=new Map();
+  sr.forEach(x=>{const k=byM?x.d.slice(0,7):mondayOf(x.d);g.set(k,(g.get(k)||0)+x.vol)});
+  const keys=[];if(byM){let [y,m]=sr[0].d.slice(0,7).split('-').map(Number);const [ye,me]=sr[sr.length-1].d.slice(0,7).split('-').map(Number);while(y<ye||(y===ye&&m<=me)){keys.push(`${y}-${pad(m)}`);m++;if(m>12){m=1;y++}}}
+  else{let t=isoUTC(mondayOf(sr[0].d));const e=isoUTC(mondayOf(sr[sr.length-1].d));while(t<=e){const d=new Date(t);keys.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`);t+=7*864e5}}
+  const vrows=keys.map(k=>({l:byM?`${k.slice(5,7)}/${k.slice(0,4)}`:fmtD(k),v:g.get(k)||0}));
+  const half=Math.max(1,Math.floor(vrows.length/2)),vA=vrows.slice(0,half),vB=vrows.slice(-half),avg=a=>a.reduce((x,y)=>x+y.v,0)/a.length,vpc=avg(vA)?(avg(vB)/avg(vA)-1)*100:null;
+  const tst=[...S.tests.values()].filter(t=>!t.deleted&&t.n===n&&t.rm>0&&t.tipo!=='default').sort((a,b)=>a.d<b.d?1:-1)[0];
+  const k=(l,v,sub)=>`<div><span>${l}</span><b>${v}</b>${sub?`<small>${sub}</small>`:''}</div>`;
+  return `${pSeg()}
+    ${tr?`<p class="lead2">${pl} la forza stimata è passata da <b>${fmtN(tr.a,1)}</b> a <b>${fmtN(tr.b,1)} kg</b>: <b class="${trCls(tr.pct)}">${trArr(tr.pct)} ${fmtPct(tr.pct)}</b>.</p>`:'<p class="lead2">Servono almeno 4 sedute nel periodo per calcolare la tendenza.</p>'}
+    <div class="kpi">
+      ${k('Forza stimata',tr?`${fmtN(tr.b,1)} kg`:(e1.length?`${fmtN(e1[e1.length-1].e1,1)} kg`:'–'),tr?`<span class="${trCls(tr.pct)}">${trArr(tr.pct)} ${fmtPct(tr.pct)}</span>`:'')}
+      ${k('Miglior stima',best?`${fmtN(best.e1,1)} kg`:'–',best?`il ${fmtD(best.d)}`:'')}
+      ${k('Carico massimo usato',maxKg?`${fk(maxKg)} kg`:'–','')}
+      ${k(byM?'Volume al mese':'Volume a settimana',fmtN(avg(vB),1),vpc!=null?`<span class="${trCls(vpc)}">${trArr(vpc)} ${fmtPct(vpc)}</span> rispetto alla prima metà`:'')}
+      ${k('Sedute',sr.length,`${fmtN(sr.length/Math.max(1,span/7),1)} a settimana`)}
+      ${k('Serie fallite',sets?`${fmtN(fails/sets*100)}%`:'–',`${fails} su ${sets}`)}
+      ${tst?k('Ultimo test',`${fmtN(tst.rm,1)} kg`,`1RM del ${fmtD(tst.d)}`):''}
+    </div>
+    ${tChart('Forza stimata (kg)',e1.map(x=>({d:x.d,v:x.e1,f:x.fails>0})),1,'La stima viene dagli allenamenti, quindi di solito è più bassa del massimale dei test: conta la direzione della linea.')}
+    ${barChart(byM?'Volume al mese':'Volume a settimana',vrows,1)}
+    ${tChart('Carico usato (kg)',sr.filter(x=>x.kg).map(x=>({d:x.d,v:x.kg,f:x.fails>0})),1)}`;
+}
+
 /* ----- esercizi ----- */
 function allNames(){const x=new Set(S.names||[]);for(const t of S.tests.values())if(!t.deleted&&t.n)x.add(t.n);return [...x]}
 function exInfo(){const m=new Map();for(const s of S.hist)for(const e of s.ex){if(!e.n)continue;const o=m.get(e.n)||{n:0,last:null};o.n++;if(!o.last)o.last=s.d;m.set(e.n,o)}return m}
@@ -765,7 +866,11 @@ function vExList(){
 }
 function vEsercizi(){
   if(S.exSel)return vEsercizio(S.exSel);
-  return `<div class="top"><h1>Esercizi</h1></div>${banner()}
+  const seg=`<div class="seg" role="group" aria-label="Vista" style="max-width:520px">
+    <button data-a="exView" data-v="list" aria-pressed="${S.exView!=='prog'}">Elenco</button>
+    <button data-a="exView" data-v="prog" aria-pressed="${S.exView==='prog'}">Andamento</button></div>`;
+  if(S.exView==='prog')return `<div class="top"><h1>Esercizi</h1></div>${banner()}${seg}${vProgList()}`;
+  return `<div class="top"><h1>Esercizi</h1></div>${banner()}${seg}
   <label class="f" style="margin-bottom:14px">Cerca<input type="text" value="${esc(S.exQ)}" data-f="ex:q" placeholder="Nome dell’esercizio"></label>
   <div id="exList">${vExList()}</div>`;
 }
@@ -777,6 +882,7 @@ function vEsercizio(n){
   <section class="card"><div class="row"><div><div class="muted small">Massimale in uso oggi</div>
     ${t?`<div class="big-rm">${fmtN(t.rm,1)} kg</div><div class="muted small">${esc(testDesc(t))}${t.tipo==='default'?'':`, test del ${fmtD(t.d)}`}, applicato dal ${fmtD(t.from||t.d)}</div>`:'<p class="muted" style="margin:4px 0">Nessun massimale registrato.</p>'}</div>
     <span class="spacer"></span><button class="btn primary" data-a="newTest" data-n="${esc(n)}">Nuovo test</button></div></section>
+  <h2 style="margin:22px 0 10px">Andamento</h2>${vProgDetail(n)}
   ${t?`<section class="card"><h3 style="margin-bottom:8px">Tabella carichi</h3><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>% 1RM</th><th>Rip. massime</th><th>Kg</th></tr></thead><tbody>
     ${[...REPMAX].reverse().map(([q,r])=>`<tr><td>${fmtN(q*100)}%</td><td>${r}</td><td>${fmtN(Math.ceil(t.rm*q))}</td></tr>`).join('')}</tbody></table></div>
     <p class="muted small" style="margin:8px 0 0">Kg arrotondati per eccesso al chilo, come nel foglio Excel.</p></section>`:''}
@@ -791,7 +897,7 @@ function vEsercizio(n){
       ${b?`<p style="margin:0 0 8px">Dal test del ${fmtD(bz.d)}: il solo peso corporeo (${fk(num(bz.bw))} kg) è il <b>${b.pbw}%</b> del massimale${b.mr?`, circa <b>${b.mr}</b> ripetizioni massime e ${b.mrset} per serie`:''}.</p>`:''}
       ${mr?`<div class="muted small">Massime ripetizioni del ${fmtD(mr.d)}: ${mr.rep}</div><div style="overflow-x:auto"><table class="tbl"><thead><tr>${[40,50,60,70,80].map(q=>`<th>${q}%</th>`).join('')}</tr></thead><tbody><tr>${[40,50,60,70,80].map(q=>`<td>${Math.floor(mr.rep*q/100)}</td>`).join('')}</tr></tbody></table></div>`:''}</section>`})()}
   ${tests.length?`<section class="card"><h3>Test e massimali</h3>${tests.map(vTestRow).join('')}</section>`:''}
-  <h3 style="margin:18px 0 10px">Andamento</h3>${vExHistory(n)}`;
+  <h3 style="margin:18px 0 10px">Sedute</h3>${vExHistory(n,true)}`;
 }
 function vTestRow(t){
   const rmT=t.rm>0&&t.tipo!=='default';
@@ -913,12 +1019,12 @@ function vSess(s){
     <div class="row" style="margin-top:8px"><button class="btn" data-a="editSess" data-id="${esc(s.id)}">Modifica</button><span class="spacer"></span><button class="btn ghost danger" data-a="askDelSess" data-id="${esc(s.id)}">Elimina</button></div>
   </div>`:''}</article>`;
 }
-function vExHistory(name){
+function vExHistory(name,noCharts){
   const occ=[];
   for(const s of S.hist)for(const e of s.ex)if(e.n===name)occ.push({s,e,m:metrics(e,!!s.updated)});
   const pts=occ.filter(o=>o.e.st!=='Non eseguito'&&o.m.tot!=null).slice(0,60).reverse();
   let h='';
-  if(pts.length>1){
+  if(pts.length>1&&!noCharts){
     h+=chart('Carico (kg)',pts.map(o=>({v:Number(o.e.kg)||null,f:o.m.fails>0,d:o.s.d})),1);
     h+=chart('Volume',pts.map(o=>({v:o.m.vol,f:o.m.fails>0,d:o.s.d})),2);
   }
@@ -1711,6 +1817,8 @@ const A={
     scheduleSave();tReset();S.tab='diario';render();
   },
   exOpen(el){S.exSel=el.dataset.n;render();window.scrollTo(0,0)},
+  exView(el){S.exView=el.dataset.v;render()},
+  setProg(el){S.prog=el.dataset.v;render()},
   exBack(){S.exSel='';render();window.scrollTo(0,0)},
   newTest(el){S.tf=newTf();S.tf.n=el.dataset.n;S.tab='massimali';render();window.scrollTo(0,0)},
   tfTipo(el){const f=S.tf;f.tipo=el.dataset.v;
