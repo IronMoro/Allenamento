@@ -194,6 +194,41 @@ input[type=number]{font-family:var(--f-num);font-size:19px;font-weight:600}
 .sheet .opts button{border:0;border-radius:8px;padding:14px 10px;font-weight:600;font-size:16px}
 .o-ok{background:var(--ok);color:var(--on-ok)}.o-fat{background:var(--fat);color:var(--on-ok)}.o-ko{background:var(--ko);color:var(--on-ko)}.o-skip{background:var(--skip);color:var(--on-ko)}
 .empty{text-align:center;padding:30px 10px;color:var(--muted)}
+body.lock{overflow:hidden}
+.run.full{position:fixed;inset:0;z-index:30;border-radius:0;margin:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top" "main" "side";gap:clamp(4px,1.2vh,14px);padding:calc(env(safe-area-inset-top,0px) + clamp(6px,1.5vh,14px)) clamp(10px,3vw,28px) calc(env(safe-area-inset-bottom,0px) + clamp(8px,2vh,18px));overflow:hidden}
+.r-top{grid-area:top;display:flex;align-items:center;gap:10px;font-family:var(--f-num);font-size:clamp(15px,min(3.8vw,2.6vh),24px);font-weight:600}
+.r-top .r-title{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-top .r-ses{white-space:nowrap;opacity:.9}
+.r-top .fsb{background:transparent;border:1.5px solid currentColor;color:inherit;border-radius:6px;width:clamp(32px,5vh,42px);height:clamp(32px,5vh,42px);font-size:clamp(14px,2.4vh,20px);padding:0;flex:none}
+.r-main{grid-area:main;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;gap:clamp(2px,.8vh,8px)}
+.r-side{grid-area:side;display:flex;flex-direction:column;justify-content:center;gap:clamp(6px,1.4vh,14px);min-height:0}
+.run.full .ph{font-size:clamp(16px,min(4.4vw,3.2vh),30px)}
+.run.full .giro{font-family:var(--f-num);font-weight:700;font-size:clamp(34px,min(12vw,8.5vh),110px);line-height:1;margin:0;font-variant-numeric:tabular-nums}
+.run.full .ex-now{font-size:clamp(20px,min(6.5vw,5vh),56px);margin:0}
+.run.full .clock{font-size:clamp(48px,min(25vw,24vh),320px);margin:0;white-space:nowrap}
+.run.full .sub{font-size:clamp(13px,min(3.8vw,2.5vh),22px);margin:0}
+.run.full .ctl{margin:0;gap:clamp(6px,1.2vw,12px)}
+.run.full .btn{font-size:clamp(14px,min(3.8vw,2.4vh),20px);padding:clamp(6px,1.1vh,12px) clamp(10px,2.2vw,20px)}
+.run.full .btn.big{font-size:clamp(18px,min(5.2vw,3.4vh),30px);padding:clamp(8px,1.6vh,16px) clamp(16px,3vw,30px)}
+.run.full .repadj{margin:0;gap:clamp(10px,3vw,22px)}
+.run.full .repadj button{width:clamp(40px,min(12vw,7vh),76px);height:clamp(40px,min(12vw,7vh),76px);font-size:clamp(22px,4vh,34px)}
+.run.full .repadj output{font-size:clamp(30px,min(11vw,7vh),76px);min-width:2ch}
+.run.full .esito{margin:0 auto;width:100%}
+.run.full .esito button{padding:clamp(6px,1.3vh,14px) 4px;font-size:clamp(13px,min(3.6vw,2.2vh),18px)}
+.run.full .tot{margin:0;gap:clamp(6px,1vw,10px)}
+.run.full .tot div{padding:clamp(4px,.8vh,8px) 10px;font-size:clamp(12px,1.8vh,16px)}
+.run.full .tot b{font-size:clamp(16px,2.8vh,26px)}
+.run:not(.full) .msub{margin-top:14px}
+@media (orientation:landscape){
+  .run.full{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"top top" "main side"}
+  .run.full .clock{font-size:clamp(48px,min(16.5vw,40vh),320px)}
+}
+.sesbox{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 16px}
+.sesbox .row b{font-family:var(--f-num);font-size:26px}
+.tempi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+.tempi div{display:flex;flex-direction:column}
+.tempi span{font-size:12px;color:var(--muted)}
+.tempi b{font-family:var(--f-num);font-size:22px}
 @media (prefers-reduced-motion:reduce){.run{transition:none}}
 </style>
 </head>
@@ -244,8 +279,8 @@ const STANDALONE=!(window.claude&&typeof window.claude.use==='function');
 const S={tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
   saveMsg:'',storEx:'',storWeeks:8,open:new Set(),progOpen:new Set(),newDate:todayIso(),downloads:null,
   tmode:'rec',tc:{rec:{n:6,rest:'fix',sec:90,mult:2,auto:true,link:null,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120},
-  emom:{k:2,giri:10,lead:10,mark:'next',col:['#0284C7','#16A34A','#9333EA'],warnSec:3,warnCol:'#FFC000',half:false,restOn:false,restSec:60,restEnd:false,restEndSec:120,restCol:'#E2E8F0',ex:[{n:'',rep:'',sec:60},{n:'',rep:'',sec:60},{n:'',rep:'',sec:60}]},
-  edt:{min:15,a:{n:'',rep:5},b:{n:'',rep:5},col:['#0284C7','#F97316'],warnSec:3,warnCol:'#FFC000',half:false,frac:'none',minsLeft:'',restEnd:false,restEndSec:120,restCol:'#E2E8F0'},snd:{style:'bip'}}};
+  emom:{k:2,giri:10,lead:10,mark:'next',giroFmt:'frac',col:['#0284C7','#16A34A','#9333EA'],warnSec:3,warnCol:'#FFC000',half:false,restOn:false,restSec:60,restEnd:false,restEndSec:120,restCol:'#E2E8F0',ex:[{n:'',rep:'',sec:60},{n:'',rep:'',sec:60},{n:'',rep:'',sec:60}]},
+  edt:{min:15,a:{n:'',rep:5},b:{n:'',rep:5},col:['#0284C7','#F97316'],warnSec:3,warnCol:'#FFC000',half:false,frac:'none',minsLeft:'',restEnd:false,restEndSec:120,restCol:'#E2E8F0'},snd:{style:'bip'},sess:{warmOn:false,warmAuto:true,warmMode:'fix',warmMin:10,coolOn:false,coolAuto:true,coolMode:'fix',coolMin:5,colWarm:'#F97316',colCool:'#0284C7'}}};
 
 /* ---------- metriche ---------- */
 function metrics(e,strict){
@@ -318,7 +353,7 @@ function newDraft(iso,wo,exs){
 function persistDraft(){store('diario-bozza',S.draft)}
 function sessionObj(dr){
   const ex=dr.ex.map(e=>{const o={...e};delete o._why;return o});
-  return {id:dr.id,d:dr.d,gg:ggOf(dr.d),wo:dr.wo,set:dr.set!=null&&dr.d===dr._d0?dr.set:weekOf(dr.d),note:dr.note||'',ex,updated:Date.now()};
+  return {id:dr.id,d:dr.d,gg:ggOf(dr.d),wo:dr.wo,set:dr.set!=null&&dr.d===dr._d0?dr.set:weekOf(dr.d),note:dr.note||'',ex,...(dr.tempi?{tempi:dr.tempi}:{}),updated:Date.now()};
 }
 let saveTimer=null,saveChain=Promise.resolve(),lastSaved='';
 function scheduleSave(){persistDraft();clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,1200);setSaveMsg('Modifiche da salvare')}
@@ -372,7 +407,7 @@ async function init(){
   },()=>{});
 }
 
-const PREFKEYS={emom:['mark','col','warnSec','warnCol','half','restOn','restSec','restEnd','restEndSec','restCol'],rec:['colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],edt:['col','warnSec','warnCol','frac','minsLeft','restEnd','restEndSec','restCol'],snd:['style']};
+const PREFKEYS={emom:['mark','giroFmt','col','warnSec','warnCol','half','restOn','restSec','restEnd','restEndSec','restCol'],rec:['colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],edt:['col','warnSec','warnCol','frac','minsLeft','restEnd','restEndSec','restCol'],snd:['style'],sess:['warmOn','warmAuto','warmMode','warmMin','coolOn','coolAuto','coolMode','coolMin','colWarm','colCool']};
 function loadPrefs(){
   if(S.prefsLoaded||!S.cfg.timer)return;
   for(const m in PREFKEYS){const p=S.cfg.timer[m];if(!p)continue;
@@ -424,6 +459,7 @@ function render(){
   if(S.tab==='diario')m.innerHTML=vDiario();
   else if(S.tab==='timer')m.innerHTML=vTimer();
   else m.innerHTML=vStorico();
+  document.body.classList.toggle('lock',S.tab==='timer'&&!!((T&&!T.done)||(SES&&['pre','warm','cool'].includes(SES.phase))));
   updateMini();
 }
 function banner(){
@@ -443,7 +479,7 @@ function vDiario(){
     <label class="f">Data<input type="date" value="${d.d}" data-f="d:d"></label>
     <label class="f">WO<input type="text" value="${esc(d.wo)}" data-f="d:wo" maxlength="6" autocapitalize="characters"></label>
   </div>
-  <p class="sess-meta" id="sessMeta">${ggOf(d.d)}, settimana ${weekOf(d.d)}</p>
+  <p class="sess-meta" id="sessMeta">${ggOf(d.d)}, settimana ${weekOf(d.d)}</p>${d.tempi?`<p class="muted small" style="margin:-10px 0 16px">Tempi: ${tempiTxt(d.tempi)}</p>`:''}
   ${d.ex.length?d.ex.map((e,i)=>vCard(e,i)).join(''):`<p class="empty">Aggiungi il primo esercizio: se l’hai già fatto in passato riprendo carico e piano dall’ultima volta.</p>`}
   <div class="add">
     <input type="text" id="addName" list="names" placeholder="Aggiungi un esercizio" aria-label="Nome esercizio da aggiungere">
@@ -555,6 +591,7 @@ function vSess(s){
     <p>${e.st==='Non eseguito'?'Non eseguito':`${(e.s||[]).map(x=>x[0]).join(' ')}${e.b!=null?` <span class="muted">(piano: ${e.b}${e.k?`, prime ${e.k} a ${e.b+1}`:''})</span>`:''}`}</p>
     <p class="muted">TotRep ${fmtN(m.tot)}, tonnellaggio ${fmtN(m.ton)}, volume ${fmtN(m.vol,2)}${m.fails?`, ${m.fails} fallite`:''}${e.f?`, ${esc(e.f.toLowerCase())}`:''}</p>
     ${e.note?`<p>${esc(e.note)}</p>`:''}</div>`}).join('')}
+    ${s.tempi?`<p class="muted">Tempi: ${tempiTxt(s.tempi)}</p>`:''}
     ${s.note?`<p><b>Note:</b> ${esc(s.note)}</p>`:''}
     <div class="row" style="margin-top:8px"><button class="btn" data-a="editSess" data-id="${esc(s.id)}">Modifica</button><span class="spacer"></span><button class="btn ghost danger" data-a="askDelSess" data-id="${esc(s.id)}">Elimina</button></div>
   </div>`:''}</article>`;
@@ -594,9 +631,10 @@ function chart(title,data,dec){
 
 /* ----- timer: viste ----- */
 function vTimer(){
-  if(T&&!T.done)return `<div class="top"><h1>${T.mode==='rec'?(linkedEx()?esc(linkedEx().n):'Recupero'):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT'}</h1></div><div id="runBox">${vRun()}</div>`;
+  if(SES&&['pre','warm','cool'].includes(SES.phase))return vPhase();
+  if(T&&!T.done)return `<div id="runBox">${vRun()}</div>`;
   const m=S.tmode;
-  return `<div class="top"><h1>Timer</h1></div>${T&&T.done?`<div id="runBox" style="margin-bottom:18px">${vRun()}</div>`:''}
+  return `<div class="top"><h1>Timer</h1></div>${vSesBox()}${T&&T.done?`<div id="runBox" style="margin-bottom:18px">${vRun()}</div>`:''}
   <div class="seg" role="group" aria-label="Tipo di timer">
     ${[['rec','Recupero'],['emom','EMOM'],['edt','EDT']].map(([k,l])=>`<button data-a="tmode" data-m="${k}" aria-pressed="${m===k}">${l}</button>`).join('')}
   </div>
@@ -655,6 +693,7 @@ function vCfgRec(){
   <div class="emx"><div class="muted small">Colore durante il recupero</div>${swatches('rec','colRest',c.colRest,PAL,'Colore durante il recupero')}</div>
   ${vRestEnd('rec')}
   ${vWarn('rec','recupero')}
+  ${vSesCfg()}
   <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
 }
 function vCfgEmom(){
@@ -680,9 +719,14 @@ function vCfgEmom(){
       <button data-a="tset" data-f="emom.mark" data-v="next" aria-pressed="${c.mark==='next'}">Le segno dopo</button>
       <button data-a="tset" data-f="emom.mark" data-v="during" aria-pressed="${c.mark==='during'}">Le segno durante</button></div>
     <p class="muted small" style="margin:6px 0 0">${c.mark==='during'?'Correggi la serie mentre l’intervallo è in corso.':'Correggi la serie appena finita durante l’intervallo successivo.'} Se non tocchi niente, la serie conta come completata.</p></div>
+  <div><div class="muted small" style="margin-bottom:4px">Giri sullo schermo</div>
+    <div class="seg sm" role="group" aria-label="Come mostrare i giri" style="max-width:420px">
+      <button data-a="tset" data-f="emom.giroFmt" data-v="frac" aria-pressed="${c.giroFmt!=='down'}">1/${c.giri}</button>
+      <button data-a="tset" data-f="emom.giroFmt" data-v="down" aria-pressed="${c.giroFmt==='down'}">A ritroso (${c.giri}, ${Math.max(1,c.giri-1)}…)</button></div></div>
   <div class="row" style="gap:24px"><div><div class="muted small">Giri</div>${stepper('emom.giri',c.giri,'Giri')}</div>
   <label class="f" style="max-width:150px">Preparazione (s)<input type="number" inputmode="numeric" value="${c.lead}" data-f="tc:emom.lead"></label></div>
   <p class="muted small" style="margin:0">Durata totale ${mmss(1000*(c.giri*c.ex.slice(0,c.k).reduce((a,e)=>a+(Number(e.sec)||0),0)+(c.restOn?(c.giri-1)*(Number(c.restSec)||0):0)+(c.restEnd?(Number(c.restEndSec)||0):0)))}.</p>
+  ${vSesCfg()}
   <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
 }
 function vCfgEdt(){
@@ -695,6 +739,7 @@ function vCfgEdt(){
     ${swatches('edt','col.'+i,c.col[i],PAL,`Colore dell’esercizio ${i?'B':'A'}`)}`).join('')}
   ${vRestEnd('edt')}
   ${vWarn('edt','tempo')}
+  ${vSesCfg()}
   <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
 }
 
@@ -736,8 +781,9 @@ function sound(kind,n){
   if((kind==='change'||kind==='end')&&navigator.vibrate)try{navigator.vibrate(300)}catch(e){}
 }
 const beepShort=()=>sound('tick'),beepLong=()=>sound('change'),beepEnd=()=>sound('end');
+let WL=null;
 async function wake(on){
-  try{if(on&&navigator.wakeLock&&!T.wl)T.wl=await navigator.wakeLock.request('screen');if(!on&&T&&T.wl){T.wl.release();T.wl=null}}catch(e){}
+  try{if(on&&navigator.wakeLock&&!WL){WL=await navigator.wakeLock.request('screen');WL.addEventListener('release',()=>{WL=null})}if(!on&&WL){WL.release();WL=null}}catch(e){}
 }
 function tStart(){
   ensureAudio();
@@ -754,12 +800,103 @@ function tStart(){
     const fr={half:[[1/2,'metà']],thirds:[[1/3,'un terzo'],[2/3,'due terzi']],quarters:[[1/4,'un quarto'],[1/2,'metà'],[3/4,'tre quarti']]}[c.frac]||[];
     T.marks=fr.map(([f,say])=>({rem:tot*(1-f),k:'half',say})).concat(String(c.minsLeft||'').split(/[,;\s]+/).map(num).filter(x=>x>0&&x*60000<tot)
       .map(x=>({rem:x*60000,k:'warn',say:x<1?`mancano ${Math.round(x*60)} secondi`:x===1?'manca un minuto':`mancano ${fmtN(x,x%1?1:0)} minuti`})))}
-  wake(true);clearInterval(loopId);loopId=setInterval(tick,100);render();
+  wake(true);ensureLoop();render();
 }
 function tStop(){
-  if(!T)return;T.done=true;T.endClock=clk();T.paused=true;T.acc=T.endClock;clearInterval(loopId);loopId=null;wake(false);
+  if(!T)return;T.done=true;T.endClock=clk();T.paused=true;T.acc=T.endClock;autoApply();
+  if(!sesActive()){clearInterval(loopId);loopId=null;wake(false)}
+  sesAfterTimer();
 }
-function tReset(){if(T&&T.wl)wake(false);clearInterval(loopId);loopId=null;T=null;render()}
+function tReset(){T=null;if(!sesActive()){clearInterval(loopId);loopId=null;wake(false)}render()}
+function autoApply(){
+  if(!S.draft||T.applied)return;const c=T.cfg;
+  if(T.mode==='rec'){const le=linkedEx();if(le){le.t=Math.max(1,Math.round((T.workEnd??T.endClock)/60000));T.applied=true}}
+  else if(T.mode==='emom'&&c.link){T.giriFatti=T.slot<0?0:T.slots[T.slot].g+1;
+    if(T.giriFatti){const mins=Math.round((T.giriFatti*c.ex.reduce((a,x)=>a+x.sec,0)+(c.restOn?Math.max(0,T.giriFatti-1)*c.restSec:0))/60);c.link.forEach(j=>{const x=S.draft.ex[j];if(x)x.t=mins});T.applied=true}}
+  else if(T.mode==='edt'&&c.link&&T.log.length&&T.log.every(l=>c.link[l.k==='a'?0:1]!=null)){
+    ['a','b'].forEach((k,n)=>{const log=T.log.filter(l=>l.k===k),lx=S.draft.ex[c.link[n]];if(log.length&&lx){lx.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);lx.t=c.min;lx.b=c[k].rep;lx.k=0}});T.applied=true}
+  if(T.applied)scheduleSave();
+}
+
+/* ---------- seduta: riscaldamento, allenamento, defaticamento ---------- */
+let SES=load('diario-sessione');
+const sesSave=()=>store('diario-sessione',SES);
+const sesActive=()=>!!(SES&&SES.phase&&SES.phase!=='done');
+function fmtDur(ms){const x=Math.max(0,Math.floor(ms/1000)),h=Math.floor(x/3600),m=Math.floor(x%3600/60);return h?`${h}:${pad(m)}:${pad(x%60)}`:`${m}:${pad(x%60)}`}
+const tempiTxt=t=>`riscaldamento ${fmtDur(t.risc*1000)}, allenamento ${fmtDur(t.allen*1000)}, defaticamento ${fmtDur(t.defat*1000)}, totale ${fmtDur(t.tot*1000)}`;
+function ensureLoop(){if(!loopId)loopId=setInterval(tick,100)}
+function sesNew(){SES={cfg:clone(S.tc.sess),mode:S.tmode,phase:null,start:null}}
+function sesBegin(){if(!SES.start)SES.start=Date.now()}
+function startWarm(){sesBegin();SES.phase='warm';SES.warmStart=Date.now();SES._ls=null;sesSave();ensureAudio();wake(true);ensureLoop();sound('change','riscaldamento');render()}
+function endWarm(){SES.warmEnd=Date.now();SES.phase='train';sesSave();S.tmode=SES.mode;sound('change','allenamento');tStart()}
+function startTrain(){sesBegin();SES.phase='train';sesSave();S.tmode=SES.mode;tStart()}
+function startCool(silent){sesBegin();SES.coolStart=Date.now();SES.phase='cool';SES._ls=null;sesSave();ensureAudio();wake(true);ensureLoop();if(!silent)sound('change','defaticamento');render()}
+function endSession(){
+  const n=Date.now();if(!SES.start)SES.start=n;
+  if(SES.phase==='warm')SES.warmEnd=n;if(SES.phase==='cool')SES.coolEnd=n;
+  SES.end=n;SES.phase='done';
+  const w=SES.warmStart?(SES.warmEnd||n)-SES.warmStart:0,cl=SES.coolStart?(SES.coolEnd||n)-SES.coolStart:0;
+  const al=Math.max(0,(SES.coolStart||n)-(SES.warmEnd||SES.start));
+  SES.tempi={risc:Math.round(w/1000),allen:Math.round(al/1000),defat:Math.round(cl/1000),tot:Math.round((n-SES.start)/1000)};
+  if(S.draft){S.draft.tempi=SES.tempi;scheduleSave();SES.saved=true}
+  sesSave();sound('end');if(!T||T.done){wake(false);clearInterval(loopId);loopId=null}render();
+}
+function sesAfterTimer(){
+  if(!SES||SES.phase!=='train')return;
+  if(SES.cfg.coolOn&&SES.cfg.coolAuto){startCool(true);return}
+  SES.phase='between';sesSave();
+}
+function phaseClock(n){const k=SES.phase,c=SES.cfg,el=n-(k==='warm'?SES.warmStart:SES.coolStart),tot=Math.max(.25,num(c[k+'Min'])||1)*60000;return {el,tot,fixed:c[k+'Mode']==='fix',rem:tot-el}}
+function sesTick(){
+  if(!SES||!SES.start)return;
+  const n=Date.now();
+  document.querySelectorAll('.sClock').forEach(e=>e.textContent=fmtDur((SES.end||n)-SES.start));
+  if(SES.phase!=='warm'&&SES.phase!=='cool')return;
+  const pc=phaseClock(n),el=$('#pClock');if(el)el.textContent=pc.fixed?mmss(pc.rem):fmtDur(pc.el);
+  if(pc.fixed){const x=Math.ceil(pc.rem/1000);if(x!==SES._ls){if(x<=3&&x>=1&&SES._ls!=null)sound('tick',x);SES._ls=x}
+    if(pc.rem<=0){SES.phase==='warm'?endWarm():endSession()}}
+}
+const fsBtn=()=>document.fullscreenEnabled?`<button class="fsb" data-a="fs" aria-label="Schermo intero">⛶</button>`:'';
+const sesTop=title=>`<div class="r-top"><span class="r-title">${title}</span>${SES&&SES.start?`<span class="r-ses">Seduta <b class="sClock">${fmtDur(Date.now()-SES.start)}</b></span>`:''}${fsBtn()}</div>`;
+function vPhase(){
+  const c=SES.cfg,k=SES.phase,col=k==='cool'?c.colCool:c.colWarm,fg=fgFor(col);
+  const st=`style="background:${col};color:${fg};--pbg:${col};--pfg:${fg}"`;
+  const back=`<button class="btn" data-a="toSession">${S.draft?'Torna alla seduta':'Vai al diario'}</button>`;
+  if(k==='pre')return `<div class="run full" ${st}>${sesTop('Riscaldamento')}
+    <div class="r-main"><p class="ex-now">Pronto per il riscaldamento?</p><p class="sub">${c.warmMode==='fix'?`Durata ${fmtN(num(c.warmMin)||0,1)}′`:'Finisce quando lo dici tu'}</p></div>
+    <div class="r-side"><div class="ctl"><button class="btn primary big" data-a="sesWarm">Inizia riscaldamento</button></div>
+    <div class="ctl"><button class="btn" data-a="sesSkipWarm">Salta, inizia l’allenamento</button><button class="btn" data-a="sesCancel">Annulla</button></div></div></div>`;
+  const pc=phaseClock(Date.now());
+  return `<div class="run full" id="runPanel" ${st}>${sesTop(k==='warm'?'Riscaldamento':'Defaticamento')}
+    <div class="r-main"><p class="ph">${pc.fixed?'Tempo rimasto':'Tempo trascorso'}</p><div class="clock" id="pClock" role="timer">${pc.fixed?mmss(pc.rem):fmtDur(pc.el)}</div>
+    <p class="sub">${k==='warm'?'Alla fine si passa all’allenamento':'Alla fine la seduta è finita'}</p></div>
+    <div class="r-side"><div class="ctl"><button class="btn primary big" data-a="${k==='warm'?'sesWarmEnd':'sesEndNow'}">${k==='warm'?'Fine riscaldamento':'Fine defaticamento'}</button></div>
+    <div class="ctl">${back}${k==='warm'?'<button class="btn" data-a="sesAskEnd">Termina seduta</button>':''}</div></div></div>`;
+}
+function vSesBox(){
+  if(!SES||!SES.start)return '';
+  if(SES.phase==='done'){const t=SES.tempi||{},c=(l,v)=>`<div><span>${l}</span><b>${fmtDur((v||0)*1000)}</b></div>`;
+    return `<section class="sesbox"><h3>Seduta finita</h3><div class="tempi">${c('Riscaldamento',t.risc)}${c('Allenamento',t.allen)}${c('Defaticamento',t.defat)}${c('Totale',t.tot)}</div>
+      <p class="muted small" style="margin:0 0 10px">${SES.saved?'Tempi salvati nella seduta del diario.':'Non c’era una seduta aperta nel diario: i tempi restano solo qui.'}</p>
+      <button class="btn" data-a="sesClose">Chiudi</button></section>`}
+  return `<section class="sesbox"><div class="row"><span>Seduta in corso, fase di allenamento</span><span class="spacer"></span><b class="sClock">${fmtDur(Date.now()-SES.start)}</b></div>
+    <div class="row" style="margin-top:8px">${SES.cfg.coolOn?`<button class="btn primary" data-a="sesCool">Inizia defaticamento</button>`:''}<button class="btn" data-a="sesAskEnd">Termina seduta</button></div>
+    <p class="muted small" style="margin:8px 0 0">Per continuare la stessa seduta avvia un altro timer qui sotto.</p></section>`;
+}
+function vSesCfg(){
+  const c=S.tc.sess;
+  const ph=(k,label,when)=>`<div class="emx"><label class="row" style="flex-wrap:nowrap"><input type="checkbox" ${c[k+'On']?'checked':''} data-f="tc:sess.${k}On" style="width:22px;height:22px"> ${label}</label>
+   ${c[k+'On']?`<div class="seg sm" role="group" aria-label="Avvio: ${label}" style="max-width:440px;margin-top:6px">
+      <button data-a="tset" data-f="sess.${k}Auto" data-v="true" aria-pressed="${!!c[k+'Auto']}">Parte da solo ${when}</button>
+      <button data-a="tset" data-f="sess.${k}Auto" data-v="false" aria-pressed="${!c[k+'Auto']}">Lo avvio io</button></div>
+    <div class="seg sm" role="group" aria-label="Durata: ${label}" style="max-width:440px;margin-top:6px">
+      <button data-a="tset" data-f="sess.${k}Mode" data-v="fix" aria-pressed="${c[k+'Mode']==='fix'}">Tempo fisso</button>
+      <button data-a="tset" data-f="sess.${k}Mode" data-v="open" aria-pressed="${c[k+'Mode']==='open'}">Finisce quando lo dico io</button></div>
+    ${c[k+'Mode']==='fix'?`<label class="f" style="max-width:160px;margin-top:6px">Minuti<input type="number" inputmode="decimal" value="${c[k+'Min']}" data-f="tc:sess.${k}Min"></label>`:''}
+    ${swatches('sess',k==='warm'?'colWarm':'colCool',k==='warm'?c.colWarm:c.colCool,PAL,`Colore: ${label}`)}`:''}</div>`;
+  return `<div><div class="muted small" style="margin-bottom:4px">Fasi della seduta (valgono per tutti i timer)</div>${ph('warm','Riscaldamento','all’inizio')}${ph('cool','Defaticamento','alla fine')}
+   <p class="muted small" style="margin:6px 0 0">Il cronometro della seduta parte con il riscaldamento o con il primo timer; alla fine ti dà il tempo di ogni fase e lo salva nella seduta del diario.</p></div>`;
+}
 function warnBeep(rem){if(T.cfg.warnSec>3&&rem<=T.cfg.warnSec*1000&&!T.warned){T.warned=true;sound('warn')}}
 function halfBeep(rem,total){if(T.cfg.half&&!T.halfDone&&total>=8000&&rem<=total/2&&rem>3500){T.halfDone=true;sound('half')}}
 function countdownBeeps(remMs){
@@ -767,6 +904,8 @@ function countdownBeeps(remMs){
   if(s!==T.lastSec){if(s<=3&&s>=1&&T.lastSec!=null)sound('tick',s);T.lastSec=s}
 }
 function tick(){
+  sesTick();
+  if(!T&&!sesActive()){clearInterval(loopId);loopId=null}
   if(!T||T.done||T.paused){updateRun();return}
   const t=clk();
   if(T.mode==='rec'){
@@ -795,8 +934,9 @@ function updateRun(){
   const box=$('#runBox');if(!box)return;
   const key=runKey();
   if(box.dataset.key!==key){box.innerHTML=vRun();box.dataset.key=key;return}
+  if(T.done)return;
   const c=$('#tClock');if(c)c.textContent=clockText();
-  const r=$('#runPanel');if(r){r.className='run '+runClass();const pt=emomPaint();r.style.background=pt?pt.bg:'';r.style.color=pt?pt.fg:'';r.style.setProperty('--pbg',pt?pt.bg:'');r.style.setProperty('--pfg',pt?pt.fg:'')}
+  const r=$('#runPanel');if(r){r.className='run full '+runClass();const pt=emomPaint();r.style.background=pt?pt.bg:'';r.style.color=pt?pt.fg:'';r.style.setProperty('--pbg',pt?pt.bg:'');r.style.setProperty('--pfg',pt?pt.fg:'')}
 }
 function runKey(){
   if(T.done)return 'done';
@@ -832,7 +972,7 @@ function vRun(){
   const pauseBtn=`<button class="btn" data-a="tPause">${T.paused?'Riprendi':'Pausa'}</button>`;
   const stopBtn=`<button class="btn" data-a="tAskStop">Termina</button>`;
   if(T.done)return vDone();
-  let ph='',ex='',sub='',main='',extra='';
+  let ph='',ex='',sub='',main='',extra='',giro='';
   if(T.mode==='rec'){
     const n=T.cfg.n;const le=linkedEx();
     if(T.phase==='ready'){ph=`Serie ${T.set+1} di ${n}`;sub=T.set?'Recupero finito':'Quando sei pronto';main=`<button class="btn primary big" data-a="tGo">Inizia serie ${T.set+1}</button>`}
@@ -845,7 +985,7 @@ function vRun(){
     const nameOf=sl=>sl.rest?(sl.end?'Riposo finale':'Riposo'):esc(T.cfg.ex[sl.i].n);
     if(lead||T.slot<0){ph='Si parte tra';ex=esc(T.cfg.ex[0].n);const r0=repOf(0,0);sub=r0?`${r0} ripetizioni`:''}
     else{const s=T.slots[T.slot],nx=T.slots[T.slot+1],r=repOf(s.i,s.g);
-      ph=`Giro ${s.g+1} di ${T.cfg.giri}`;ex=nameOf(s)+(r?` × ${r}`:'');sub=nx?`Poi: ${nameOf(nx)}${repOf(nx.i,nx.g)?` × ${repOf(nx.i,nx.g)}`:''}`:'Ultimo intervallo';
+      ph='';giro=T.cfg.giroFmt==='down'?`<p class="giro" aria-label="Mancano ${T.cfg.giri-s.g} giri compreso questo">${T.cfg.giri-s.g}</p>`:`<p class="giro" aria-label="Giro ${s.g+1} di ${T.cfg.giri}">${s.g+1}/${T.cfg.giri}</p>`;ex=nameOf(s)+(r?` × ${r}`:'');sub=nx?`Poi: ${nameOf(nx)}${repOf(nx.i,nx.g)?` × ${repOf(nx.i,nx.g)}`:''}`:'Ultimo intervallo';
       const mt=markTarget();if(mt)extra=vMark(mt)}
   }else{
     const c=T.cfg,k=T.cur?'b':'a';const e=c[k];
@@ -861,12 +1001,13 @@ function vRun(){
     extra=`<div class="tot"><div>${esc(c.a.n)}<b>${tot('a')} rep</b>${ser('a')} serie</div><div>${esc(c.b.n)}<b>${tot('b')} rep</b>${ser('b')} serie</div></div>`;
   }
   const pt=emomPaint();
-  return `<div class="run ${runClass()}" id="runPanel"${pt?` style="background:${pt.bg};color:${pt.fg};--pbg:${pt.bg};--pfg:${pt.fg}"`:''}>
-    <p class="ph">${ph}${T.paused?' (in pausa)':''}</p>${ex?`<p class="ex-now">${ex}</p>`:''}
-    <div class="clock" id="tClock" role="timer">${clockText()}</div>
-    ${sub?`<p class="sub">${sub}</p>`:''}
-    <div class="ctl">${main}</div>${extra}
-    <div class="ctl">${pauseBtn}${stopBtn}${S.draft?`<button class="btn" data-a="toSession">Torna alla seduta</button>`:''}</div></div>`;
+  const title=T.mode==='rec'?(linkedEx()?esc(linkedEx().n):'Recupero'):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT';
+  return `<div class="run full ${runClass()}" id="runPanel"${pt?` style="background:${pt.bg};color:${pt.fg};--pbg:${pt.bg};--pfg:${pt.fg}"`:''}>
+    ${sesTop(title)}
+    <div class="r-main">${giro}${ph||T.paused?`<p class="ph">${ph}${T.paused?' (in pausa)':''}</p>`:''}${ex?`<p class="ex-now">${ex}</p>`:''}
+    <div class="clock" id="tClock" role="timer">${clockText()}</div>${sub?`<p class="sub">${sub}</p>`:''}</div>
+    <div class="r-side">${main?`<div class="ctl">${main}</div>`:''}${extra}
+    <div class="ctl">${pauseBtn}${stopBtn}<button class="btn" data-a="toSession">${S.draft?'Torna alla seduta':'Vai al diario'}</button></div></div></div>`;
 }
 function vDone(){
   const t=T.endClock;let body='',act='';
@@ -882,6 +1023,7 @@ function vDone(){
     body=`<div class="tot"><div>${esc(c.a.n)}<b>${tot('a').reduce((a,l)=>a+l.rep,0)} rep</b>${tot('a').map(l=>l.rep).join(' ')||'nessuna serie'}</div><div>${esc(c.b.n)}<b>${tot('b').reduce((a,l)=>a+l.rep,0)} rep</b>${tot('b').map(l=>l.rep).join(' ')||'nessuna serie'}</div></div>`;
     if(T.log.length)act=`<button class="btn primary" data-a="saveEdt">${T.cfg.link?'Salva nella seduta':'Aggiungi alla seduta'}</button>`;
   }
+  if(T.applied){act='';body+=`<p class="sub">Già salvato nella seduta.</p>`}
   const back=S.draft&&!act.includes('emomBack')?`<button class="btn" data-a="toSession">Torna alla seduta</button>`:'';
   return `<div class="run done" id="runPanel"><p class="ph">Finito</p>${body}<div class="ctl">${act}${back}<button class="btn" data-a="tReset">Nuovo timer</button></div></div>`;
 }
@@ -896,14 +1038,18 @@ function markTarget(){
 }
 function vMark(mt){
   const x=mt.e.s[mt.j],p=planned(mt.e,mt.j);
-  return `<p class="sub" style="margin-top:14px">${T.mode==='emom'?esc(mt.e.n)+', s':'S'}erie ${mt.j+1} ${mt.now?'in corso':'appena fatta'}${p!=null?`, obiettivo ${p}`:''}</p>
-  <div class="repadj" style="margin-top:4px"><button data-a="lRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${x[0]===''?(p??0):x[0]}</output><button data-a="lRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
+  return `<p class="sub msub">${T.mode==='emom'?esc(mt.e.n)+', s':'S'}erie ${mt.j+1} ${mt.now?'in corso':'appena fatta'}${p!=null?`, obiettivo ${p}`:''}</p>
+  <div class="repadj"><button data-a="lRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${x[0]===''?(p??0):x[0]}</output><button data-a="lRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
   <div class="esito">${['ok','fat','ko'].map(k=>`<button class="o-${k}" data-a="lEsito" data-k="${k}" aria-pressed="${x[1]===k}">${ESITO[k]}</button>`).join('')}</div>`;
 }
 function linkedEx(){const l=S.tc.rec.link;return T&&T.mode==='rec'&&l!=null&&S.draft&&S.draft.ex[l]||null}
 function updateMini(){
   const mi=$('#mini');if(!mi)return;
-  if(!T||T.done||S.tab==='timer'){mi.hidden=true;return}
+  if(S.tab==='timer'){mi.hidden=true;return}
+  if((!T||T.done)&&SES&&SES.start&&sesActive()){mi.hidden=false;const n=Date.now();
+    if(SES.phase==='warm'||SES.phase==='cool'){const pc=phaseClock(n);$('#miniBtn').textContent=`${SES.phase==='warm'?'Riscaldamento':'Defaticamento'} ${pc.fixed?mmss(pc.rem):fmtDur(pc.el)}`}
+    else $('#miniBtn').textContent=`Seduta ${fmtDur(n-SES.start)}`;return}
+  if(!T||T.done){mi.hidden=true;return}
   mi.hidden=false;$('#miniBtn').textContent=`${T.mode==='rec'?(T.phase==='rest'?'Recupero':`Serie ${T.set+1}`):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT'} ${clockText()}`;
 }
 function ensureDraft(){if(!S.draft){newDraft(todayIso(),'',[])}return S.draft}
@@ -974,7 +1120,7 @@ const A={
   },
   /* timer */
   tmode(el){S.tmode=el.dataset.m;render()},
-  tset(el){const [m,k]=el.dataset.f.split('.');const v=el.dataset.v;S.tc[m][k]=isNaN(Number(v))?v:Number(v);if(m==='snd'||(m==='emom'&&k==='mark'))savePrefs();render()},
+  tset(el){const [m,k]=el.dataset.f.split('.');const v=el.dataset.v;S.tc[m][k]=v==='true'?true:v==='false'?false:isNaN(Number(v))?v:Number(v);if(m==='snd'||m==='sess'||(m==='emom'&&(k==='mark'||k==='giroFmt')))savePrefs();render()},
   sndTest(){ensureAudio();[['tick',3],['tick',2],['tick',1],['change','Trazioni'],['half'],['warn'],['end']].forEach(([k,n],i)=>setTimeout(()=>sound(k,n),i*1000))},
   tcol(el){const e=S.tc[el.dataset.m||'emom'],k=el.dataset.k;if(k.startsWith('col.'))e.col[+k.slice(4)]=el.dataset.v;else e[k]=el.dataset.v;savePrefs();render()},
   toSession(){S.tab='diario';render();const ix=T&&T.mode==='emom'&&T.cfg.link?T.cfg.link[0]:T&&T.mode==='rec'?S.tc.rec.link:null;const c=ix!=null&&$('#card-'+ix);if(c)c.scrollIntoView({block:'start'});else window.scrollTo(0,0)},
@@ -992,7 +1138,22 @@ const A={
     else{const c=S.tc.rec;c.link=i;c.n=e.s.length;if(tp.pp){c.rest='fix';c.sec=tp.pp.sec}}
     S.tmode=tp.mode;S.tab='timer';render();window.scrollTo(0,0);
   },
-  tStart(){tStart()},
+  tStart(){
+    if(!sesActive()){sesNew();const c=SES.cfg;
+      if(c.warmOn&&c.warmAuto)return startWarm();
+      if(c.warmOn){SES.phase='pre';sesSave();render();return}
+      return startTrain()}
+    SES.mode=S.tmode;startTrain();
+  },
+  sesWarm(){startWarm()},
+  sesSkipWarm(){startTrain()},
+  sesCancel(){SES=null;sesSave();render()},
+  sesWarmEnd(){endWarm()},
+  sesCool(){startCool()},
+  sesAskEnd(){confirmSheet('Terminare la seduta?','Il cronometro della seduta si ferma e vedi il tempo di ogni fase.','Termina','sesEndNow')},
+  sesEndNow(){closeSheet();endSession()},
+  sesClose(){SES=null;sesSave();render()},
+  fs(){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}},
   tPause(){if(!T)return;if(T.paused){T.since=now();T.paused=false}else{T.acc=clk();T.paused=true}updateRun();const b=$('#runBox');if(b){b.dataset.key='';updateRun()}},
   tAskStop(){confirmSheet('Terminare il timer?','Il conteggio si ferma e vedi il riepilogo.','Termina','tStopNow')},
   tStopNow(){closeSheet();tStop();render()},
@@ -1089,7 +1250,7 @@ function onField(el,isChange){
   const [kind,a,b]=f.split(':');
   if(kind==='new'){S.newDate=v||todayIso();return}
   if(kind==='st'){S.storEx=v;render();return}
-  if(kind==='tc'){const path=a.split('.');let o=S.tc;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;if(/^(emom|rec|edt)\.(col|warn|rest|half|frac|minsLeft)/.test(a))savePrefs();if(/\.(restOn|restEnd)$/.test(a))render();return}
+  if(kind==='tc'){const path=a.split('.');let o=S.tc;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;if(/^(emom|rec|edt)\.(col|warn|rest|half|frac|minsLeft)|^sess\./.test(a))savePrefs();if(/\.(restOn|restEnd|warmOn|coolOn)$/.test(a))render();return}
   if(kind==='d'){if(!S.draft)return;
     if(a==='d'){if(!v)return;S.draft.d=v;const m=$('#sessMeta');if(m)m.textContent=`${ggOf(v)}, settimana ${weekOf(v)}`}
     else S.draft[a]=v;scheduleSave();return}
@@ -1110,7 +1271,7 @@ function onField(el,isChange){
 }
 document.addEventListener('input',ev=>{const el=ev.target;if(el.tagName==='SELECT'||el.type==='checkbox')return;onField(el)});
 document.addEventListener('change',ev=>{const el=ev.target;if(el.tagName==='SELECT'||el.type==='checkbox'||el.type==='date')onField(el,true)});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&T&&!T.done){wake(true);tick()}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&((T&&!T.done)||sesActive())){wake(true);tick()}});
 window.addEventListener('pagehide',()=>{if(S.draft)persistDraft()});
 $('#fileImp').addEventListener('change',async ev=>{
   const f=ev.target.files[0];ev.target.value='';if(!f)return;
@@ -1121,6 +1282,8 @@ $('#fileImp').addEventListener('change',async ev=>{
   catch(e){done('Backup non importato',e&&e.message==='spazio'?'Lo spazio del browser per questa app è pieno.':'Il file non è un backup del diario: scegli il file diario-backup….json esportato dall’app.')}
 });
 if(STANDALONE&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(SES&&SES.phase==='train')SES.phase='between';
+if(sesActive())ensureLoop();
 init();
 </script>
 </body>
