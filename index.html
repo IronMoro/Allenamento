@@ -246,6 +246,29 @@ body.lock{overflow:hidden}
   .run.full{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"top top" "main side"}
   .run.full .clock{font-size:clamp(48px,min(16.5vw,40vh),320px)}
 }
+.run.full{--u:14px;gap:calc(var(--u)*.5);padding:calc(env(safe-area-inset-top,0px) + var(--u)*.6) calc(var(--u)*.9) calc(env(safe-area-inset-bottom,0px) + var(--u)*.7)}
+.run.full .r-top{font-size:calc(var(--u)*1.5)}
+.run.full .r-top .r-ses{font-size:clamp(15px,min(3.8vw,2.6vh),24px)}
+.run.full .r-top .fsb{width:calc(var(--u)*2.4);height:calc(var(--u)*2.4);font-size:calc(var(--u)*1.2)}
+.run.full .r-main{gap:calc(var(--u)*.25)}
+.run.full .r-side{gap:calc(var(--u)*.6)}
+.run.full .ph{font-size:calc(var(--u)*1.7);line-height:1.1}
+.run.full .giro{font-size:calc(var(--u)*4.6)}
+.run.full .ex-now{font-size:calc(var(--u)*2.6);line-height:1.05}
+.run.full .clock{font-size:calc(var(--u)*8);line-height:.92}
+.run.full .sub{font-size:calc(var(--u)*1.4);line-height:1.15}
+.run.full .ctl{gap:calc(var(--u)*.5)}
+.run.full .btn{font-size:calc(var(--u)*1.35);min-height:calc(var(--u)*3*var(--hb,1));padding:calc(var(--u)*.3) calc(var(--u)*.5)}
+.run.full .btn.big,.run.full .r-side .btn.primary{font-size:calc(var(--u)*1.8);min-height:calc(var(--u)*3.8*var(--hb,1))}
+.run.full .repadj{gap:calc(var(--u)*1.2)}
+.run.full .repadj button{width:calc(var(--u)*4);height:calc(var(--u)*4);font-size:calc(var(--u)*2.2)}
+.run.full .repadj output{font-size:calc(var(--u)*4);line-height:1}
+.run.full .esito{gap:calc(var(--u)*.5)}
+.run.full .r-side{container-type:inline-size}
+.run.full .esito button{min-height:calc(var(--u)*3.4*var(--hb,1));font-size:min(calc(var(--u)*1.3),4.6cqi)}
+.run.full .tot{gap:calc(var(--u)*.5)}
+.run.full .tot div{font-size:calc(var(--u)*1);padding:calc(var(--u)*.3) calc(var(--u)*.6)}
+.run.full .tot b{font-size:calc(var(--u)*1.8)}
 .sesbox{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 16px}
 .sesbox .row b{font-family:var(--f-num);font-size:26px}
 .tempi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
@@ -483,6 +506,7 @@ function render(){
   else if(S.tab==='timer')m.innerHTML=vTimer();
   else m.innerHTML=vStorico();
   document.body.classList.toggle('lock',S.tab==='timer'&&!!((T&&!T.done)||(SES&&['pre','warm','cool'].includes(SES.phase))));
+  if(document.querySelector('.run.full'))fitRun();
   updateMini();
 }
 function banner(){
@@ -875,7 +899,7 @@ function sesTick(){
   const n=Date.now();
   document.querySelectorAll('.sClock').forEach(e=>e.textContent=fmtDur((SES.end||n)-SES.start));
   if(SES.phase!=='warm'&&SES.phase!=='cool')return;
-  const pc=phaseClock(n),el=$('#pClock');if(el)el.textContent=pc.fixed?mmss(pc.rem):fmtDur(pc.el);
+  const pc=phaseClock(n),el=$('#pClock');if(el){const tx=pc.fixed?mmss(pc.rem):fmtDur(pc.el);const ch=tx.length!==el.textContent.length;el.textContent=tx;if(ch)fitRun()}
   if(pc.fixed){const x=Math.ceil(pc.rem/1000);if(x!==SES._ls){if(x<=3&&x>=1&&SES._ls!=null)sound('tick',x);SES._ls=x}
     if(pc.rem<=0){SES.phase==='warm'?endWarm():endSession()}}
 }
@@ -951,14 +975,39 @@ function tick(){
   }
   updateRun();
 }
+let fitT=null;
+function fitRun(){
+  const p=document.querySelector('.run.full');if(!p||!p.offsetHeight)return;
+  const main=p.querySelector('.r-main'),side=p.querySelector('.r-side'),ck=p.querySelector('.clock');
+  const ok=()=>{
+    if(p.scrollHeight>p.clientHeight+1)return false;
+    for(const a of [main,side])if(a&&a.scrollHeight>a.clientHeight+1)return false;
+    for(const e of p.querySelectorAll('button,.ex-now,.giro,.ph,.sub,.clock,output'))if(e.scrollWidth>e.clientWidth+1)return false;
+    for(const e of p.querySelectorAll('.r-main > *,.r-side > *')){const r=e.getBoundingClientRect(),m=e.parentElement.getBoundingClientRect();if(r.right>m.right+1||r.left<m.left-1)return false}
+    return true;
+  };
+  if(ck)ck.style.fontSize='';p.style.setProperty('--hb','1');
+  let lo=5,hi=Math.max(12,Math.min(innerWidth,innerHeight)/5);
+  for(let i=0;i<14;i++){const mid=(lo+hi)/2;p.style.setProperty('--u',mid+'px');if(ok())lo=mid;else hi=mid}
+  p.style.setProperty('--u',lo+'px');
+  if(ck){let a=parseFloat(getComputedStyle(ck).fontSize),b=a*3;
+    for(let i=0;i<12;i++){const mid=(a+b)/2;ck.style.fontSize=mid+'px';if(ok())a=mid;else b=mid}
+    ck.style.fontSize=a+'px'}
+  let h1=1,h2=4;for(let i=0;i<10;i++){const mid=(h1+h2)/2;p.style.setProperty('--hb',mid);if(ok())h1=mid;else h2=mid}
+  p.style.setProperty('--hb',h1);
+  p.dataset.len=ck?ck.textContent.length:'';
+}
+function refit(){clearTimeout(fitT);fitT=setTimeout(fitRun,60)}
+window.addEventListener('resize',refit);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>fitRun());
 function updateRun(){
   updateMini();
   if(S.tab!=='timer'||!T)return;
   const box=$('#runBox');if(!box)return;
   const key=runKey();
-  if(box.dataset.key!==key){box.innerHTML=vRun();box.dataset.key=key;return}
+  if(box.dataset.key!==key){box.innerHTML=vRun();box.dataset.key=key;fitRun();return}
   if(T.done)return;
-  const c=$('#tClock');if(c)c.textContent=clockText();
+  const c=$('#tClock');if(c){const tx=clockText();if(tx.length!==c.textContent.length){c.textContent=tx;fitRun()}else c.textContent=tx}
   const r=$('#runPanel');if(r){r.className='run full '+runClass();const pt=emomPaint();r.style.background=pt?pt.bg:'';r.style.color=pt?pt.fg:'';r.style.setProperty('--pbg',pt?pt.bg:'');r.style.setProperty('--pfg',pt?pt.fg:'')}
 }
 function runKey(){
