@@ -219,6 +219,29 @@ body.lock{overflow:hidden}
 .run.full .tot div{padding:clamp(4px,.8vh,8px) 10px;font-size:clamp(12px,1.8vh,16px)}
 .run.full .tot b{font-size:clamp(16px,2.8vh,26px)}
 .run:not(.full) .msub{margin-top:14px}
+/* timer: dati più grandi e pulsanti facili da toccare */
+.run.full .r-top{font-size:clamp(18px,min(4.8vw,3.4vh),34px)}
+.run.full .r-top .r-ses{font-size:clamp(15px,min(3.8vw,2.6vh),24px);font-weight:600}
+.run.full .ph{font-size:clamp(18px,min(5.6vw,4vh),42px)}
+.run.full .giro{font-size:clamp(40px,min(16vw,10vh),150px)}
+.run.full .ex-now{font-size:clamp(24px,min(8vw,6vh),76px)}
+.run.full .clock{font-size:clamp(52px,min(27vw,25vh),340px)}
+.run.full .sub{font-size:clamp(16px,min(5vw,3.2vh),32px)}
+.run.full .btn{font-size:clamp(16px,min(4.6vw,2.9vh),28px);min-height:clamp(44px,7vh,84px);border-width:2px;line-height:1.15}
+.run.full .btn.big,.run.full .r-side .btn.primary{font-size:clamp(20px,min(6.2vw,4vh),42px);min-height:clamp(52px,9.5vh,110px);width:100%}
+.run.full .ctl2{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));width:100%}
+.run.full .ctl2 .btn{padding-left:6px;padding-right:6px}
+.run.full .repadj button{width:clamp(52px,min(18vw,10.5vh),116px);height:clamp(52px,min(18vw,10.5vh),116px);font-size:clamp(28px,6vh,56px);border-width:3px}
+.run.full .repadj output{font-size:clamp(40px,min(15vw,9.5vh),110px)}
+.run.full .esito{gap:clamp(6px,1.4vw,14px);max-width:none}
+.run.full .esito button{min-height:clamp(48px,8.5vh,96px);font-size:clamp(15px,min(4.4vw,2.9vh),28px);padding:4px}
+.run.full .tot div{font-size:clamp(14px,2.2vh,22px)}
+.run.full .tot b{font-size:clamp(20px,3.8vh,40px)}
+@media (orientation:landscape){
+  .run.full .clock{font-size:clamp(48px,min(16.5vw,40vh),340px)}
+  .run.full .giro{font-size:clamp(36px,min(9vw,12vh),150px)}
+  .run.full .ex-now{font-size:clamp(22px,min(5vw,7vh),76px)}
+}
 @media (orientation:landscape){
   .run.full{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"top top" "main side"}
   .run.full .clock{font-size:clamp(48px,min(16.5vw,40vh),320px)}
@@ -865,13 +888,13 @@ function vPhase(){
   if(k==='pre')return `<div class="run full" ${st}>${sesTop('Riscaldamento')}
     <div class="r-main"><p class="ex-now">Pronto per il riscaldamento?</p><p class="sub">${c.warmMode==='fix'?`Durata ${fmtN(num(c.warmMin)||0,1)}′`:'Finisce quando lo dici tu'}</p></div>
     <div class="r-side"><div class="ctl"><button class="btn primary big" data-a="sesWarm">Inizia riscaldamento</button></div>
-    <div class="ctl"><button class="btn" data-a="sesSkipWarm">Salta, inizia l’allenamento</button><button class="btn" data-a="sesCancel">Annulla</button></div></div></div>`;
+    <div class="ctl ctl2"><button class="btn" data-a="sesSkipWarm">Salta, inizia l’allenamento</button><button class="btn" data-a="sesCancel">Annulla</button></div></div></div>`;
   const pc=phaseClock(Date.now());
   return `<div class="run full" id="runPanel" ${st}>${sesTop(k==='warm'?'Riscaldamento':'Defaticamento')}
     <div class="r-main"><p class="ph">${pc.fixed?'Tempo rimasto':'Tempo trascorso'}</p><div class="clock" id="pClock" role="timer">${pc.fixed?mmss(pc.rem):fmtDur(pc.el)}</div>
     <p class="sub">${k==='warm'?'Alla fine si passa all’allenamento':'Alla fine la seduta è finita'}</p></div>
     <div class="r-side"><div class="ctl"><button class="btn primary big" data-a="${k==='warm'?'sesWarmEnd':'sesEndNow'}">${k==='warm'?'Fine riscaldamento':'Fine defaticamento'}</button></div>
-    <div class="ctl">${back}${k==='warm'?'<button class="btn" data-a="sesAskEnd">Termina seduta</button>':''}</div></div></div>`;
+    <div class="ctl ctl2">${back}${k==='warm'?'<button class="btn" data-a="sesAskEnd">Termina seduta</button>':''}</div></div></div>`;
 }
 function vSesBox(){
   if(!SES||!SES.start)return '';
@@ -1007,7 +1030,7 @@ function vRun(){
     <div class="r-main">${giro}${ph||T.paused?`<p class="ph">${ph}${T.paused?' (in pausa)':''}</p>`:''}${ex?`<p class="ex-now">${ex}</p>`:''}
     <div class="clock" id="tClock" role="timer">${clockText()}</div>${sub?`<p class="sub">${sub}</p>`:''}</div>
     <div class="r-side">${main?`<div class="ctl">${main}</div>`:''}${extra}
-    <div class="ctl">${pauseBtn}${stopBtn}<button class="btn" data-a="toSession">${S.draft?'Torna alla seduta':'Vai al diario'}</button></div></div></div>`;
+    <div class="ctl ctl2">${pauseBtn}${stopBtn}<button class="btn" data-a="toSession">${S.draft?'Torna alla seduta':'Vai al diario'}</button></div></div></div>`;
 }
 function vDone(){
   const t=T.endClock;let body='',act='';
