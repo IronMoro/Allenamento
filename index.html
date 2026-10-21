@@ -302,6 +302,19 @@ body.lock{overflow:hidden}
 .prow .v small{display:block;font-size:14px;font-weight:600}
 .prow svg{width:90px;height:30px}
 .lead2{font-size:17px;margin:4px 0 0}
+.guide details{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:0 0 10px;padding:0 14px}
+.guide summary{cursor:pointer;padding:12px 0;font-family:var(--f-num);font-size:20px;font-weight:700;list-style:none;display:flex;align-items:center;gap:10px}
+.guide summary::-webkit-details-marker{display:none}
+.guide summary::after{content:"+";margin-left:auto;font-size:24px;color:var(--muted)}
+.guide details[open] summary::after{content:"−"}
+.guide .gb{padding:0 0 14px;font-size:16px}
+.guide .gb p,.guide .gb li{margin:0 0 8px}
+.guide .gb ul{padding-left:20px;margin:0 0 8px}
+.guide code{font-family:var(--f-num);font-size:17px;background:var(--raise);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.guide .tbl td{font-family:var(--f-text);font-size:15px;text-align:left;vertical-align:top}
+.guide .tbl th{text-align:left}
+.chipx{display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:-3px;margin-right:4px}
+.run.full .r-side .btn.swap{font-size:calc(var(--u)*3.6);line-height:1;font-weight:700}
 .sesbox{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 16px}
 .sesbox .row b{font-family:var(--f-num);font-size:26px}
 .tempi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
@@ -320,6 +333,7 @@ body.lock{overflow:hidden}
   <button data-a="tab" data-tab="storico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/></svg><span>Storico</span></button>
   <button data-a="tab" data-tab="esercizi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12h10"/><rect x="3.5" y="7.5" width="3.5" height="9" rx="1"/><rect x="17" y="7.5" width="3.5" height="9" rx="1"/><path d="M2 10v4M22 10v4"/></svg><span>Esercizi</span></button>
   <button data-a="tab" data-tab="massimali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5.5a2.5 2.5 0 0 0 2.6 4M16 6h2.5a2.5 2.5 0 0 1-2.6 4M12 13v4M8.5 20.5h7M9.5 17h5"/></svg><span>Test</span></button>
+  <button data-a="tab" data-tab="guida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2.2-2.4 3.7M12 17.2h.01"/></svg><span>Guida</span></button>
 </nav>
 <div id="sheetRoot"></div>
 <input type="file" id="fileImp" accept=".json,application/json" hidden>
@@ -351,7 +365,7 @@ const mmssUp=ms=>{const s=Math.max(0,Math.floor(ms/1000));return `${Math.floor(s
 const clone=o=>JSON.parse(JSON.stringify(o));
 const num=v=>{if(v===''||v==null)return null;const n=Number(String(v).replace(',','.'));return isFinite(n)?n:null};
 function repMax(p){let r=null;for(const [q,n] of REPMAX){if(p>=q-1e-9)r=n}return r}
-function planned(e,i){if(e.b==null)return null;return e.b+(i<(e.k||0)?1:0)}
+function planned(e,i){if(Array.isArray(e.lad)&&e.lad[i]!=null)return e.lad[i];if(e.b==null)return null;return e.b+(i<(e.k||0)?1:0)}
 function store(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
 function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 
@@ -359,13 +373,15 @@ function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null
 const newTf=()=>({d:todayIso(),n:'',tipo:'1rm',kg:'',bw:'',rep:'',rir:0,parts:['','',''],rif:'',rifTouched:false,from:todayIso(),fromTouched:false,note:'',editId:null});
 const newMf=()=>({d:todayIso(),vals:{},note:'',editId:null});
 const STANDALONE=!(window.claude&&typeof window.claude.use==='function');
-const S={prog:'6m',exView:'list',misure:new Map(),mf:null,testSub:'test',tests:new Map(),testsLoaded:false,exSel:'',exQ:'',tf:null,tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
+const S={protos:new Map(),protosLoaded:false,pf:null,progM:'e1',prog:'6m',exView:'list',misure:new Map(),mf:null,testSub:'test',tests:new Map(),testsLoaded:false,exSel:'',exQ:'',tf:null,tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
   saveMsg:'',storEx:'',storWeeks:8,open:new Set(),progOpen:new Set(),newDate:todayIso(),downloads:null,
-  tmode:'rec',tc:{tst:{tipo:'t30',n:'',kg:'',rif:'',rifTouched:false,step:5,lead:10,col:['#0284C7','#16A34A','#9333EA'],warnSec:10,warnCol:'#FFC000',half:false},
+  tmode:'rec',tc:{amrap:{min:10,lead:10,ex:[{n:'',rep:10},{n:'',rep:10}],warnSec:10,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120,link:null},
+  rt:{n:'',target:50,rep:'',rest:60,lead:10,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,link:null},
+  tst:{tipo:'t30',n:'',kg:'',rif:'',rifTouched:false,step:5,lead:10,col:['#0284C7','#16A34A','#9333EA'],warnSec:10,warnCol:'#FFC000',half:false},
   circ:{items:[{n:'',tipo:'time',val:40},{n:'',tipo:'time',val:40},{n:'',tipo:'time',val:40}],giri:3,restEx:15,restGiro:60,lead:10,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120},
-  rec:{n:6,rest:'fix',sec:90,mult:2,auto:true,links:null,mode:'sep',items:[{n:'',sets:6,rep:''}],between:90,tr:0,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120},
+  rec:{n:6,lead:10,rest:'fix',sec:90,mult:2,auto:true,links:null,mode:'sep',items:[{n:'',sets:6,rep:''}],between:90,tr:0,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120},
   emom:{k:2,giri:10,lead:10,mark:'next',giroFmt:'frac',col:['#0284C7','#16A34A','#9333EA'],warnSec:3,warnCol:'#FFC000',half:false,restOn:false,restSec:60,restEnd:false,restEndSec:120,restCol:'#E2E8F0',ex:[{n:'',rep:'',sec:60},{n:'',rep:'',sec:60},{n:'',rep:'',sec:60}]},
-  edt:{min:15,a:{n:'',rep:5},b:{n:'',rep:5},col:['#0284C7','#F97316'],warnSec:3,warnCol:'#FFC000',half:false,frac:'none',minsLeft:'',restEnd:false,restEndSec:120,restCol:'#E2E8F0'},snd:{style:'bip',fsAuto:true},sess:{warmOn:false,warmAuto:true,warmMode:'fix',warmMin:10,coolOn:false,coolAuto:true,coolMode:'fix',coolMin:5,colWarm:'#F97316',colCool:'#0284C7'}}};
+  edt:{lead:10,zones:1,min:15,min2:15,restZ:5,a:{n:'',rep:5},b:{n:'',rep:5},c:{n:'',rep:5},d:{n:'',rep:5},col:['#0284C7','#F97316'],warnSec:3,warnCol:'#FFC000',half:false,frac:'none',minsLeft:'',restEnd:false,restEndSec:120,restCol:'#E2E8F0'},snd:{style:'bip',fsAuto:true},sess:{warmOn:false,warmAuto:true,warmMode:'fix',warmMin:10,coolOn:false,coolAuto:true,coolMode:'fix',coolMin:5,colWarm:'#F97316',colCool:'#0284C7',coolKind:'time',pos:[{n:'Posizione 1',sec:60},{n:'Posizione 2',sec:60},{n:'Posizione 3',sec:60}],posTr:10}}};
 
 /* ---------- metriche ---------- */
 function metrics(e,strict){
@@ -523,6 +539,7 @@ function exFromHistory(name,iso,skipId){
   const e={n:name,p:'',t:null,kg:null,z:null,pct:null,b:null,k:0,s:[],st:'Eseguito',f:'',note:''};
   if(!last){e.s=[];setN(e,4);autoPct(e,iso);return e}
   const p=last.e;Object.assign(e,{p:p.p||'',t:p.t??null,kg:p.kg??null,z:p.z??null,pct:p.pct??null});
+  {const P=(p.pid&&S.protos.get(p.pid)&&!S.protos.get(p.pid).deleted)?S.protos.get(p.pid):matchProto(p.p);if(P){e.pid=P.id;e.p=pName(P)}}
   const plan=nextPlan(p,S.cfg.esercizi[name]);
   if(plan){e.b=plan.b;e.k=plan.k;e.kg=plan.kg;e._why=`Ultima volta il ${fmtD(last.s.d)}: ${plan.why}.`;setN(e,plan.n)}
   else setN(e,p.s.length||4);
@@ -539,12 +556,64 @@ function syncSets(e){e.s.forEach((x,i)=>{if(x[1]===''){const p=planned(e,i);x[0]
 /* ---------- bozza e salvataggio ---------- */
 function newDraft(iso,wo,exs){
   S.draft={id:`${iso}_${Date.now().toString(36)}`,d:iso,wo:wo||'',note:'',ex:exs||[],isNew:true};
-  persistDraft();
+  proposeFin(S.draft);persistDraft();
+}
+function loadFin(d,src){
+  d.ex=d.ex.filter(e=>!e.fin);
+  d.fin={mode:'emom',sec:60,giri:5,rest:60,wo:'',...clone(src.fin||{})};d.finFrom=src.d;
+  src.ex.filter(e=>e.fin).forEach(e=>{const x=exFromHistory(e.n,d.d,d.id);x.fin=true;if(d.fin.mode==='max'){const last=lastOf(e.n,d.d,d.id);const lr=last?Math.max(0,...last.e.s.map(y=>Number(y[0])||0)):'';x.b=null;x.k=0;x.s=[[lr||'','']];delete x._why}d.ex.push(x)});
+}
+function proposeFin(d){
+  const last=S.hist.find(s=>s.ex&&s.ex.some(e=>e.fin)&&(s.wo||'')===(d.wo||''));if(last)loadFin(d,last);
+}
+function recentFins(){
+  const out=[],seen=new Set();
+  for(const s of S.hist){if(!s.ex||!s.ex.some(e=>e.fin))continue;const names=s.ex.filter(e=>e.fin).map(e=>e.n);const key=(s.fin&&s.fin.wo||'')+'|'+names.join('|');
+    if(seen.has(key))continue;seen.add(key);out.push({id:s.id,d:s.d,wo:s.fin&&s.fin.wo||'',swo:s.wo||'',names,mode:s.fin&&s.fin.mode});if(out.length>=6)break}
+  return out;
+}
+function setupMax(idx,r){
+  const d=S.draft,c=S.tc.rec;
+  idx.forEach(j=>{const e=d.ex[j];e.b=null;e.k=0;const done=e.s[0]&&e.s[0][1];if(!done){const last=lastOf(e.n,d.d,d.id);const lr=last?Math.max(0,...last.e.s.map(x=>Number(x[0])||0)):'';e.s=[[lr||'','']]}else e.s=[e.s[0]]});
+  c.links=idx;c.items=idx.map(j=>({n:d.ex[j].n,sets:1,rep:''}));c.mode='sep';c.between=r;c.sec=r;c.rest='fix';c.tr=0;c.over={restEnd:true,restEndSec:r,maxMode:true};S.tmode='rec';scheduleSave();
+}
+function finIdx(){return S.draft?S.draft.ex.map((e,i)=>e.fin?i:-1).filter(i=>i>=0).slice(0,6):[]}
+function finSetup(){
+  const d=S.draft,idx=finIdx();if(!idx.length)return false;const f=d.fin||(d.fin={mode:'emom',sec:60,giri:5,rest:60,wo:''});
+  const fw=`Finisher${f.wo?' '+f.wo:''}`,pr=f.mode==='max'?`${fw}: max rip., riposo ${num(f.rest)||60}″`:f.mode==='sp'?`${fw}: Set&Pause, Rest ${num(f.rest)||60}″`:`${fw}: ${emomName(Math.min(3,idx.length))} ${num(f.giri)||5}x${num(f.sec)||60}″`;
+  idx.forEach(j=>{d.ex[j].p=pr});
+  S.tc.rec.links=null;S.tc.rec.over=null;S.tc.emom.link=null;S.tc.edt.link=null;S.tc.from={p:`Finisher${f.wo?' '+f.wo:''}`,ok:true};S.finNext=true;
+  if(f.mode==='max'){setupMax(idx,Math.max(5,num(f.rest)||60));return true}
+  if(f.mode==='emom'){idx.splice(3);const c=S.tc.emom;c.k=idx.length;c.link=idx;c.giri=Math.max(1,num(f.giri)||5);c.restOn=false;c.restEnd=false;idx.forEach(j=>{setN(d.ex[j],c.giri)});scheduleSave();
+    idx.forEach((j,n)=>{c.ex[n]={n:d.ex[j].n,rep:d.ex[j].b??'',sec:Math.max(5,num(f.sec)||60)}});S.tmode='emom'}
+  else{const c=S.tc.rec;c.links=idx;c.items=idx.map(j=>({n:d.ex[j].n,sets:d.ex[j].s.length,rep:d.ex[j].b??''}));c.mode=idx.length>1?'super':'sep';c.rest='fix';c.sec=Math.max(5,num(f.rest)||60);c.tr=0;S.tmode='rec'}
+  return true;
+}
+function vFin(d){
+  const idx=d.ex.map((e,i)=>e.fin?i:-1).filter(i=>i>=0),f=d.fin||{mode:'emom',sec:60,giri:5,rest:60,wo:''},md=f.mode||'emom';
+  const name=md==='sp'?(idx.length>1?grpName(idx.length):'Set&amp;Pause'):emomName(Math.min(3,Math.max(1,idx.length)));
+  const rec=idx.length?[]:recentFins();
+  const opts=md==='max'?`<label class="f" style="width:170px">Riposo tra gli esercizi (s)<input type="number" inputmode="numeric" value="${esc(f.rest)}" data-f="d:fin.rest"></label><span class="muted small">Una serie per esercizio fino a cedimento tecnico; dopo ognuna segni le ripetizioni fatte, partendo da quelle dell’ultima volta.</span>`
+    :md==='sp'?`<label class="f" style="width:150px">Recupero (s)<input type="number" inputmode="numeric" value="${esc(f.rest)}" data-f="d:fin.rest"></label><span class="muted small">Serie e ripetizioni dalle schede qui sotto; con più esercizi diventa un ${grpName(Math.max(2,idx.length)).toLowerCase()}.</span>`
+    :`<label class="f" style="width:150px">Secondi per esercizio<input type="number" inputmode="numeric" value="${esc(f.sec)}" data-f="d:fin.sec"></label><label class="f" style="width:110px">Giri<input type="number" inputmode="numeric" value="${esc(f.giri)}" data-f="d:fin.giri"></label><span class="muted small">Diventa un ${name}${idx.length>3?' con i primi tre esercizi':''}.</span>`;
+  return `<section class="card" style="border-width:2px;border-color:var(--ink)">
+    <div class="row" style="align-items:flex-end"><h2 style="margin-right:8px">Finisher</h2>
+      <label class="f" style="width:90px">WO<input type="text" value="${esc(f.wo||'')}" data-f="d:fin.wo" maxlength="6" autocapitalize="characters"></label>
+      <span class="spacer"></span>${idx.length?`<button class="btn primary" data-a="finStart">Avvia finisher</button>`:''}</div>
+    ${d.finFrom&&idx.length?`<p class="muted small" style="margin:6px 0 0">Proposto dall’ultima seduta ${d.wo?`${esc(d.wo)} `:''}con finisher (${fmtD(d.finFrom)}): cambialo o toglilo come vuoi.</p>`:''}
+    ${idx.length?`<div class="seg sm" role="group" aria-label="Come eseguire il finisher" style="max-width:560px;margin:10px 0">
+        <button data-a="finMode" data-v="emom" aria-pressed="${md==='emom'}">A tempo (EMOM)</button><button data-a="finMode" data-v="sp" aria-pressed="${md==='sp'}">Set&amp;Pause</button><button data-a="finMode" data-v="max" aria-pressed="${md==='max'}">Massime ripetizioni</button></div>
+      <div class="row">${opts}</div>`:''}
+    ${idx.map(i=>vCard(d.ex[i],i)).join('')}
+    ${idx.length<6?`<div class="add"><input type="text" id="finName" list="names" placeholder="Aggiungi un esercizio al finisher" aria-label="Esercizio del finisher"><button class="btn" data-a="finAdd">Aggiungi</button></div>`:''}
+    ${rec.length?`<p class="muted small" style="margin:4px 0 6px">Riprendi un finisher recente:</p><div class="tpl" style="margin:0 0 8px">${rec.map(r=>`<button data-a="finLoad" data-id="${esc(r.id)}"><span class="wo" style="font-size:22px">${esc(r.wo||'F')}</span><span class="what">${esc(r.names.join(', '))}</span><span class="when">${r.mode==='max'?'Massime ripetizioni':r.mode==='sp'?'Set&amp;Pause':'A tempo'}, dopo ${esc(r.swo||'–')} il ${fmtD(r.d)}</span></button>`).join('')}</div>`:''}
+    ${idx.length?'<button class="btn ghost danger" data-a="finDel">Togli il finisher</button>':'<p class="muted small" style="margin:0">Da uno a sei esercizi da fare alla fine: a tempo (fino a tre), in Set&amp;Pause o una serie a massime ripetizioni ciascuno. Una volta impostato, viene riproposto nelle sedute successive con lo stesso WO.</p>'}
+  </section>`;
 }
 function persistDraft(){store('diario-bozza',S.draft)}
 function sessionObj(dr){
-  const ex=dr.ex.map(e=>{const o={...e};delete o._why;return o});
-  return {id:dr.id,d:dr.d,gg:ggOf(dr.d),wo:dr.wo,set:dr.set!=null&&dr.d===dr._d0?dr.set:weekOf(dr.d),note:dr.note||'',ex,...(dr.tempi?{tempi:dr.tempi}:{}),updated:Date.now()};
+  const ex=dr.ex.map(e=>{const o={...e};delete o._why;delete o._w;return o});
+  return {...(dr.fin&&dr.ex.some(e=>e.fin)?{fin:dr.fin}:{}),id:dr.id,d:dr.d,gg:ggOf(dr.d),wo:dr.wo,set:dr.set!=null&&dr.d===dr._d0?dr.set:weekOf(dr.d),note:dr.note||'',ex,...(dr.tempi?{tempi:dr.tempi}:{}),updated:Date.now()};
 }
 let saveTimer=null,saveChain=Promise.resolve(),lastSaved='';
 function scheduleSave(){persistDraft();clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,1200);setSaveMsg('Modifiche da salvare')}
@@ -567,6 +636,12 @@ function setSaveMsg(m){S.saveMsg=m;const el=$('#saveMsg');if(el)el.textContent=m
 /* ---------- avvio ---------- */
 async function init(){
   S.draft=load('diario-bozza');
+  if(S.draft&&Array.isArray(S.draft.ex)&&S.draft.ex.some(e=>e.fin)){
+    const fn=new Set(S.draft.ex.filter(e=>e.fin).map(e=>e.n));
+    const before=S.draft.ex.length;
+    S.draft.ex=S.draft.ex.filter(e=>e.fin||!fn.has(e.n)||(e.s||[]).some(x=>x[1]));
+    if(S.draft.ex.length!==before){persistDraft();setTimeout(()=>{if(S.draft)scheduleSave()},1500)}
+  }
   render();
   let db=null,user=null,uid=null;
   try{
@@ -583,7 +658,8 @@ async function init(){
     S.cfg=load('diario-config')||{esercizi:{}};loadPrefs();
     S.tests=new Map(Object.entries(load('diario-test')||{}));S.testsLoaded=true;
     S.misure=new Map(Object.entries(load('diario-misure')||{}));
-    merge();ensureDefaults();render();return;
+    S.protos=new Map(Object.entries(load('diario-proto')||{}));S.protosLoaded=true;
+    merge();ensureDefaults();ensureProtos();render();return;
   }
   S.base=db.doc(`data/users/${uid}/diario`);
   try{
@@ -602,16 +678,20 @@ async function init(){
     S.tests=new Map(q.docs.map(d=>[d.id,d.data()]));S.testsLoaded=true;ensureDefaults();
     if(S.tab==='esercizi'||S.tab==='massimali')render();
   },()=>{});
+  S.base.collection('protocolli').onSnapshot(q=>{
+    S.protos=new Map(q.docs.map(d=>[d.id,d.data()]));S.protosLoaded=true;ensureProtos();
+    if(S.tab==='esercizi'||S.tab==='diario')render();
+  },()=>{});
   S.base.collection('misure').onSnapshot(q=>{
     S.misure=new Map(q.docs.map(d=>[d.id,d.data()]));if(S.tab==='massimali')render();
   },()=>{});
 }
 
-const PREFKEYS={tst:['tipo','step','lead','col','warnSec','warnCol','half'],circ:['items','giri','restEx','restGiro','lead','colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],emom:['mark','giroFmt','col','warnSec','warnCol','half','restOn','restSec','restEnd','restEndSec','restCol'],rec:['colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],edt:['col','warnSec','warnCol','frac','minsLeft','restEnd','restEndSec','restCol'],snd:['style','fsAuto'],sess:['warmOn','warmAuto','warmMode','warmMin','coolOn','coolAuto','coolMode','coolMin','colWarm','colCool']};
+const PREFKEYS={amrap:['lead','warnSec','warnCol','half','restEnd','restEndSec'],rt:['lead','colWork','colRest','warnSec','warnCol','half'],tst:['tipo','step','lead','col','warnSec','warnCol','half'],circ:['items','giri','restEx','restGiro','lead','colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],emom:['mark','giroFmt','col','warnSec','warnCol','half','restOn','restSec','restEnd','restEndSec','restCol'],rec:['lead','colWork','colRest','warnSec','warnCol','half','restEnd','restEndSec'],edt:['lead','zones','restZ','col','warnSec','warnCol','frac','minsLeft','restEnd','restEndSec','restCol'],snd:['style','fsAuto'],sess:['coolKind','pos','posTr','warmOn','warmAuto','warmMode','warmMin','coolOn','coolAuto','coolMode','coolMin','colWarm','colCool']};
 function loadPrefs(){
   if(S.prefsLoaded||!S.cfg.timer)return;
   for(const m in PREFKEYS){const p=S.cfg.timer[m];if(!p)continue;
-    PREFKEYS[m].forEach(k=>{if(p[k]==null)return;if(k==='items'){if(Array.isArray(p[k])&&p[k].length)S.tc[m].items=clone(p[k]);return}if(Array.isArray(p[k]))p[k].forEach((c,i)=>{if(c)S.tc[m][k][i]=bright(c)});else S.tc[m][k]=/col/i.test(k)?bright(p[k]):p[k]})}
+    PREFKEYS[m].forEach(k=>{if(p[k]==null)return;if(k==='items'||k==='pos'){if(Array.isArray(p[k])&&p[k].length)S.tc[m][k]=clone(p[k]);return}if(Array.isArray(p[k]))p[k].forEach((c,i)=>{if(c)S.tc[m][k][i]=bright(c)});else S.tc[m][k]=/col/i.test(k)?bright(p[k]):p[k]})}
   S.prefsLoaded=true;if(S.tab==='timer'&&!T)render();
 }
 function savePrefs(){
@@ -661,6 +741,7 @@ function render(){
   else if(S.tab==='timer')m.innerHTML=vTimer();
   else if(S.tab==='esercizi')m.innerHTML=vEsercizi();
   else if(S.tab==='massimali')m.innerHTML=vMassimali();
+  else if(S.tab==='guida')m.innerHTML=vGuida();
   else m.innerHTML=vStorico();
   document.body.classList.toggle('lock',S.tab==='timer'&&!!((T&&!T.done)||(SES&&['pre','warm','cool'].includes(SES.phase))));
   if(document.querySelector('.run.full'))fitRun();
@@ -684,11 +765,13 @@ function vDiario(){
     <label class="f">WO<input type="text" value="${esc(d.wo)}" data-f="d:wo" maxlength="6" autocapitalize="characters"></label>
   </div>
   <p class="sess-meta" id="sessMeta">${ggOf(d.d)}, settimana ${weekOf(d.d)}</p>${d.tempi?`<p class="muted small" style="margin:-10px 0 16px">Tempi: ${tempiTxt(d.tempi)}</p>`:''}
-  ${d.ex.length?d.ex.map((e,i)=>vCard(e,i)).join(''):`<p class="empty">Aggiungi il primo esercizio: se l’hai già fatto in passato riprendo carico e piano dall’ultima volta.</p>`}
+  ${d.ex.some(e=>!e.fin)?d.ex.map((e,i)=>e.fin?'':vCard(e,i)).join(''):`<p class="empty">Aggiungi il primo esercizio: se l’hai già fatto in passato riprendo carico e piano dall’ultima volta.</p>`}
   <div class="add">
     <input type="text" id="addName" list="names" placeholder="Aggiungi un esercizio" aria-label="Nome esercizio da aggiungere">
     <button class="btn primary" data-a="addEx">Aggiungi</button>
   </div>
+  ${vFin(d)}
+  <section class="card" id="sessSum">${vSessSum(d,true)}</section>
   <label class="f">Note sulla seduta<textarea data-f="d:note" rows="2">${esc(d.note)}</textarea></label>
   <div class="row" style="margin-top:18px">
     <button class="btn primary" data-a="closeDraft">Chiudi seduta</button>
@@ -704,7 +787,7 @@ function vNuova(){
   <label class="f" style="max-width:220px">Data<input type="date" value="${S.newDate}" data-f="new:date"></label>
   ${tpls.length?`<p class="muted small" style="margin:16px 0 0">Riparti da un allenamento: copio gli esercizi dell’ultima volta e propongo il piano successivo.</p>
   <div class="tpl">${tpls.map(s=>`<button data-a="fromTpl" data-id="${esc(s.id)}"><span class="wo">${esc(s.wo)}</span>
-    <span class="what">${esc(s.ex.map(e=>e.n).join(', '))}</span><span class="when">Ultima volta ${ggOf(s.d).toLowerCase()} ${fmtD(s.d)}</span></button>`).join('')}</div>`:''}
+    <span class="what">${esc(s.ex.filter(e=>!e.fin).map(e=>e.n).join(', '))}${s.ex.some(e=>e.fin)?` <span class="muted small">+ finisher${s.fin&&s.fin.wo?' '+esc(s.fin.wo):''}</span>`:''}</span><span class="when">Ultima volta ${ggOf(s.d).toLowerCase()} ${fmtD(s.d)}</span></button>`).join('')}</div>`:''}
   <button class="btn" data-a="emptyDraft" style="margin-top:${tpls.length?0:16}px">Seduta vuota</button>`;
 }
 function vCard(e,i){
@@ -714,7 +797,8 @@ function vCard(e,i){
   <div class="card-h">${exIcon(e.n,38)}<input type="text" value="${esc(e.n)}" data-f="e:${i}:n" list="names" aria-label="Esercizio"></div>
   ${e._why?`<p class="sugg">${esc(e._why)}</p>`:''}
   <div class="grid">
-    <label class="f wide">Protocollo<input type="text" value="${esc(e.p)}" data-f="e:${i}:p"></label>
+    <label class="f wide">Protocollo<select data-f="e:${i}:pid"><option value="">Testo libero</option>${protoList().map(P=>`<option value="${esc(P.id)}" ${P.id===e.pid?'selected':''}>${esc(pName(P))}</option>`).join('')}</select></label>
+    ${e.pid&&S.protos.get(e.pid)&&!S.protos.get(e.pid).deleted?'':`<label class="f wide">Testo del protocollo<input type="text" value="${esc(e.p)}" data-f="e:${i}:p"></label>`}
     <label class="f">Kg<input type="number" inputmode="decimal" step="any" value="${e.kg??''}" data-f="e:${i}:kg"></label>
     <label class="f">Zavorra<input type="number" inputmode="decimal" step="any" value="${e.z??''}" data-f="e:${i}:z"></label>
     <label class="f">% 1RM${pAuto?' auto':''}<input type="number" inputmode="decimal" step="any" value="${pctShow}" id="pct-${i}" data-f="e:${i}:pct"></label>
@@ -732,7 +816,7 @@ function vCard(e,i){
   <label class="f">Note<textarea rows="1" data-f="e:${i}:note">${esc(e.note)}</textarea></label>
   <div class="metrics" id="m-${i}" aria-label="Calcoli sulle serie segnate">${vMetrics(e)}</div>
   <div class="card-a">
-    <button class="btn" data-a="linkTimer" data-i="${i}" id="tb-${i}">${esc(timerPlan(i).label)}</button>
+    ${e.fin?'':`<button class="btn" data-a="linkTimer" data-i="${i}" id="tb-${i}">${esc(timerPlan(i).label)}</button>`}
     <button class="btn" data-a="toggleProg" data-i="${i}" aria-expanded="${S.progOpen.has(i)}">Progressione</button>
     <span class="spacer"></span>
     <button class="btn ghost danger" data-a="delEx" data-i="${i}">Rimuovi</button>
@@ -759,10 +843,274 @@ function vMetrics(e){
    +c('Densità',fmtN(m.dens,2))+c('PowerIndex',fmtN(m.pi,1))+c('Serie fallite',m.fails??'–')+c('RPE',m.rpe!=null?fmtN(m.rpe,1):'–');
 }
 function refreshCard(i){
+  const sm=$('#sessSum');if(sm&&S.draft)sm.innerHTML=vSessSum(S.draft,true);
   const e=S.draft.ex[i];if(!e)return;
   const s=$('#sets-'+i);if(s)s.innerHTML=vChips(e,i);
   const m=$('#m-'+i);if(m)m.innerHTML=vMetrics(e);
 }
+
+/* ----- protocolli ----- */
+const PTIPI=[['sp','Set&amp;Pause'],['st','ST'],['ladder','Ladder'],['rt','RT'],['emom','EMOM'],['edt','EDT'],['amrap','AMRAP'],['circ','Circuito'],['max','Max ripetizioni']];
+const newPf=()=>({tipo:'sp',nome:'',serie:4,rep:'',rest:90,restMode:'fix',mult:2,group:'single',tr:0,giri:10,sec:60,restGiro:0,k:1,slots:[{sec:60,rep:''},{sec:60,rep:''},{sec:60,rep:''}],min:15,restZ:5,work:'time',val:40,stations:[{work:'time',val:40},{work:'rep',val:10}],restEx:15,restGiroC:60,target:50,da:1,a:5,passo:1,verso:'su',volte:1,lung:3,sposta:1,top2:'',ondaK:'gradini',loDa:1,loA:3,hiDa:5,hiA:6,seq:'1,7,2,8,3,1,7',sugSrc:'test',sugVol:2.5,editId:null});
+const emK=P=>Number(P.k)||(P.group==='super'?3:1);
+const emSlot=(P,n)=>P.slots&&P.slots[n]?P.slots[n]:{sec:P.sec,rep:P.rep};
+const circSt=(P,n)=>Array.isArray(P.stations)&&P.stations.length?P.stations[n%P.stations.length]:{work:P.work,val:P.val};
+const rng=(a,b,ps)=>{const lo=Math.min(a,b),hi=Math.max(a,b),o=[];for(let r=lo;r<=hi&&o.length<40;r+=ps)o.push(r);return o};
+function ladWaves(P){
+  const ps=Math.max(1,num(P.passo)||1),up=rng(Math.max(1,num(P.da)||1),Math.max(1,num(P.a)||5),ps);
+  if(P.verso==='onda'){const k=P.ondaK||'gradini';
+    if(k==='pers'){const q=String(P.seq||'').split(/[^0-9]+/).map(Number).filter(x=>x>0).slice(0,40);return [q.length?q:up]}
+    if(k==='alt'){const lo=rng(Math.max(1,num(P.loDa)||1),Math.max(1,num(P.loA)||3),ps),hi=rng(Math.max(1,num(P.hiDa)||5),Math.max(1,num(P.hiA)||6),ps),o=[];
+      for(let i=0;i<Math.max(lo.length,hi.length);i++){if(lo[i]!=null)o.push(lo[i]);if(hi[i]!=null)o.push(hi[i])}return [o]}
+    const L=Math.max(2,num(P.lung)||3),sh=Math.max(1,num(P.sposta)||1),lo=up[0],hi=up[up.length-1],w=[];
+    for(let st=lo;st+(L-1)*ps<=hi&&w.length<12;st+=sh){const x=[];for(let q=0;q<L;q++)x.push(st+q*ps);w.push(x)}return w.length?w:[up]}
+  if(P.verso==='giu')return [[...up].reverse()];
+  if(P.verso==='sugiu'||P.verso==='ar'){const top2=P.verso==='ar'||!!P.top2;return [[...up,...(top2?[...up].reverse():up.slice(0,-1).reverse())]]}
+  return [up];
+}
+const LADV=[['su','In salita'],['giu','In discesa'],['sugiu','Su e giù'],['onda','A onda']];
+const ONDAK=[['gradini','A gradini'],['alt','Alternata basso / alto'],['pers','Personalizzata']];
+function ladList(P){const one=ladWaves(P).flat(),out=[];for(let i=0;i<Math.max(1,num(P.volte)||1);i++)out.push(...one);return out.slice(0,80)}
+function ladKind(P){if(P.verso==='onda'){const k=P.ondaK||'gradini';return k==='alt'?'a onda alternata':k==='pers'?'personalizzata':'a onda'}if(P.verso==='sugiu'||P.verso==='ar')return (P.verso==='ar'||P.top2)?'su e giù, vertice ripetuto':'su e giù';return P.verso==='giu'?'in discesa':'in salita'}
+function ladDesc(P){const w=ladWaves(P);return w.map(x=>x.join('-')).join(' / ')}
+const restTxt=r=>num(r)>0?`Rest ${num(r)}″`:'recupero libero';
+function pAuto(P){
+  if(P.tipo==='st')return `ST ${P.serie||'?'}x${P.rep||'?'}, ${restTxt(P.rest)}`;
+  if(P.tipo==='ladder'){const k=ladKind(P);return `Ladder${k==='in salita'?'':' '+k} ${ladDesc(P)}${num(P.volte)>1?` x${P.volte}`:''}, ${P.restMode==='mult'?`Rest ×${String(num(P.mult)||2).replace('.',',')}`:P.restMode==='free'?'recupero libero':restTxt(P.rest)}`}
+  if(P.tipo==='rt')return `RT ${P.target||'?'} rip.${P.rep?` (serie da ${P.rep})`:''}, ${restTxt(P.rest)}`;
+  if(P.tipo==='amrap')return `AMRAP ${P.min}′${P.rep?` x ${P.rep}`:''}`;
+  if(P.tipo==='emom'&&emK(P)>1&&P.slots)return `${emomName(emK(P))} ${P.giri} giri: ${P.slots.slice(0,emK(P)).map(x=>`${x.sec}″${x.rep?` x ${x.rep}`:''}`).join(' / ')}${num(P.restGiro)>0?` + riposo ${P.restGiro}″`:''}`;
+  if(P.tipo==='circ'&&Array.isArray(P.stations)&&P.stations.length)return `Circuito ${P.giri} giri: ${P.stations.map(x=>x.work==='rep'?`${x.val} rep`:`${x.val}″`).join(' / ')}, pausa ${P.restEx}″, riposo ${P.restGiroC}″`;
+  const r=P.rep?`x${P.rep}`:'';
+  if(P.tipo==='emom')return `EMOM ${P.giri}x${P.sec}″${P.rep?` x ${P.rep}`:''}${num(P.restGiro)>0?` + riposo ${P.restGiro}″`:''}`;
+  if(P.tipo==='edt')return `EDT ${P.min}′${P.rep?` x ${P.rep}`:''}`;
+  if(P.tipo==='circ')return `Circuito ${P.giri} giri, ${P.work==='rep'?`${P.val} rep`:`${P.val}″`}, pausa ${P.restEx}″, riposo ${P.restGiroC}″`;
+  if(P.tipo==='max')return `Max rip., riposo ${P.rest}″`;
+  return `${P.group==='super'?'Superset':'Set&Pause'} ${P.serie||'?'}${r} ${P.restMode==='mult'?`Rest ×${P.mult}`:`Rest ${P.rest}″`}`;
+}
+const pName=P=>String(P.nome||'').trim()||pAuto(P);
+const protoList=()=>[...S.protos.values()].filter(P=>!P.deleted).sort((a,b)=>pName(a).localeCompare(pName(b),'it'));
+async function saveProtoDoc(P){
+  try{if(S.mode==='db')await S.base.collection('protocolli').doc(P.id).set(P);
+    else{const o={};S.protos.forEach((v,k)=>o[k]=v);store('diario-proto',o)}}catch(e){}
+}
+const normP=x=>String(x||'').toLowerCase().replace(/[″“”"']/g,'"').replace(/\s+/g,' ').trim();
+function matchProto(text){const t=normP(text);if(!t)return null;return protoList().find(P=>normP(pName(P))===t||(P.src||[]).some(x=>normP(x)===t))||null}
+function protoFromText(text,nsets){
+  const q=parseProto(text),t=String(text||'');let m;
+  if(q&&q.type==='emom'){const r=(m=t.replace(/[″“”]/g,'"').match(/"\s*x\s*(\d+(?:\s*-\s*\d+)?)/i))?m[1].replace(/\s/g,''):'';
+    return {tipo:'emom',giri:q.giri||nsets||10,sec:q.sec,rep:r,group:/\+/.test(t)?'super':'single',restGiro:0}}
+  if(q&&q.type==='edt')return {tipo:'edt',min:q.min,rep:'',restZ:5};
+  if(q&&q.type==='rest'){let serie=nsets||null,r='';
+    if(m=t.match(/^\s*(\d+)\s*x\s*(\d+(?:-\d+)?)/i)){serie=+m[1];r=m[2]}else if(m=t.match(/^\s*(\d+-\d+)\s*x\s*(\d+)/i)){r=m[1];serie=+m[2]}
+    const rest=t.replace(/\+\s*(\d+\s*["″']*\s*)?(calf\s*\+\s*)?(rest|pausa).*$/i,'');
+    return {tipo:'sp',serie,rep:r,rest:q.sec,restMode:'fix',mult:2,group:/\+\s*[a-z]/i.test(rest)?'super':'single',tr:0}}
+  return null;
+}
+function ensureProtos(force){
+  if(!S.protosLoaded||!S.hist.length)return 0;if(!force&&S.protos.size)return 0;
+  const lim=isoMinus(S.hist[0].d,120),seen=new Map();let n=0;
+  for(const s of S.hist){if(s.d<lim)break;for(const e of s.ex){if(!e.p)continue;const P=protoFromText(e.p,(e.s||[]).length);if(!P)continue;
+    const key=pAuto(P);if(seen.has(key)){const o=seen.get(key);if(!o.src.includes(e.p))o.src.push(e.p);continue}
+    if(protoList().some(x=>pAuto(x)===key))continue;
+    const o={...P,id:'p'+Date.now().toString(36)+(n++),nome:'',src:[e.p],updated:Date.now()};seen.set(key,o)}}
+  seen.forEach(o=>{S.protos.set(o.id,o);saveProtoDoc(o)});
+  return seen.size;
+}
+function protoUse(id){const P=S.protos.get(id),src=new Set((P&&P.src||[]).map(normP));let n=0;for(const s of S.hist)if(s.ex.some(e=>e.pid===id||(!e.pid&&src.has(normP(e.p)))))n++;return n}
+function pfFields(){
+  const f=S.pf,inp=(l,k,ty='number',ex='')=>`<label class="f">${l}<input type="${ty}" ${ty==='number'?'inputmode="decimal" step="any"':''} value="${esc(f[k])}" data-f="pf:${k}" ${ex}></label>`;
+  const chk=(k,v,l)=>`<label class="row" style="flex-wrap:nowrap;grid-column:1/-1"><input type="checkbox" ${f[k]===v?'checked':''} data-f="pf:${k}" data-on="${v}" style="width:22px;height:22px"> ${l}</label>`;
+  const sub=(arr,i,k,l,ty='number')=>`<label class="f">${l}<input type="${ty}" ${ty==='number'?'inputmode="decimal" step="any"':''} value="${esc(f[arr][i][k])}" data-f="pf:${arr}.${i}.${k}"></label>`;
+  if(f.tipo==='emom'){const k=Number(f.k)||1;return `<div class="seg sm" role="group" aria-label="Esercizi per giro" style="grid-column:1/-1;max-width:360px">${[1,2,3].map(n=>`<button data-a="pfSet" data-k="k" data-v="${n}" aria-pressed="${k===n}">${emomName(n)}</button>`).join('')}</div>`
+    +inp('Giri','giri')+inp('Riposo a fine giro (s, 0 = no)','restGiro')
+    +f.slots.slice(0,k).map((x,i)=>`<div class="muted small" style="grid-column:1/-1;margin-top:4px">${k>1?`Esercizio ${i+1} del giro`:'Ogni intervallo'}</div>`+sub('slots',i,'sec','Secondi')+sub('slots',i,'rep','Ripetizioni (es. 6 o 3-6)','text')).join('')
+    +(k>1?`<p class="muted small" style="grid-column:1/-1;margin:0">Nella seduta gli esercizi con questo protocollo prendono, in ordine, il primo, il secondo e il terzo intervallo.</p>`:'')}
+  if(f.tipo==='st')return inp('Serie','serie')+inp('Ripetizioni per serie','rep','text')+inp('Recupero (s, 0 = libero)','rest')+`<p class="muted small" style="grid-column:1/-1;margin:0">Serie Target: tutte le serie previste con il recupero che ti serve; conta il tempo per completarle.</p>`;
+  if(f.tipo==='ladder'){const v=f.verso==='ar'?'sugiu':f.verso,ok=f.ondaK||'gradini',src=f.sugSrc||'test';
+    let body='';
+    if(v==='onda'&&ok==='pers')body=inp('Sequenza (es. 1,7,2,8,3,1,7)','seq','text');
+    else if(v==='onda'&&ok==='alt')body=inp('Bassi: da','loDa')+inp('Bassi: a','loA')+inp('Alti: da','hiDa')+inp('Alti: a','hiA')+inp('Passo','passo');
+    else body=inp('Da (ripetizioni)','da')+inp('A (ripetizioni)','a')+inp('Passo','passo')+(v==='onda'?inp('Gradini per onda','lung')+inp('Spostamento tra le onde','sposta'):'');
+    return `<div class="seg sm" role="group" aria-label="Andamento della scala" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr))">${LADV.map(([k2,l2])=>`<button data-a="pfSet" data-k="verso" data-v="${k2}" aria-pressed="${v===k2}">${l2}</button>`).join('')}</div>`
+    +(v==='onda'?`<div class="seg sm" role="group" aria-label="Tipo di onda" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">${ONDAK.map(([k2,l2])=>`<button data-a="pfSet" data-k="ondaK" data-v="${k2}" aria-pressed="${ok===k2}">${l2}</button>`).join('')}</div>`:'')
+    +(v==='sugiu'?chk('top2','1','Ripeti il gradino più alto (es. 1-2-3-3-2-1)'):'')
+    +body+inp('Quante volte ripeti la scala','volte')
+    +`<div class="seg sm" role="group" aria-label="Recupero della ladder" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));max-width:480px">${[['fix','Recupero fisso'],['mult','Multiplo della serie'],['free','Libero']].map(([k2,l2])=>`<button data-a="pfSet" data-k="restMode" data-v="${k2}" aria-pressed="${(f.restMode||'fix')===k2}">${l2}</button>`).join('')}</div>`+(f.restMode==='mult'?inp('Recupero = durata della serie ×','mult'):f.restMode==='free'?'':inp('Recupero (s)','rest'))+chk('group','super','Alternata con gli altri esercizi della seduta con questo protocollo')
+    +`<p class="muted small" style="grid-column:1/-1;margin:0" id="ladPrev">${ladPrev(f)}</p>`
+    +`<div class="emx" style="grid-column:1/-1;margin-top:6px"><b>Proponi una ladder</b>
+      <div class="seg sm" role="group" aria-label="Da dove partire" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-top:6px">${[['test','Dai test'],['rm','Da un 1RM'],['rep','Da massime ripetizioni']].map(([k2,l2])=>`<button data-a="pfSet" data-k="sugSrc" data-v="${k2}" aria-pressed="${src===k2}">${l2}</button>`).join('')}</div>
+      <div class="row" style="align-items:flex-end;margin-top:6px">
+        ${src==='test'?`<label class="f" style="flex:1;min-width:170px">Esercizio<input type="text" list="names" value="${esc(f.sugN||'')}" data-f="pf:sugN"></label><label class="f" style="width:150px">Carico (kg, facoltativo)<input type="number" inputmode="decimal" step="any" value="${esc(f.sugKg||'')}" data-f="pf:sugKg"></label>`
+          :src==='rm'?`<label class="f" style="width:130px">1RM (kg)<input type="number" inputmode="decimal" step="any" value="${esc(f.sugRm||'')}" data-f="pf:sugRm"></label><label class="f" style="width:170px">Carico che userai (kg)<input type="number" inputmode="decimal" step="any" value="${esc(f.sugKg||'')}" data-f="pf:sugKg"></label>`
+          :`<label class="f" style="width:280px">Massime ripetizioni (con il carico o a peso corporeo)<input type="number" inputmode="numeric" value="${esc(f.sugRep||'')}" data-f="pf:sugRep"></label>`}
+        <label class="f" style="width:150px">Volume (volte le massime)<select data-f="pf:sugVol">${[1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6].map(x=>`<option value="${x}" ${Number(f.sugVol||2.5)===x?'selected':''}>${fmtN(x,1)}</option>`).join('')}</select></label>
+        <button class="btn" data-a="ladSug">Proponi</button></div>
+      ${f._sug?vLadSug(f._sug):''}</div>`}
+  if(f.tipo==='rt')return inp('Ripetizioni totali da fare','target')+inp('Ripetizioni per serie (facoltativo)','rep','text')+inp('Recupero (s, 0 = libero)','rest')+`<p class="muted small" style="grid-column:1/-1;margin:0">Ripetizioni Target: fai tutte le serie che servono per arrivare al totale; l’app conta quante ne mancano.</p>`;
+  if(f.tipo==='amrap')return inp('Minuti','min')+inp('Ripetizioni per esercizio','rep','text')+`<p class="muted small" style="grid-column:1/-1;margin:0">Più giri possibile entro il tempo: nella seduta gli esercizi con questo protocollo formano il giro, nell’ordine.</p>`;
+  if(f.tipo==='edt')return inp('Minuti della PR Zone','min')+inp('Ripetizioni target','rep','text')+inp('Pausa tra due PR Zone (min)','restZ');
+  if(f.tipo==='circ')return inp('Giri','giri')+inp('Pausa tra le stazioni (s)','restEx')+inp('Riposo tra i giri (s)','restGiroC')
+    +f.stations.map((x,i)=>`<div class="row" style="grid-column:1/-1;align-items:flex-end;gap:8px"><span class="muted small" style="width:74px">Stazione ${i+1}</span>
+      <div class="seg sm" role="group" aria-label="Stazione ${i+1}" style="width:230px"><button data-a="pfSt" data-i="${i}" data-v="time" aria-pressed="${x.work!=='rep'}">A tempo</button><button data-a="pfSt" data-i="${i}" data-v="rep" aria-pressed="${x.work==='rep'}">A ripetizioni</button></div>
+      ${sub('stations',i,'val',x.work==='rep'?'Ripetizioni':'Secondi')}${f.stations.length>1?`<button class="btn ghost" data-a="pfStDel" data-i="${i}" aria-label="Togli la stazione ${i+1}">✕</button>`:''}</div>`).join('')
+    +(f.stations.length<12?`<div style="grid-column:1/-1"><button class="btn" data-a="pfStAdd">+ Aggiungi stazione</button></div>`:'')
+    +`<p class="muted small" style="grid-column:1/-1;margin:0">Le stazioni a ripetizioni finiscono quando tocchi «Fatto». Nella seduta gli esercizi con questo protocollo prendono le stazioni in ordine.</p>`;
+  if(f.tipo==='max')return inp('Riposo tra gli esercizi (s)','rest');
+  return inp('Serie','serie')+inp('Ripetizioni (es. 6 o 3-8)','rep','text')
+    +`<div class="seg sm" role="group" aria-label="Recupero" style="grid-column:1/-1;max-width:320px"><button data-a="pfSet" data-k="restMode" data-v="fix" aria-pressed="${f.restMode!=='mult'}">Recupero fisso</button><button data-a="pfSet" data-k="restMode" data-v="mult" aria-pressed="${f.restMode==='mult'}">Multiplo della serie</button></div>`
+    +(f.restMode==='mult'?inp('Recupero = durata ×','mult'):inp('Recupero (s)','rest'))
+    +chk('group','super','Superset con gli altri esercizi della seduta con questo protocollo')+(f.group==='super'?inp('Pausa tra gli esercizi del superset (s)','tr'):'');
+}
+function ladPrev(f){const l=ladList(f);return `Serie: ${ladWaves(f).map(x=>x.join(' · ')).join('  |  ')}${num(f.volte)>1?` (x${f.volte})`:''}, in tutto ${l.length} serie e ${l.reduce((x,y)=>x+y,0)} ripetizioni`}
+function repsAtPct(pc){if(pc>=1)return 1;let best=30,d=9;for(let r=1;r<=30;r+=.5){const q=pctOfReps(r);if(q&&Math.abs(q-pc)<d){d=Math.abs(q-pc);best=r}}return Math.round(best)}
+function ladSuggest(f){
+  const src=f.sugSrc||'test',vol=Number(f.sugVol)||2.5;let R=null,txt='';
+  if(src==='rm'){const rm=num(f.sugRm),kg=num(f.sugKg);if(!(rm>0)||!(kg>0))return {err:'Indica il 1RM e il carico che userai.'};const pc=kg/rm;R=repsAtPct(pc);txt=`1RM ${fmtN(rm,1)} kg: con ${fmtN(kg,kg%1?1:0)} kg (${fmtN(pc*100)}%) fai circa ${R} ripetizioni massime.`}
+  else if(src==='rep'){R=num(f.sugRep);if(!(R>0))return {err:'Indica le massime ripetizioni.'};txt=`${R} ripetizioni massime.`}
+  else{const n=String(f.sugN||'').trim();if(!n)return {err:'Indica l’esercizio.'};
+    const mr=[...S.tests.values()].filter(t=>!t.deleted&&t.n===n&&t.tipo==='maxrep').sort((a,b)=>a.d<b.d?1:-1)[0],t1=maxFor(n,todayIso());let load=num(f.sugKg);
+    if(!(load>0)&&!mr&&t1){for(const s of S.hist){const e=s.ex.find(x=>x.n===n&&Number(x.kg)>0);if(e){load=Number(e.kg);break}}}
+    if(load>0&&t1){const pc=load/t1.rm;R=repsAtPct(pc);txt=`Massimale ${fmtN(t1.rm,1)} kg: con ${fmtN(load,load%1?1:0)} kg (${fmtN(pc*100)}%) fai circa ${R} ripetizioni massime.`}
+    else if(mr){R=num(mr.rep);txt=`Test del ${fmtD(mr.d)}: ${R} ripetizioni massime a corpo libero.`}
+    if(!R)return {err:`Per ${esc(n)} non trovo né un massimale né un test di massime ripetizioni: registrane uno nella sezione Test, oppure scegli «Da un 1RM» o «Da massime ripetizioni».`}}
+  if(R<4)return {err:`${txt} Con meno di 4 ripetizioni massime la ladder non ha senso: scegli un carico più leggero.`};
+  const goal=vol*R,sum=P=>ladList(P).reduce((x,y)=>x+y,0),base={tipo:'ladder',passo:1,lung:3,sposta:1,rest:60,top2:'',ondaK:'gradini'};
+  const pick=(cands,tgt)=>{let bp=null,bs=1e9;for(const P of cands){const l=ladList(P);if(l.length>=80)continue;const top=Math.max(...l),sc=Math.abs(sum(P)-goal)/R+.8*Math.abs(top/R-tgt);if(sc<bs){bs=sc;bp=P}}return bp};
+  const tops=(lo,hi)=>{const o=[];for(let t=Math.max(2,Math.round(R*lo));t<=Math.max(2,Math.round(R*hi));t++)o.push(t);return o};
+  const V=n=>Array.from({length:n},(_,i)=>i+1);
+  const C=[];
+  C.push(pick(tops(.35,.65).flatMap(t=>V(12).map(v=>({...base,verso:'su',da:1,a:t,volte:v}))),.5));
+  C.push(pick(tops(.35,.6).flatMap(t=>V(10).map(v=>({...base,verso:'sugiu',da:1,a:t,volte:v}))),.45));
+  C.push(pick(tops(.3,.55).flatMap(t=>V(10).map(v=>({...base,verso:'sugiu',top2:'1',da:1,a:t,volte:v}))),.4));
+  C.push(pick(tops(.4,.7).flatMap(t=>V(8).flatMap(nw=>V(4).map(v=>({...base,verso:'onda',ondaK:'gradini',da:Math.max(1,t-2-(nw-1)),a:t,volte:v})))),.55));
+  C.push(pick(tops(.45,.7).flatMap(t=>[3,4,5].flatMap(L=>V(6).map(v=>({...base,verso:'onda',ondaK:'alt',loDa:1,loA:L,hiDa:Math.max(L+1,t-(L-2)),hiA:t,volte:v})))),.6));
+  return {R,vol,src:txt,list:C.filter(Boolean).map(P=>{const l=ladList(P);return {P,tot:l.reduce((x,y)=>x+y,0),top:Math.max(...l),sets:l.length}})};
+}
+function vLadSug(g){
+  if(g.err)return `<p class="muted small" style="margin:8px 0 0">${g.err}</p>`;
+  return `<p class="small" style="margin:8px 0 4px">${g.src} Volume cercato: ${fmtN(g.vol,1)} volte, cioè circa ${Math.round(g.vol*g.R)} ripetizioni.</p><p class="muted small" style="margin:0 0 6px">Il gradino più alto resta intorno al 40–70% delle massime, per allenarti lontano dal cedimento.</p>
+    ${g.list.map((x,i)=>`<div class="trow"><div><b>${ladKind(x.P).replace(/^./,c=>c.toUpperCase())}</b>: ${ladDesc(x.P)}${x.P.volte>1?` x${x.P.volte}`:''}
+      <div class="muted small">${x.sets} serie, ${x.tot} ripetizioni (${fmtN(x.tot/g.R,1)} volte le massime), gradino più alto ${x.top} = ${fmtN(x.top/g.R*100)}%</div></div>
+      <div class="acts"><button class="btn" data-a="ladUse" data-i="${i}">Usa questa</button></div></div>`).join('')}`;
+}
+function vProtocolli(){
+  if(!S.pf)S.pf=newPf();const f=S.pf,list=protoList();
+  return `<section class="card"><h3 style="margin-bottom:10px">${f.editId?'Modifica protocollo':'Nuovo protocollo'}</h3>
+    <div class="seg sm" role="group" aria-label="Tipo di protocollo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));margin-bottom:10px">${PTIPI.map(([k,l])=>`<button data-a="pfSet" data-k="tipo" data-v="${k}" aria-pressed="${f.tipo===k}">${l}</button>`).join('')}</div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">${pfFields()}</div>
+    <label class="f" style="margin-top:4px">Nome (facoltativo)<input type="text" value="${esc(f.nome)}" data-f="pf:nome" placeholder="${esc(pAuto(f))}"></label>
+    <p class="res" id="pfName">${esc(pName(f))}</p>
+    <div class="row" style="margin-top:8px"><button class="btn primary" data-a="pfSave">Salva protocollo</button>${f.editId?'<button class="btn" data-a="pfCancel">Annulla</button>':''}</div></section>
+  <section class="card"><h3>Protocolli</h3>
+    ${list.length?PTIPI.map(([k,l])=>{const g=list.filter(P=>P.tipo===k);return g.length?`<h3 style="font-size:16px;margin:12px 0 2px" class="muted">${l}</h3>${g.map(P=>{const u=protoUse(P.id);return `<div class="trow"><div><b>${esc(pName(P))}</b>${P.nome?`<div class="muted small">${esc(pAuto(P))}</div>`:''}<div class="muted small">${u?`Usato in ${u} ${u===1?'seduta':'sedute'}`:'Non ancora usato'}${(P.src||[]).length?`; corrisponde a «${esc(P.src.slice(0,2).join('», «'))}»${P.src.length>2?'…':''}`:''}</div></div>
+      <div class="acts"><button class="btn" data-a="pfEdit" data-id="${esc(P.id)}">Modifica</button><button class="btn ghost danger" data-a="pfAskDel" data-id="${esc(P.id)}">Elimina</button></div></div>`}).join('')}`:''}).join(''):'<p class="muted">Ancora nessun protocollo.</p>'}
+    ${S.hist.length?'<button class="btn" data-a="pfRebuild" style="margin-top:10px">Aggiungi quelli usati negli ultimi mesi</button>':''}
+    <p class="muted small" style="margin:8px 0 0">Nella seduta scegli il protocollo di ogni esercizio: il timer usa questi valori. Gli esercizi con lo stesso protocollo di gruppo (superset, E2MOM, EDT, circuito) partono insieme.</p></section>`;
+}
+
+/* ----- guida ----- */
+function vGuida(){
+  const sec=(t,b,open)=>`<details${open?' open':''}><summary>${t}</summary><div class="gb">${b}</div></details>`;
+  const ch=(c,t)=>`<span class="chipx" style="background:${c}"></span>${t}`;
+  const tb=(h,rows)=>`<div style="overflow-x:auto"><table class="tbl"><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  return `<div class="top"><h1>Guida</h1></div><div class="guide">
+  <p class="muted" style="margin:0 0 14px">Come usare l’app e come sono calcolati i numeri. Tocca un titolo per aprirlo.</p>
+  ${sec('Una seduta, passo per passo',`<ul>
+    <li><b>Nuova seduta</b>: scegli il WO (X, F, Z, A…). Copio gli esercizi dell’ultima volta con il piano successivo già pronto; oppure parti da «Seduta vuota».</li>
+    <li><b>Segna le serie</b>: un tocco su una serie = completata; un secondo tocco apre esito (a fatica, fallita con le ripetizioni vere, non eseguita) e − / +.</li>
+    <li><b>Fatica e note</b> per ogni esercizio; la % 1RM si calcola da sola dal massimale («auto»), ma puoi scriverla a mano.</li>
+    <li><b>Protocollo e timer</b>: scegli il protocollo dall’elenco (Esercizi → Protocolli) e il pulsante sulla scheda apre il timer già impostato. Con «Testo libero» il timer prova a leggere il testo (Rest 90″, EMOM 10x60″, EDT 15′, «+ Calf» = superset).</li>
+    <li><b>Finisher</b> e <b>riepilogo</b> in fondo alla seduta. Il salvataggio è automatico: «Chiudi seduta» quando hai finito.</li></ul>`,true)}
+  ${sec('Colori delle serie',`<p>${ch('var(--ok)','completata')} &nbsp; ${ch('var(--fat)','a fatica')} &nbsp; ${ch('var(--ko)','fallita (il numero è quante ne hai fatte)')} &nbsp; ${ch('var(--skip)','non eseguita')}</p>
+    <p>Le serie tratteggiate sono ancora da fare e mostrano l’obiettivo. Con «Rep previste» compilato, una serie sotto l’obiettivo diventa rossa da sola.</p>`)}
+  ${sec('Doppia progressione',`<p><b>Rep previste</b> = ripetizioni base; <b>Serie a +1</b> = quante delle prime serie ne fanno una in più. Esempio: 4-4-4-3-3-3 = base 3, prime 3 a +1.</p>
+    <p>La seduta dopo: se qualche serie è fallita → stesso piano; se tutte riuscite → una serie a +1 in più; quando tutte sono a +1 → la base sale. Con «Progressione» imposti <b>tetto</b>, <b>riparti da</b> e <b>kg in più</b>: arrivato al tetto riparte dalla base bassa con più carico.</p>`)}
+  ${sec('I timer',`<ul>
+    <li><b>Set&amp;Pause</b>: avvii la serie, «Fine serie», parte il recupero (fisso, multiplo della durata o libero: in quel caso tocchi «Inizia serie»). Più esercizi: uno dopo l’altro oppure superset / triset / giant set. Nelle ripetizioni puoi scrivere una scala come 1-2-3-4-5 (Ladder).</li>
+    <li><b>EMOM / E2MOM / E3MOM</b>: un esercizio per intervallo, a rotazione, per N giri; riposo a fine giro e a fine EMOM facoltativi; segni le ripetizioni durante o dopo l’intervallo.</li>
+    <li><b>EDT</b>: alterni due esercizi per il tempo della PR Zone confermando le ripetizioni; con due PR Zone, pausa e poi un’altra coppia.</li>
+    <li><b>AMRAP</b>: più giri possibile entro il tempo; a ogni esercizio confermi le ripetizioni con ➜ (✓ se l’esercizio è uno solo).</li>
+    <li><b>RT</b>: un totale di ripetizioni da raggiungere; dopo ogni serie segni quante ne hai fatte e vedi quante ne mancano.</li>
+    <li><b>Circuito</b>: stazioni a tempo o a ripetizioni, pausa tra le stazioni e riposo tra i giri.</li>
+    <li><b>Test</b>: Test 30′ / 15′ con +1 a ogni ripetizione, divise nei tre blocchi.</li></ul>
+    <p>Per tutti: preparazione, colori, avviso prima della fine, avviso a metà, suoni (anche a voce), schermo intero, riposo alla fine. «Torna alla seduta» lascia il timer acceso. I timer avviati dalla seduta scrivono serie e tempo nel diario; gli altri a fine timer chiedono se inserirli.</p>`)}
+  ${sec('Protocolli',`<p>In <b>Esercizi → Protocolli</b> descrivi ogni protocollo con i suoi valori invece che a parole: Set&amp;Pause (serie, ripetizioni, recupero fisso o multiplo, superset), EMOM (giri, secondi, ripetizioni, riposo a fine giro), EDT (minuti, ripetizioni target, pausa tra PR Zone), Circuito (giri, stazioni a tempo o a ripetizioni, pause) e Max ripetizioni (riposo).</p>
+    <ul><li><b>ST (Serie Target)</b>: N serie da X ripetizioni con il recupero che ti serve (libero o fisso); conta il tempo per completarle.</li>
+    <li><b>Ladder</b>: scala di ripetizioni, ripetibile più volte. Andamenti: in salita (1-2-3-4), in discesa (4-3-2-1), su e giù (1-2-3-4-3-2-1, con l’opzione di ripetere il gradino più alto: 1-2-3-4-4-3-2-1) e a onda: a gradini (1-2-3 / 2-3-4 / 3-4-5), alternata basso / alto (bassi 1→3 e alti 5→6 = 1-5-2-6-3) o personalizzata (scrivi la sequenza, es. 1,7,2,8,3,1,7). Ogni gradino è una serie con il suo obiettivo; può alternare più esercizi. Il recupero può essere fisso, un multiplo della durata della serie (come in Set&amp;Pause: ×1,5 vuol dire che dopo una serie di 20″ riposi 30″) oppure libero. «Proponi una ladder» parte dai test, da un 1RM con il carico che userai o dalle massime ripetizioni, e cerca per ogni andamento la scala più vicina al volume che scegli (da 1 a 6 volte le massime), con il gradino più alto intorno al 40–70% delle massime.</li>
+    <li><b>RT (Ripetizioni Target)</b>: un totale da raggiungere con le serie che servono.</li>
+    <li><b>AMRAP</b>: più giri possibile in N minuti con gli esercizi del protocollo.</li>
+    <li><b>E2MOM / E3MOM</b>: ogni esercizio del giro può avere secondi e ripetizioni suoi.</li>
+    <li><b>Circuito</b>: ogni stazione può essere a tempo o a ripetizioni.</li></ul>
+    <p>Le ripetizioni del piano dell’esercizio (doppia progressione) hanno la precedenza; se l’esercizio non ha un piano valgono quelle del protocollo.</p>
+    <p>Il nome si scrive da solo (es. «EMOM 10x60″ x 6») oppure gli dai tu un nome. Nella seduta, gli esercizi con lo stesso protocollo di gruppo partono insieme: due esercizi con lo stesso EMOM diventano un E2MOM, con lo stesso superset un superset, e così via. I protocolli usati negli ultimi mesi sono già pronti, e le nuove sedute li riconoscono dal testo che usavi.</p>`)}
+  ${sec('La schermata dell’EDT',`<ul>
+    <li><b>In alto</b>: EDT, il cronometro della seduta e ⛶ per lo schermo intero.</li>
+    <li><b>Al centro</b>: «PR Zone 1 / 2, tempo rimasto» (o solo «Tempo rimasto»), l’esercizio da fare adesso e il tempo grande che scende.</li>
+    <li><b>Sotto il tempo</b>: il target di ripetizioni e l’esercizio che viene dopo.</li>
+    <li><b>− numero +</b>: le ripetizioni della serie che hai appena fatto; parte dal target, correggilo se ne hai fatte di più o di meno.</li>
+    <li><b>➜</b>: conferma le ripetizioni e passa all’altro esercizio. Il colore dello schermo cambia con l’esercizio.</li>
+    <li><b>I due riquadri</b>: ripetizioni e serie fatte finora per ciascun esercizio della zona; quello evidenziato è in corso.</li>
+    <li><b>Pausa, Termina, Torna alla seduta</b>. Nella pausa tra le PR Zone e nel riposo finale puoi ancora registrare la serie in corso.</li></ul>`)}
+  ${sec('Seduta completa: riscaldamento, finisher, stretching',`<ul>
+    <li>In «Fasi della seduta» attivi <b>riscaldamento</b> e <b>defaticamento</b>: partono da soli o li avvii tu, a tempo fisso o finché non dici basta. Il defaticamento può essere <b>stretching a posizioni</b> (nome e secondi per ognuna).</li>
+    <li>Il <b>finisher</b> (1–6 esercizi, con il suo WO) si fa a tempo, in Set&amp;Pause o a massime ripetizioni; viene riproposto dall’ultima seduta con lo stesso WO. Se c’è un finisher da fare, lo stretching aspetta che tu lo finisca.</li>
+    <li>Alla fine hai i tempi di riscaldamento, allenamento, defaticamento e totale, salvati nella seduta.</li></ul>`)}
+  ${sec('Esercizi, Andamento, Test e Misure',`<ul>
+    <li><b>Esercizi</b>: massimale in uso, tabella carichi, progressione, test, andamento e sedute di ogni esercizio.</li>
+    <li><b>Andamento</b>: per periodo (3 mesi, 6 mesi, 1 anno, tutto) e per misura (forza stimata, densità, PowerIndex) vedi chi migliora e chi peggiora; nella scheda dell’esercizio i grafici.</li>
+    <li><b>Test</b>: 1RM, ripetizioni con carico, 5RM / corpo libero, massime ripetizioni a corpo libero, Test 30′ e 15′. I test sul massimale valgono dalla data «Applica da» e aggiornano la % delle sedute da quella data. I massimali di default vengono dalle ultime settimane del foglio Excel.</li>
+    <li><b>Misure</b>: peso corporeo e circonferenze con la differenza dalla volta prima.</li></ul>`)}
+  ${sec('Storico, backup e tablet',`<p>Lo <b>Storico</b> mostra le sedute per settimana; aprendone una puoi modificarla o eliminarla. «Esporta CSV» crea un file per Excel.</p>
+    <p><b>Esporta / Importa backup</b> sposta sedute, test, misure e impostazioni tra l’app su claude.ai e quella installata sul tablet: vengono aggiunte solo le cose nuove o modificate. Sul tablet i dati stanno nella memoria di Chrome: esporta un backup ogni tanto.</p>`)}
+  ${sec('Formule',`${tb(['Valore','Come si calcola'],[
+    ['TotRep','somma delle ripetizioni delle serie segnate (non quelle saltate)'],
+    ['Tonnellaggio','TotRep × Kg'],
+    ['Volume','TotRep × % 1RM'],
+    ['1RM calc','Kg ÷ % 1RM'],
+    ['Delta Kg 1RM','1RM calc − Kg'],
+    ['Densità','TotRep ÷ Tempo (minuti)'],
+    ['PowerIndex','(parte intera del Volume)² ÷ Tempo, come nel foglio'],
+    ['% 1RM automatica','Kg ÷ massimale valido nella data della seduta'],
+    ['Serie fallite','serie sotto il proprio obiettivo (base, o base+1 per le prime serie)'],
+    ['Riepilogo seduta','somme di TotRep, tonnellaggio e volume; densità e PowerIndex medi degli esercizi; densità della seduta = TotRep ÷ minuti totali'],
+    ['Kg corpo libero','peso corporeo + zavorra (la zavorra è annotata a parte)']])}
+    <h3 style="margin:14px 0 6px">Ripetizioni massime e % del massimale</h3>
+    ${tb(['% 1RM','Rip. massime'],[...REPMAX].reverse().map(([q,r])=>[`${fmtN(q*100)}%`,r]))}
+    <p class="muted small">Usata per «Rep max», per la tabella carichi (kg arrotondati per eccesso al chilo) e, al contrario, per stimare il massimale da un test a ripetizioni: ripetizioni fatte + in riserva, con valori intermedi a metà tra i due vicini.</p>
+    <h3 style="margin:14px 0 6px">Fatica, RPE e ripetizioni in riserva</h3>
+    ${tb(['Fatica','RPE','In riserva'],[['Facile','6–7','3–4'],['Liscia','8','2'],['Difficile','9','1'],['Dura','10','0'],['Fallito','11','non completato']])}
+    <p class="muted small">I livelli intermedi (es. Liscia/Difficile) stanno a metà.</p>
+    <h3 style="margin:14px 0 6px">Altre stime</h3>
+    ${tb(['Cosa','Formula'],[
+      ['5RM / corpo libero (Brzycki)','1RM = (peso corporeo + sovraccarico) ÷ (1,0278 − 0,0278 × ripetizioni), arrotondato per eccesso al mezzo chilo'],
+      ['Solo peso corporeo','% = peso corporeo ÷ 1RM; ripetizioni massime dalla tabella del foglio corpo libero; per serie = metà'],
+      ['Massime ripetizioni a corpo libero','schemi al 40, 50, 60, 70 e 80% (per difetto)'],
+      ['Forza stimata (Andamento)','per ogni serie: Kg ÷ % delle ripetizioni massime stimate. Ripetizioni massime = ripetizioni segnate (sempre quelle fatte davvero, anche nelle serie fallite o a fatica) + ripetizioni che probabilmente avevi ancora in riserva: completata = secondo la fatica dell’esercizio (Facile 3,5, Liscia 2, Difficile 1, Dura 0), a fatica 0,5, fallita 0 (eri al limite). Si tiene la serie migliore della seduta. Tendenza = media del primo quarto contro l’ultimo quarto del periodo']])}
+    <h3 style="margin:14px 0 6px">Test 30′ e 15′</h3>
+    ${tb(['','Test 30′','Test 15′'],[['Peso consigliato','70% del 1RM','80% del 1RM'],['Blocchi','3 × 10′','3 × 5′'],['Ottimo','oltre 110','oltre 55'],['Buono','oltre 90','oltre 45'],['Discreto','oltre 70','oltre 35'],['Sufficiente','da 50','da 25'],['Scala originale','150 / 120 / 90 / 60','–']])}
+    <p class="muted small">Volume = totale × %; tonnellaggio = totale × peso; densità = totale ÷ minuti; nel 15′ le ripetizioni per serie consigliate seguono la % usata (90% = 1, 85% = 2, 80% = 3, 75% = 4, 70% = 5, 65% = 6, 60% = 8).</p>`)}
+  </div>`;
+}
+
+/* ----- riepilogo della seduta ----- */
+function sessSum(s,strict){
+  let n=0,tot=0,ton=0,vol=0,tm=0,fails=0;const ds=[],pis=[];
+  s.ex.forEach(e=>{if(e.st==='Non eseguito')return;const m=metrics(e,strict);if(m.tot==null)return;n++;tot+=m.tot;ton+=m.ton||0;vol+=m.vol||0;fails+=m.fails||0;tm+=Number(e.t)||0;if(m.dens!=null)ds.push(m.dens);if(m.pi!=null)pis.push(m.pi)});
+  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  return {n,tot,ton,vol,tm,fails,dens:avg(ds),pi:avg(pis),densTot:tm?tot/tm:null};
+}
+function vSessSum(s,strict){
+  const r=sessSum(s,strict),c=(l,v)=>`<div><span>${l}</span><b>${v}</b></div>`;
+  return `<h3 style="margin-bottom:6px">Riepilogo della seduta</h3><div class="metrics" style="border-top:0;padding-top:0;margin-top:4px">
+    ${c('Esercizi',r.n)}${c('TotRep',fmtN(r.tot))}${c('Tonnellaggio',fmtN(r.ton))}${c('Volume',fmtN(r.vol,2))}${c('Tempo',r.tm?`${fmtN(r.tm)}′`:'–')}
+    ${c('Densità media',fmtN(r.dens,2))}${c('PowerIndex medio',fmtN(r.pi,1))}${c('Densità della seduta',r.densTot!=null?fmtN(r.densTot,2):'–')}${c('Serie fallite',r.fails)}</div>
+    ${(()=>{const rows=s.ex.map(e=>({e,m:metrics(e,strict)})).filter(x=>x.e.st!=='Non eseguito'&&x.m.tot!=null);if(!rows.length)return '';
+      return `<div style="overflow-x:auto;margin-top:10px"><table class="tbl"><thead><tr><th>Esercizio</th><th>TotRep</th><th>Volume</th><th>Tempo</th><th>Densità</th><th>PowerIndex</th></tr></thead><tbody>
+      ${rows.map(({e,m})=>`<tr><td style="font-family:var(--f-text);font-size:15px">${exIcon(e.n,20)} ${esc(e.n)}${e.fin?' <span class="muted small">(finisher)</span>':''}</td><td>${fmtN(m.tot)}</td><td>${fmtN(m.vol,2)}</td><td>${Number(e.t)?`${fmtN(Number(e.t))}′`:'–'}</td><td>${fmtN(m.dens,2)}</td><td>${fmtN(m.pi,1)}</td></tr>`).join('')}</tbody></table></div>`})()}
+    <p class="muted small" style="margin:6px 0 0">Densità e PowerIndex medi come nel riepilogo del foglio Excel; la densità della seduta è ripetizioni totali ÷ minuti totali. Densità e PowerIndex di un esercizio servono il campo Tempo.</p>`;
+}
+function sessSumTxt(s,strict){const r=sessSum(s,strict);return `Seduta: ${fmtN(r.tot)} rip., tonnellaggio ${fmtN(r.ton)}, volume ${fmtN(r.vol,2)}${r.dens!=null?`, densità media ${fmtN(r.dens,2)}`:''}${r.pi!=null?`, PowerIndex medio ${fmtN(r.pi,1)}`:''}${r.tm?`, ${fmtN(r.tm)}′`:''}`}
 
 /* ----- andamento ----- */
 const RIRF={'Facile':3.5,'Facile/Liscia':2.5,'Liscia':2,'Liscia/Difficile':1.5,'Difficile':1,'Difficile/Dura':.5,'Dura':0,'Dura/Fallito':0,'Fallito':0};
@@ -777,7 +1125,7 @@ function periodStart(){const p=PERIODI.find(x=>x[0]===S.prog)||PERIODI[1];if(!p[
 function exSeries(name,from){
   const out=[];
   for(const s of S.hist){if(s.d<from)continue;for(const e of s.ex){if(e.n!==name||e.st==='Non eseguito')continue;const m=metrics(e,!!s.updated);
-    out.push({d:s.d,e1:sessE1(e),kg:Number(e.kg)||null,tot:m.tot||0,vol:m.vol||0,ton:m.ton||0,fails:m.fails||0,sets:(e.s||[]).filter(x=>x[1]!=='skip').length})}}
+    out.push({d:s.d,dens:m.dens,pi:m.pi,e1:sessE1(e),kg:Number(e.kg)||null,tot:m.tot||0,vol:m.vol||0,ton:m.ton||0,fails:m.fails||0,sets:(e.s||[]).filter(x=>x[1]!=='skip').length})}}
   return out.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
 }
 function trendOf(vals){const n=vals.length;if(n<4)return null;const k=Math.max(2,Math.floor(n/4)),avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
@@ -813,15 +1161,17 @@ function barChart(title,rows,dec=0){
   </svg></div>`;
 }
 const pSeg=()=>`<div class="seg sm" role="group" aria-label="Periodo" style="max-width:480px;margin-bottom:12px">${PERIODI.map(([k,l])=>`<button data-a="setProg" data-v="${k}" aria-pressed="${S.prog===k}">${l}</button>`).join('')}</div>`;
+const PMET=[['e1','Forza stimata','kg',1],['dens','Densità','rip/min',2],['pi','PowerIndex','',1]];
 function vProgList(){
-  const from=periodStart(),info=exInfo();
-  const rows=[...info.entries()].filter(([,o])=>o.last>=from).map(([n,o])=>{const sr=exSeries(n,from).filter(x=>x.e1);const vals=sr.map(x=>x.e1);return {n,o,vals,tr:trendOf(vals)}}).filter(r=>r.tr)
+  const from=periodStart(),info=exInfo(),M=PMET.find(x=>x[0]===S.progM)||PMET[0];
+  const rows=[...info.entries()].filter(([,o])=>o.last>=from).map(([n,o])=>{const sr=exSeries(n,from).filter(x=>x[M[0]]!=null);const vals=sr.map(x=>x[M[0]]);return {n,o,vals,tr:trendOf(vals)}}).filter(r=>r.tr)
     .sort((a,b)=>a.o.last<b.o.last?1:a.o.last>b.o.last?-1:0);
   const up=rows.filter(r=>r.tr.pct>1).length,down=rows.filter(r=>r.tr.pct<-1).length;
-  return `${pSeg()}<p class="lead2">${rows.length?`In questo periodo migliori in <b class="up">${up}</b> ${up===1?'esercizio':'esercizi'}, peggiori in <b class="down">${down}</b>, stabile negli altri ${rows.length-up-down}.`:'Servono almeno 4 sedute nel periodo per vedere una tendenza.'}</p>
-    <p class="muted small" style="margin:4px 0 14px">Forza stimata dagli allenamenti: carico e ripetizioni fatte, più quelle che probabilmente avevi in riserva (dalla fatica e dal colore delle serie). Confronto l’inizio e la fine del periodo.</p>
+  return `${pSeg()}<div class="seg sm" role="group" aria-label="Misura" style="max-width:480px;margin-bottom:12px">${PMET.map(([k,l])=>`<button data-a="setProgM" data-v="${k}" aria-pressed="${S.progM===k}">${l}</button>`).join('')}</div>
+    <p class="lead2">${rows.length?`${M[1]}: in questo periodo migliori in <b class="up">${up}</b> ${up===1?'esercizio':'esercizi'}, peggiori in <b class="down">${down}</b>, stabile negli altri ${rows.length-up-down}.`:'Servono almeno 4 sedute nel periodo per vedere una tendenza.'}</p>
+    <p class="muted small" style="margin:4px 0 14px">${M[0]==='e1'?'':'Densità = ripetizioni al minuto; PowerIndex = volume² ÷ tempo, come nel foglio. Contano solo le sedute con il tempo segnato. '}Forza stimata dagli allenamenti: carico e ripetizioni fatte, più quelle che probabilmente avevi in riserva (dalla fatica e dal colore delle serie). Confronto l’inizio e la fine del periodo.</p>
     ${rows.map(r=>{const c=trCls(r.tr.pct);return `<button class="prow" data-a="exOpen" data-n="${esc(r.n)}">${exIcon(r.n,40)}<span><b>${esc(r.n)}</b><br><span class="muted small">${r.vals.length} sedute, ultima ${fmtD(r.o.last)}</span></span>${spark(r.vals,c)}
-      <span class="v">${fmtN(r.tr.b,1)}<small class="${c}">${trArr(r.tr.pct)} ${fmtPct(r.tr.pct)}</small></span></button>`}).join('')}`;
+      <span class="v">${fmtN(r.tr.b,M[3])}<small class="${c}">${trArr(r.tr.pct)} ${fmtPct(r.tr.pct)}</small></span></button>`}).join('')}`;
 }
 function vProgDetail(n){
   const from=periodStart(),sr=exSeries(n,from),e1=sr.filter(x=>x.e1),tr=trendOf(e1.map(x=>x.e1));
@@ -846,10 +1196,14 @@ function vProgDetail(n){
       ${k(byM?'Volume al mese':'Volume a settimana',fmtN(avg(vB),1),vpc!=null?`<span class="${trCls(vpc)}">${trArr(vpc)} ${fmtPct(vpc)}</span> rispetto alla prima metà`:'')}
       ${k('Sedute',sr.length,`${fmtN(sr.length/Math.max(1,span/7),1)} a settimana`)}
       ${k('Serie fallite',sets?`${fmtN(fails/sets*100)}%`:'–',`${fails} su ${sets}`)}
+      ${(()=>{const dv=sr.filter(x=>x.dens!=null),pv=sr.filter(x=>x.pi!=null),td=trendOf(dv.map(x=>x.dens)),tp=trendOf(pv.map(x=>x.pi));
+        return (dv.length?k('Densità',`${fmtN(td?td.b:dv[dv.length-1].dens,2)}`,td?`<span class="${trCls(td.pct)}">${trArr(td.pct)} ${fmtPct(td.pct)}</span> rip/min`:'rip/min'):'')+(pv.length?k('PowerIndex',fmtN(tp?tp.b:pv[pv.length-1].pi,1),tp?`<span class="${trCls(tp.pct)}">${trArr(tp.pct)} ${fmtPct(tp.pct)}</span>`:''):'')})()}
       ${tst?k('Ultimo test',`${fmtN(tst.rm,1)} kg`,`1RM del ${fmtD(tst.d)}`):''}
     </div>
     ${tChart('Forza stimata (kg)',e1.map(x=>({d:x.d,v:x.e1,f:x.fails>0})),1,'La stima viene dagli allenamenti, quindi di solito è più bassa del massimale dei test: conta la direzione della linea.')}
     ${barChart(byM?'Volume al mese':'Volume a settimana',vrows,1)}
+    ${tChart('Densità (ripetizioni al minuto)',sr.filter(x=>x.dens!=null).map(x=>({d:x.d,v:x.dens,f:x.fails>0})),2)}
+    ${tChart('PowerIndex',sr.filter(x=>x.pi!=null).map(x=>({d:x.d,v:x.pi,f:x.fails>0})),1)}
     ${tChart('Carico usato (kg)',sr.filter(x=>x.kg).map(x=>({d:x.d,v:x.kg,f:x.fails>0})),1)}`;
 }
 
@@ -867,8 +1221,10 @@ function vExList(){
 function vEsercizi(){
   if(S.exSel)return vEsercizio(S.exSel);
   const seg=`<div class="seg" role="group" aria-label="Vista" style="max-width:520px">
-    <button data-a="exView" data-v="list" aria-pressed="${S.exView!=='prog'}">Elenco</button>
-    <button data-a="exView" data-v="prog" aria-pressed="${S.exView==='prog'}">Andamento</button></div>`;
+    <button data-a="exView" data-v="list" aria-pressed="${S.exView==='list'}">Elenco</button>
+    <button data-a="exView" data-v="prog" aria-pressed="${S.exView==='prog'}">Andamento</button>
+    <button data-a="exView" data-v="proto" aria-pressed="${S.exView==='proto'}">Protocolli</button></div>`;
+  if(S.exView==='proto')return `<div class="top"><h1>Esercizi</h1></div>${banner()}${seg}${vProtocolli()}`;
   if(S.exView==='prog')return `<div class="top"><h1>Esercizi</h1></div>${banner()}${seg}${vProgList()}`;
   return `<div class="top"><h1>Esercizi</h1></div>${banner()}${seg}
   <label class="f" style="margin-bottom:14px">Cerca<input type="text" value="${esc(S.exQ)}" data-f="ex:q" placeholder="Nome dell’esercizio"></label>
@@ -881,7 +1237,7 @@ function vEsercizio(n){
   <h1 style="margin-bottom:14px;display:flex;align-items:center;gap:12px">${exIcon(n,56)}<span>${esc(n)}</span></h1>
   <section class="card"><div class="row"><div><div class="muted small">Massimale in uso oggi</div>
     ${t?`<div class="big-rm">${fmtN(t.rm,1)} kg</div><div class="muted small">${esc(testDesc(t))}${t.tipo==='default'?'':`, test del ${fmtD(t.d)}`}, applicato dal ${fmtD(t.from||t.d)}</div>`:'<p class="muted" style="margin:4px 0">Nessun massimale registrato.</p>'}</div>
-    <span class="spacer"></span><button class="btn primary" data-a="newTest" data-n="${esc(n)}">Nuovo test</button></div></section>
+    <span class="spacer"></span><button class="btn" data-a="ladFromEx" data-n="${esc(n)}">Proponi ladder</button><button class="btn primary" data-a="newTest" data-n="${esc(n)}">Nuovo test</button></div></section>
   <h2 style="margin:22px 0 10px">Andamento</h2>${vProgDetail(n)}
   ${t?`<section class="card"><h3 style="margin-bottom:8px">Tabella carichi</h3><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>% 1RM</th><th>Rip. massime</th><th>Kg</th></tr></thead><tbody>
     ${[...REPMAX].reverse().map(([q,r])=>`<tr><td>${fmtN(q*100)}%</td><td>${r}</td><td>${fmtN(Math.ceil(t.rm*q))}</td></tr>`).join('')}</tbody></table></div>
@@ -920,7 +1276,7 @@ function tfResult(){
   if(k==='t30'||k==='t15'){const c=enduCalc({tipo:k,kg:f.kg,rif:f.rif,parts:f.parts});
     const sug=c.sug?`<span class="small">Peso consigliato ${fmtN(c.sug,1)} kg (${c.E.pct}% di ${fmtN(num(f.rif),1)} kg)${c.repset?`, ${c.repset} ripetizioni per serie`:''}</span>`:'<span class="muted small">Indica il 1RM di riferimento per avere il peso consigliato.</span>';
     if(!c.tot)return sug;
-    return `${c.tot} ripetizioni: <b>${c.rate}</b>${c.rate2?` <span class="muted small">(scala Miletto: ${c.rate2})</span>`:''}<br><span class="small">${c.pct}% del massimale, volume ${fmtN(c.vol,2)}${c.ton?`, tonnellaggio ${fmtN(c.ton)}`:''}, densità ${fmtN(c.dens,1)} rip/min</span><br>${sug}`}
+    return `${c.tot} ripetizioni: <b>${c.rate}</b>${c.rate2?` <span class="muted small">(scala originale: ${c.rate2})</span>`:''}<br><span class="small">${c.pct}% del massimale, volume ${fmtN(c.vol,2)}${c.ton?`, tonnellaggio ${fmtN(c.ton)}`:''}, densità ${fmtN(c.dens,1)} rip/min</span><br>${sug}`}
   if(!(kg>0))return '';
   if(k==='reps'){const r=(num(f.rep)||0)+(num(f.rir)||0);if(!r)return '';const p=pctOfReps(r);
     return p?`1RM stimato <b>${fmtN(kg/p,1)} kg</b> <span class="muted small">(${r} ripetizioni massime = ${fmtN(p*100,1)}% del massimale)</span>`:'<span class="muted small">Oltre 30 ripetizioni la tabella non permette una stima.</span>'}
@@ -1009,11 +1365,12 @@ function vSess(s){
   const open=S.open.has(s.id);
   return `<article class="sess"><button data-a="toggleSess" data-id="${esc(s.id)}" aria-expanded="${open}">
     <div class="sess-t">${s.wo?`<span class="wo">${esc(s.wo)}</span>`:''}<b>${ggOf(s.d)} ${fmtD(s.d)}</b></div>
-    <div class="exl">${s.ex.map(e=>`<span class="nm">${exIcon(e.n,22)} ${esc(e.n)}${e.kg?` <span class="muted">${fmtN(e.kg,e.kg%1?1:0)} kg</span>`:''}</span><span class="mini">${(e.s||[]).map(x=>`<i class="e-${e.st==='Non eseguito'?'skip':x[1]}"></i>`).join('')}</span>`).join('')}</div>
+    <div class="exl">${s.ex.map(e=>`<span class="nm">${exIcon(e.n,22)} ${e.fin?`<span class="muted small">Finisher${s.fin&&s.fin.wo?' '+esc(s.fin.wo):''}:</span> `:''}${esc(e.n)}${e.kg?` <span class="muted">${fmtN(e.kg,e.kg%1?1:0)} kg</span>`:''}</span><span class="mini">${(e.s||[]).map(x=>`<i class="e-${e.st==='Non eseguito'?'skip':x[1]}"></i>`).join('')}</span>`).join('')}</div>
   </button>${open?`<div class="sess-d">${s.ex.map(e=>{const m=metrics(e,!!s.updated);return `<div class="ex"><b>${esc(e.n)}</b>${e.p?` <span class="muted small">${esc(e.p)}</span>`:''}
     <p>${e.st==='Non eseguito'?'Non eseguito':`${(e.s||[]).map(x=>x[0]).join(' ')}${e.b!=null?` <span class="muted">(piano: ${e.b}${e.k?`, prime ${e.k} a ${e.b+1}`:''})</span>`:''}`}</p>
-    <p class="muted">TotRep ${fmtN(m.tot)}, tonnellaggio ${fmtN(m.ton)}, volume ${fmtN(m.vol,2)}${m.fails?`, ${m.fails} fallite`:''}${e.f?`, ${esc(e.f.toLowerCase())}`:''}</p>
+    <p class="muted">TotRep ${fmtN(m.tot)}, tonnellaggio ${fmtN(m.ton)}, volume ${fmtN(m.vol,2)}${m.dens!=null?`, densità ${fmtN(m.dens,2)}`:''}${m.pi!=null?`, PowerIndex ${fmtN(m.pi,1)}`:''}${m.fails?`, ${m.fails} fallite`:''}${e.f?`, ${esc(e.f.toLowerCase())}`:''}</p>
     ${e.note?`<p>${esc(e.note)}</p>`:''}</div>`}).join('')}
+    <p class="muted">${sessSumTxt(s,!!s.updated)}</p>
     ${s.tempi?`<p class="muted">Tempi: ${tempiTxt(s.tempi)}</p>`:''}
     ${s.note?`<p><b>Note:</b> ${esc(s.note)}</p>`:''}
     <div class="row" style="margin-top:8px"><button class="btn" data-a="editSess" data-id="${esc(s.id)}">Modifica</button><span class="spacer"></span><button class="btn ghost danger" data-a="askDelSess" data-id="${esc(s.id)}">Elimina</button></div>
@@ -1058,10 +1415,10 @@ function vTimer(){
   if(T&&!T.done)return `<div id="runBox">${vRun()}</div>`;
   const m=S.tmode;
   return `<div class="top"><h1>Timer</h1></div>${vSesBox()}${T&&T.done?`<div id="runBox" style="margin-bottom:18px">${vRun()}</div>`:''}
-  <div class="seg" role="group" aria-label="Tipo di timer">
-    ${[['rec','Set&amp;Pause'],['emom','EMOM'],['edt','EDT'],['circ','Circuito'],['tst','Test']].map(([k,l])=>`<button data-a="tmode" data-m="${k}" aria-pressed="${m===k}">${l}</button>`).join('')}
+  <div class="seg" role="group" aria-label="Tipo di timer" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">
+    ${[['rec','Set&amp;Pause'],['emom','EMOM'],['edt','EDT'],['circ','Circuito'],['amrap','AMRAP'],['rt','RT'],['tst','Test']].map(([k,l])=>`<button data-a="tmode" data-m="${k}" aria-pressed="${m===k}">${l}</button>`).join('')}
   </div>
-  <div class="tcfg">${m==='rec'?vCfgRec():m==='emom'?vCfgEmom():m==='circ'?vCfgCirc():m==='tst'?vCfgTst():vCfgEdt()}</div>`;
+  <div class="tcfg">${m==='rec'?vCfgRec():m==='emom'?vCfgEmom():m==='circ'?vCfgCirc():m==='tst'?vCfgTst():m==='amrap'?vCfgAmrap():m==='rt'?vCfgRt():vCfgEdt()}</div>`;
 }
 const stepper=(f,v,lbl)=>`<div class="stepper" role="group" aria-label="${lbl}"><button data-a="step" data-f="${f}" data-d="-1" aria-label="Meno">−</button><output>${v}</output><button data-a="step" data-f="${f}" data-d="1" aria-label="Più">+</button></div>`;
 function emomName(k){return k===1?'EMOM':`E${k}MOM`}
@@ -1091,35 +1448,50 @@ function recPartners(i){
   return out;
 }
 function timerPlan(i){
-  const ex=S.draft.ex,e=ex[i],pp=parseProto(e.p);
+  const ex=S.draft.ex,e=ex[i],P=e.pid&&S.protos.get(e.pid);
+  if(P&&!P.deleted){
+    const same=ex.map((x,j)=>x.pid===e.pid&&!!x.fin===!!e.fin?j:-1).filter(j=>j>=0);
+    const grp=P.tipo==='edt'||P.tipo==='circ'||P.tipo==='max'||P.tipo==='amrap'||(P.tipo==='emom'?emK(P)>1:P.tipo!=='rt'&&P.tipo!=='st'&&P.group==='super');
+    let idx=grp?same:[i];
+    if(P.tipo==='amrap')idx=idx.slice(0,6);
+    if(P.tipo==='emom'&&idx.length>Math.min(3,emK(P)))idx=idx.sort((a,b)=>Math.abs(a-i)-Math.abs(b-i)).slice(0,Math.min(3,emK(P))).sort((a,b)=>a-b);
+    if(P.tipo==='edt')idx=idx.slice(0,4);
+    const mode={emom:'emom',edt:'edt',circ:'circ',amrap:'amrap',rt:'rt'}[P.tipo]||'rec';
+    const label=P.tipo==='amrap'?'Timer AMRAP':P.tipo==='rt'?'Timer RT':P.tipo==='st'?'Timer ST':P.tipo==='ladder'?(idx.length>1?'Timer Ladder alternata':'Timer Ladder'):P.tipo==='emom'?`Timer ${emomName(idx.length)}`:P.tipo==='edt'?(idx.length>2?'Timer EDT, 2 PR Zone':'Timer EDT'):P.tipo==='circ'?'Timer Circuito':P.tipo==='max'?'Timer max ripetizioni':idx.length>1?`Timer ${grpName(idx.length)}`:'Set&Pause';
+    return {mode,idx,proto:P,pp:{type:'proto'},label};
+  }
+  const pp=parseProto(e.p);
   if(pp&&pp.type==='emom'){
     let idx=ex.map((x,j)=>[j,parseProto(x.p)]).filter(([,q])=>q&&q.type==='emom'&&emomSig(q)===emomSig(pp)).map(([j])=>j);
     if(idx.length>3)idx=idx.sort((a,b)=>Math.abs(a-i)-Math.abs(b-i)).slice(0,3).sort((a,b)=>a-b);
     return {mode:'emom',idx,pp,label:`Timer ${emomName(idx.length)}`};
   }
-  if(pp&&pp.type==='edt'){const o=ex.findIndex((x,j)=>j!==i&&(parseProto(x.p)||{}).type==='edt');return {mode:'edt',idx:o<0?[i]:[i,o].sort((a,b)=>a-b),pp,label:'Timer EDT'}}
+  if(pp&&pp.type==='edt'){let all=ex.map((x,j)=>[j,parseProto(x.p)]).filter(([,q])=>q&&q.type==='edt').map(([j])=>j).slice(0,4);if(!all.includes(i))all=[i];return {mode:'edt',idx:all,pp,label:all.length>2?'Timer EDT, 2 PR Zone':'Timer EDT'}}
   const idx=recPartners(i),rp=idx.map(j=>parseProto(ex[j].p)).find(q=>q&&q.type==='rest')||null;
   return {mode:'rec',idx,pp:rp,label:idx.length>1?`Timer ${grpName(idx.length)}${rp?` ${rp.sec}″`:''}`:rp?`Set&Pause ${rp.sec}″`:'Set&Pause'};
 }
 function fromBanner(m){
   const f=S.tc.from;const c=S.tc[m];
-  const names=(m==='rec'?(c.links||[]):(c.link||[])).map(j=>S.draft&&S.draft.ex[j]?S.draft.ex[j].n:'').filter(Boolean);
+  const names=(m==='rec'||m==='circ'?(c.links||[]):(c.link||[])).map(j=>S.draft&&S.draft.ex[j]?S.draft.ex[j].n:'').filter(Boolean);
   if(!names.length)return '';
   const what={rec:'durante il recupero segni l’esito della serie appena fatta e alla fine il tempo totale va nell’esercizio',
     emom:'segni l’esito di ogni serie, durante l’intervallo o in quello dopo come scegli più sotto, e con «Torna alla seduta» puoi correggere qualsiasi serie anche a timer avviato',
+    amrap:'ogni ripetizione confermata diventa una serie dell’esercizio nella seduta',
+    rt:'le serie che fai finiscono nell’esercizio della seduta',
+    circ:'le stazioni scrivono serie e tempo negli esercizi della seduta',
     edt:'le ripetizioni che confermi diventano le serie degli esercizi nella seduta'}[m];
   const src=f&&f.p?(f.ok?`Impostato dal protocollo «${esc(f.p)}». `:`Il protocollo «${esc(f.p)}» non indica un timer: imposta tu il recupero. `):'';
   return `<p class="banner" style="border-left-color:var(--ok)">${src}Collegato a ${esc(names.join(' e '))}: ${what}. <button class="btn ghost" data-a="unlink" data-m="${m}">Scollega</button></p>`;
 }
 function vCfgRec(){
   const c=S.tc.rec,linked=!!c.links,its=c.items,multi=its.length>1,sup=multi&&c.mode==='super';
-  return `<p class="lead">Avvii ogni serie tu; alla fine parte il recupero e, se vuoi, la serie dopo parte da sola.</p>
+  return `<p class="lead">Avvii ogni serie tu; alla fine parte il recupero e, se vuoi, la serie dopo parte da sola. Nelle ripetizioni puoi scrivere una scala (Ladder), es. 1-2-3-4-5: ogni numero è una serie.</p>
   ${fromBanner('rec')}
   <div><div class="muted small" style="margin-bottom:4px">Esercizi</div>
   ${its.map((it,i)=>`<div class="exrow" style="grid-template-columns:minmax(0,1fr) 66px 66px 40px;margin-bottom:6px">
      <label class="f">${multi?`Esercizio ${i+1}`:'Esercizio (facoltativo)'}<input type="text" list="names" value="${esc(it.n)}" data-f="tc:rec.items.${i}.n" ${linked?'disabled':''}></label>
      <label class="f">Serie<input type="number" inputmode="numeric" value="${esc(it.sets)}" data-f="tc:rec.items.${i}.sets" ${linked?'disabled':''}></label>
-     <label class="f">Rep<input type="number" inputmode="numeric" value="${esc(it.rep)}" data-f="tc:rec.items.${i}.rep" ${linked?'disabled':''}></label>
+     <label class="f">Rep<input type="text" inputmode="numeric" value="${esc(it.rep)}" data-f="tc:rec.items.${i}.rep" ${linked?'disabled':''} title="Un numero, oppure una scala come 1-2-3-4-5"></label>
      ${multi&&!linked?`<button class="btn ghost" data-a="recDel" data-i="${i}" aria-label="Togli l’esercizio ${i+1}" style="align-self:end">✕</button>`:'<span></span>'}</div>`).join('')}
   ${!linked&&its.length<6?`<button class="btn" data-a="recAdd">+ Aggiungi esercizio</button>`:''}</div>
   ${multi?`<div><div class="muted small" style="margin-bottom:4px">Come li fai</div>
@@ -1132,10 +1504,13 @@ function vCfgRec(){
   <div><div class="muted small" style="margin-bottom:4px">${sup?'Recupero dopo ogni giro':'Recupero tra le serie'}</div>
     <div class="seg sm" role="group" aria-label="Tipo di recupero" style="max-width:360px">
       <button data-a="tset" data-f="rec.rest" data-v="fix" aria-pressed="${c.rest==='fix'}">Fisso</button>
-      <button data-a="tset" data-f="rec.rest" data-v="mult" aria-pressed="${c.rest==='mult'}">Multiplo della serie</button></div></div>
-  ${c.rest==='fix'?`<label class="f" style="max-width:200px">Secondi di recupero<input type="number" inputmode="numeric" value="${c.sec}" data-f="tc:rec.sec"></label>`
+      <button data-a="tset" data-f="rec.rest" data-v="mult" aria-pressed="${c.rest==='mult'}">Multiplo della serie</button>
+      <button data-a="tset" data-f="rec.rest" data-v="free" aria-pressed="${c.rest==='free'}">Libero</button></div></div>
+  ${c.rest==='free'?'<p class="muted small" style="margin:0">Recupero libero: il cronometro conta il riposo e tu tocchi «Inizia serie» quando sei pronto (utile per le Serie Target).</p>':c.rest==='fix'?`<label class="f" style="max-width:200px">Secondi di recupero<input type="number" inputmode="numeric" value="${c.sec}" data-f="tc:rec.sec"></label>`
    :`<label class="f" style="max-width:300px">Recupero = durata ${sup?'del giro':'della serie'} ×<input type="number" inputmode="decimal" step="0.25" value="${c.mult}" data-f="tc:rec.mult"></label>`}
   <label class="row" style="flex-wrap:nowrap"><input type="checkbox" ${c.auto?'checked':''} data-f="tc:rec.auto" style="width:22px;height:22px"> La serie successiva parte da sola a fine recupero</label>
+  <label class="f" style="max-width:260px">Preparazione (s)<input type="number" inputmode="numeric" min="0" value="${c.lead}" data-f="tc:rec.lead"></label>
+  <p class="muted small" style="margin:-8px 0 0">${num(c.lead)>0?'Dopo il conto alla rovescia la prima serie parte da sola.':'Con 0 parti tu dalla prima serie con «Inizia».'}</p>
   <div class="emx"><div class="muted small">Colore durante la serie</div>${swatches('rec','colWork',c.colWork,PAL,'Colore durante la serie')}</div>
   <div class="emx"><div class="muted small">Colore durante il recupero</div>${swatches('rec','colRest',c.colRest,PAL,'Colore durante il recupero')}</div>
   ${vRestEnd('rec')}
@@ -1145,6 +1520,49 @@ function vCfgRec(){
 }
 function tstSugTxt(){const c=S.tc.tst,x=enduCalc({tipo:c.tipo,kg:c.kg,rif:c.rif,parts:[]});
   return x.sug?`Peso consigliato ${fmtN(x.sug,1)} kg (${x.E.pct}% di ${fmtN(num(c.rif),1)} kg)${x.repset?`; ripetizioni per serie consigliate: ${x.repset}`:''}.`:'Indica il 1RM di riferimento per avere il peso consigliato.'}
+const AMCOL=['#0284C7','#F97316','#16A34A','#9333EA','#DC2626','#0D9488'];
+function vCfgAmrap(){
+  const c=S.tc.amrap,linked=!!(c.link&&c.link.length);
+  return `${fromBanner('amrap')}<p class="lead">Più giri possibile entro il tempo: a ogni esercizio confermi le ripetizioni e passi al successivo; alla fine conti giri e ripetizioni.</p>
+  <label class="f" style="max-width:180px">Minuti<input type="number" inputmode="numeric" value="${c.min}" data-f="tc:amrap.min"></label>
+  ${c.ex.map((x,i)=>`<div class="exrow" style="grid-template-columns:minmax(0,1fr) 90px 40px"><label class="f">Esercizio ${i+1}<input type="text" list="names" value="${esc(x.n)}" data-f="tc:amrap.ex.${i}.n" ${linked?'disabled':''}></label>
+    <label class="f">Rep<input type="number" inputmode="numeric" value="${esc(x.rep)}" data-f="tc:amrap.ex.${i}.rep"></label>${c.ex.length>1&&!linked?`<button class="btn ghost" data-a="amDel" data-i="${i}" aria-label="Togli l’esercizio ${i+1}" style="align-self:end">✕</button>`:'<span></span>'}</div>`).join('')}
+  ${c.ex.length<6&&!linked?'<button class="btn" data-a="amAdd">+ Aggiungi esercizio</button>':''}
+  <label class="f" style="max-width:200px">Preparazione (s)<input type="number" inputmode="numeric" min="0" value="${c.lead}" data-f="tc:amrap.lead"></label>
+  ${vRestEnd('amrap')}${vWarn('amrap','tempo')}${vSesCfg()}
+  <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
+}
+function vCfgRt(){
+  const c=S.tc.rt,linked=!!(c.link&&c.link.length);
+  return `${fromBanner('rt')}<p class="lead">Ripetizioni Target: fai tutte le serie che servono per arrivare al totale. Dopo ogni serie segni quante ne hai fatte e l’app ti dice quante ne mancano.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:0">
+    <label class="f">Esercizio<input type="text" list="names" value="${esc(c.n)}" data-f="tc:rt.n" ${linked?'disabled':''}></label>
+    <label class="f">Ripetizioni totali<input type="number" inputmode="numeric" value="${c.target}" data-f="tc:rt.target"></label>
+    <label class="f">Ripetizioni per serie (facoltativo)<input type="text" inputmode="numeric" value="${esc(c.rep)}" data-f="tc:rt.rep"></label>
+    <label class="f">Recupero (s, 0 = libero)<input type="number" inputmode="numeric" value="${c.rest}" data-f="tc:rt.rest"></label>
+    <label class="f">Preparazione (s)<input type="number" inputmode="numeric" value="${c.lead}" data-f="tc:rt.lead"></label></div>
+  <div class="emx"><div class="muted small">Colore durante la serie</div>${swatches('rt','colWork',c.colWork,PAL,'Colore durante la serie')}</div>
+  <div class="emx"><div class="muted small">Colore durante il recupero</div>${swatches('rt','colRest',c.colRest,PAL,'Colore durante il recupero')}</div>
+  ${vWarn('rt','recupero')}${vSesCfg()}
+  <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
+}
+function amTick(t){
+  if(T.final){const rf=T.cfg.restEndSec*1000-(t-T.finalStart);countdownBeeps(rf);if(rf<=0){tStop();sound('end');render();return true}return false}
+  if(t<T.leadMs){countdownBeeps(T.leadMs-t);return false}
+  if(!T.started){T.started=true;T.lastSec=null;if(T.leadMs)sound('change',T.cfg.ex[0].n||'via')}
+  const rem=T.totalMs-(t-T.leadMs);countdownBeeps(rem);warnBeep(rem);halfBeep(rem,T.totalMs);
+  if(rem<=0){if(T.cfg.restEnd){T.final=true;T.finalStart=t;T.lastSec=null;sound('change','riposo');return false}tStop();beepEnd();render();return true}
+  return false;
+}
+const rtDone=()=>T.sets.reduce((a,b)=>a+b,0);
+function rtDefault(){const left=T.cfg.target-rtDone(),last=T.sets[T.sets.length-1];return Math.max(0,Math.min(left,last||num(T.cfg.rep)||left))}
+function rtCommit(){if(T.pend!=null){T.sets.push(T.pend);T.pend=null}}
+function rtNext(t){rtCommit();if(rtDone()>=T.cfg.target){T.workEnd=t;tStop();sound('end');render();return true}T.phase='work';T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;sound('change','via');updateRun();return false}
+function rtTick(t){
+  if(T.phase==='lead'){const r=T.cfg.lead*1000-t;countdownBeeps(r);if(r<=0){T.phase='work';T.ph0=t;T.lastSec=null;sound('change',T.cfg.n||'via')}return false}
+  if(T.phase==='rest'&&T.cfg.rest>0){const rem=T.cfg.rest*1000-(t-T.ph0);countdownBeeps(rem);warnBeep(rem);halfBeep(rem,T.cfg.rest*1000);if(rem<=0)return rtNext(t)}
+  return false;
+}
 function vCfgTst(){
   const c=S.tc.tst,E=ENDU[c.tipo];
   if(!c.rifTouched&&c.n&&!c.rif){const t=maxFor(c.n,todayIso());if(t)c.rif=t.rm}
@@ -1176,7 +1594,7 @@ function tstTick(t){
 function vCfgCirc(){
   const c=S.tc.circ;
   const dur=c.items.reduce((a,it)=>a+(it.tipo==='rep'?0:(num(it.val)||0)),0)*c.giri+(num(c.restEx)||0)*Math.max(0,c.items.length-1)*c.giri+(num(c.restGiro)||0)*Math.max(0,c.giri-1);
-  return `<p class="lead">Fai le stazioni una dopo l’altro con una breve pausa, poi riposi e ripeti il giro.</p>
+  return `${fromBanner('circ')}<p class="lead">Fai le stazioni una dopo l’altro con una breve pausa, poi riposi e ripeti il giro.</p>
   ${c.items.map((it,i)=>`<div class="emx"><div class="exrow" style="grid-template-columns:minmax(0,1fr) 40px">
       <label class="f">Stazione ${i+1}<input type="text" list="names" value="${esc(it.n)}" data-f="tc:circ.items.${i}.n"></label>
       ${c.items.length>1?`<button class="btn ghost" data-a="circDel" data-i="${i}" aria-label="Togli la stazione ${i+1}" style="align-self:end">✕</button>`:'<span></span>'}</div>
@@ -1231,15 +1649,21 @@ function vCfgEmom(){
   <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
 }
 function vCfgEdt(){
-  const c=S.tc.edt;
-  return `<p class="lead">Alterni due esercizi fino a fine tempo: confermi le ripetizioni fatte e passi all’altro.</p>${fromBanner('edt')}
-  <label class="f" style="max-width:180px">Durata (minuti)<input type="number" inputmode="numeric" value="${c.min}" data-f="tc:edt.min"></label>
-  ${['a','b'].map((k,i)=>`<div class="exrow" style="grid-template-columns:minmax(0,1fr) 90px">
-    <label class="f">Esercizio ${i?'B':'A'}<input type="text" list="names" value="${esc(c[k].n)}" data-f="tc:edt.${k}.n"></label>
-    <label class="f">Rep target<input type="number" inputmode="numeric" value="${c[k].rep}" data-f="tc:edt.${k}.rep"></label></div>
-    ${swatches('edt','col.'+i,c.col[i],PAL,`Colore dell’esercizio ${i?'B':'A'}`)}`).join('')}
+  const c=S.tc.edt,two=Number(c.zones)===2;
+  const pair=(ks,lbl)=>ks.map((k,i)=>`<div class="exrow" style="grid-template-columns:minmax(0,1fr) 90px">
+    <label class="f">Esercizio ${k.toUpperCase()}<input type="text" list="names" value="${esc(c[k].n)}" data-f="tc:edt.${k}.n"></label>
+    <label class="f">Rep target<input type="number" inputmode="numeric" value="${c[k].rep}" data-f="tc:edt.${k}.rep"></label></div>`).join('');
+  return `<p class="lead">Alterni due esercizi fino a fine tempo: confermi le ripetizioni fatte e passi all’altro. Con due PR Zone, dopo una pausa riparte con un’altra coppia.</p>${fromBanner('edt')}
+  <div class="seg sm" role="group" aria-label="Numero di PR Zone" style="max-width:360px">
+    <button data-a="tset" data-f="edt.zones" data-v="1" aria-pressed="${!two}">1 PR Zone</button>
+    <button data-a="tset" data-f="edt.zones" data-v="2" aria-pressed="${two}">2 PR Zone</button></div>
+  <div class="emx"><div class="row"><b>PR Zone 1</b><label class="f" style="width:140px;margin-left:auto">Durata (minuti)<input type="number" inputmode="numeric" value="${c.min}" data-f="tc:edt.min"></label></div>${pair(['a','b'])}</div>
+  ${two?`<label class="f" style="max-width:240px">Pausa tra le PR Zone (minuti)<input type="number" inputmode="decimal" step="any" value="${c.restZ}" data-f="tc:edt.restZ"></label>
+  <div class="emx"><div class="row"><b>PR Zone 2</b><label class="f" style="width:140px;margin-left:auto">Durata (minuti)<input type="number" inputmode="numeric" value="${c.min2}" data-f="tc:edt.min2"></label></div>${pair(['c','d'])}</div>`:''}
+  <label class="f" style="max-width:200px">Preparazione (s)<input type="number" inputmode="numeric" min="0" value="${c.lead}" data-f="tc:edt.lead"></label>
+  ${[0,1].map(i=>swatches('edt','col.'+i,c.col[i],PAL,`Colore del ${i?'secondo':'primo'} esercizio di ogni zona`)).join('')}
   ${vRestEnd('edt')}
-  ${vWarn('edt','tempo')}
+  ${vWarn('edt','zona')}
   ${vSesCfg()}
   <div><button class="btn primary big" data-a="tStart">Avvia</button></div>`;
 }
@@ -1247,8 +1671,7 @@ function vCfgEdt(){
 /* ---------- motore timer ---------- */
 let T=null,AC=null,loopId=null;
 const now=()=>performance.now();
-const clk=()=>T.acc+(T.paused?0:now()-T.since);
-function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){AC=null}}
+const clk=()=>T.acc+(T.paused?0:now()-T.since);function ensureAudio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){AC=null}}
 function beep(f=880,d=.12,v=.3){
   if(!AC)return;try{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;
   g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);
@@ -1300,36 +1723,48 @@ async function wake(on){
 }
 function tStart(){
   ensureAudio();
-  const m=S.tmode,c=clone(S.tc[m]);
+  const m=S.tmode,c=clone(S.tc[m]);if(c.over){Object.assign(c,c.over);delete c.over}if(S.tc[m])S.tc[m].over=null;
   if(m==='emom'){c.ex=c.ex.slice(0,c.k).map((e,i)=>({n:e.n||`Esercizio ${i+1}`,rep:num(e.rep),sec:Math.max(5,num(e.sec)||60)}));c.giri=Math.max(1,c.giri);c.lead=Math.max(0,num(c.lead)||0);c.restSec=Math.max(5,num(c.restSec)||60);c.restEndSec=Math.max(5,num(c.restEndSec)||120);c.warnSec=Math.max(0,num(c.warnSec)??3)}
   if(m!=='emom'){c.warnSec=Math.max(0,num(c.warnSec)??3);c.restEndSec=Math.max(5,num(c.restEndSec)||120)}
-  if(m==='edt'){c.min=Math.max(1,num(c.min)||15);['a','b'].forEach((k,i)=>{c[k].n=c[k].n||(i?'Esercizio B':'Esercizio A');c[k].rep=num(c[k].rep)||5})}
-  if(m==='rec'){c.sec=Math.max(5,num(c.sec)||90);c.mult=Math.max(.25,num(c.mult)||2);c.tr=Math.max(0,num(c.tr)||0);c.between=Math.max(0,num(c.between)??90)}
+  if(m==='edt'){c.zones=Number(c.zones)===2?2:1;c.min2=Math.max(1,num(c.min2)||15);c.restZ=Math.max(0,num(c.restZ)??5);c.min=Math.max(1,num(c.min)||15);EK.slice(0,c.zones*2).forEach((k,i)=>{c[k].n=c[k].n||`Esercizio ${k.toUpperCase()}`;c[k].rep=num(c[k].rep)||5})}
+  if(m==='rec'){c.lead=Math.max(0,num(c.lead)||0);c.sec=Math.max(5,num(c.sec)||90);c.mult=Math.max(.25,num(c.mult)||2);c.tr=Math.max(0,num(c.tr)||0);c.between=Math.max(0,num(c.between)??90)}
   if(m==='circ'){c.giri=Math.max(1,c.giri);c.lead=Math.max(0,num(c.lead)||0);c.tr=Math.max(0,num(c.restEx)??15);c.sec=Math.max(0,num(c.restGiro)??60);c.rest='fix';c.auto=true;c.mode='super'}
-  T={mode:m==='circ'?'rec':m,kind:m,cfg:c,acc:0,since:now(),paused:false,done:false,lastSec:null};
+  const isFin=!!S.finNext;S.finNext=false;
+  T={isFin,mode:m==='circ'?'rec':m,kind:m,cfg:c,acc:0,since:now(),paused:false,done:false,lastSec:null};
   if(m==='tst'){const E=ENDU[c.tipo];c.lead=Math.max(0,num(c.lead)||0);c.step=Math.max(1,num(c.step)||5);c.warnSec=Math.max(0,num(c.warnSec)??10);
     Object.assign(T,{counts:[0,0,0],blk:-1,lead:c.lead*1000,total:E.min*60000,bms:E.min*20000})}
+  if(m==='amrap'){c.min=Math.max(1,num(c.min)||10);c.lead=Math.max(0,num(c.lead)||0);c.warnSec=Math.max(0,num(c.warnSec)??10);c.restEndSec=Math.max(5,num(c.restEndSec)||120);
+    if(c.link&&S.draft){c.ex=c.link.map((j,n)=>({n:(S.draft.ex[j]||{}).n||`Esercizio ${n+1}`,rep:num((c.ex[n]||{}).rep)||10}))}
+    c.ex=c.ex.map((x,i)=>({n:String(x.n||'').trim()||`Esercizio ${i+1}`,rep:Math.max(1,num(x.rep)||10)}));
+    Object.assign(T,{cur:0,rounds:0,adj:c.ex[0].rep,log:[],totalMs:c.min*60000,leadMs:c.lead*1000})}
+  if(m==='rt'){c.target=Math.max(1,num(c.target)||50);c.rest=Math.max(0,num(c.rest)||0);c.lead=Math.max(0,num(c.lead)||0);if(c.link&&S.draft&&S.draft.ex[c.link[0]])c.n=S.draft.ex[c.link[0]].n;
+    Object.assign(T,{sets:[],pend:null,phase:c.lead>0?'lead':'ready',ph0:0})}
   if(m==='rec'||m==='circ'){const b=buildSP(c,m);Object.assign(T,{exs:b.exs,steps:b.steps,linked:b.linked,k:0,phase:'ready',ph0:0,durs:[],restMs:0,blk:0,mk:null,done_k:-1});
     if(T.linked){const f=T.steps.findIndex(st=>T.exs[st.i].s[st.j][1]==='');T.k=f<0?0:f}
-    if(m==='circ'){if(c.lead>0)T.phase='lead';else{T.restKind=null;spGo(0,true)}}}
+    if(m==='circ'){if(c.lead>0)T.phase='lead';else{T.restKind=null;spGo(0,true)}}
+    if(m==='rec'&&c.lead>0)T.phase='lead'}
   if(m==='emom'&&c.link&&S.draft)c.link.forEach(j=>{const x=S.draft.ex[j];if(x&&x.s.length<c.giri)setN(x,c.giri)});
   if(m==='emom'){T.slots=[];for(let g=0;g<c.giri;g++){c.ex.forEach((e,i)=>T.slots.push({g,i,sec:e.sec}));if(c.restOn&&g<c.giri-1)T.slots.push({g,i:-1,rest:true,sec:c.restSec})}if(c.restEnd)T.slots.push({g:c.giri-1,i:-1,rest:true,end:true,sec:c.restEndSec});T.total=T.slots.reduce((a,s)=>a+s.sec,0)*1000;T.slot=-1}
-  if(m==='edt'){Object.assign(T,{cur:0,adj:c.a.rep,log:[],totalMs:c.min*60000});const tot=T.totalMs;
-    const fr={half:[[1/2,'metà']],thirds:[[1/3,'un terzo'],[2/3,'due terzi']],quarters:[[1/4,'un quarto'],[1/2,'metà'],[3/4,'tre quarti']]}[c.frac]||[];
-    T.marks=fr.map(([f,say])=>({rem:tot*(1-f),k:'half',say})).concat(String(c.minsLeft||'').split(/[,;\s]+/).map(num).filter(x=>x>0&&x*60000<tot)
-      .map(x=>({rem:x*60000,k:'warn',say:x<1?`mancano ${Math.round(x*60)} secondi`:x===1?'manca un minuto':`mancano ${fmtN(x,x%1?1:0)} minuti`})))}
+  if(m==='edt'){c.lead=Math.max(0,num(c.lead)||0);Object.assign(T,{leadMs:c.lead*1000,cur:0,zone:0,z0:c.lead*1000,zr:false,adj:c.a.rep,log:[],zoneMs:[c.min*60000,c.min2*60000]});T.marks=edtMarks(c,T.zoneMs[0])}
   wake(true);ensureLoop();render();
 }
 function buildSP(c,kind){
   const exs=[],steps=[];let linked=false;
-  if(kind==='circ'){
+  if(kind==='circ'&&c.links&&S.draft){
+    c.links.forEach((j,n)=>{const x=S.draft.ex[j],it=c.items[n]||{};if(!x)return;if(x.s.length<c.giri)setN(x,c.giri);
+      x._w=it.tipo==='rep'?null:Math.max(5,num(it.val)||40);if(it.tipo==='rep'&&x.b==null)x.b=num(it.val);exs.push(x)});linked=exs.length>0;
+    for(let g=0;g<c.giri;g++)exs.forEach((e,i)=>steps.push({i,j:g,rest:i<exs.length-1?'tr':'main',w:e._w}));
+  }
+  else if(kind==='circ'){
     c.items.forEach((it,i)=>{const rep=it.tipo==='rep'?Math.max(1,num(it.val)||10):null;
       exs.push({n:String(it.n||'').trim()||`Stazione ${i+1}`,b:rep,k:0,st:'Eseguito',_w:it.tipo==='rep'?null:Math.max(5,num(it.val)||40),s:Array.from({length:c.giri},()=>[rep??'',''])})});
     for(let g=0;g<c.giri;g++)exs.forEach((e,i)=>steps.push({i,j:g,rest:i<exs.length-1?'tr':'main',w:e._w}));
   }else{
     if(c.links&&S.draft){c.links.forEach(j=>{const x=S.draft.ex[j];if(x)exs.push(x)});linked=exs.length>0}
-    if(!linked)c.items.forEach((it,i)=>{const sets=Math.max(1,Math.min(20,num(it.sets)||1)),rep=num(it.rep);
-      exs.push({n:String(it.n||'').trim()||(c.items.length>1?`Esercizio ${i+1}`:''),b:rep,k:0,st:'Eseguito',s:Array.from({length:sets},()=>[rep??'',''])})});
+    if(!linked)c.items.forEach((it,i)=>{const nm=String(it.n||'').trim()||(c.items.length>1?`Esercizio ${i+1}`:''),lad=String(it.rep||'').split(/[-–,\s]+/).map(Number).filter(x=>x>0);
+      if(lad.length>=3){exs.push({n:nm,b:null,k:0,lad,st:'Eseguito',s:lad.map(r=>[r,''])});return}
+      const sets=Math.max(1,Math.min(20,num(it.sets)||1)),rep=num(it.rep);
+      exs.push({n:nm,b:rep,k:0,st:'Eseguito',s:Array.from({length:sets},()=>[rep??'',''])})});
     if(c.mode==='super'&&exs.length>1){const R=Math.max(...exs.map(e=>e.s.length));
       for(let r=0;r<R;r++){const g=exs.map((e,i)=>i).filter(i=>exs[i].s.length>r);g.forEach((i,q)=>steps.push({i,j:r,rest:q<g.length-1?'tr':'main'}))}}
     else exs.forEach((e,i)=>{for(let j=0;j<e.s.length;j++)steps.push({i,j,rest:j<e.s.length-1?'main':'between'})});
@@ -1351,12 +1786,20 @@ function spEndSet(t){
   if(st.rest==='end'){T.workEnd=t;
     if(T.cfg.restEnd){T.final=true;T.phase='rest';T.restKind='end';T.restMs=T.cfg.restEndSec*1000;T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;sound('change','riposo');return}
     tStop();sound('end');return 'stop'}
-  let ms=st.rest==='tr'?T.cfg.tr*1000:st.rest==='between'?T.cfg.between*1000:(T.cfg.rest==='mult'?Math.round((t-T.blk)*T.cfg.mult):T.cfg.sec*1000);
+  let ms=st.rest==='tr'?T.cfg.tr*1000:T.cfg.rest==='free'?Infinity:st.rest==='between'?T.cfg.between*1000:(T.cfg.rest==='mult'?Math.round((t-T.blk)*T.cfg.mult):T.cfg.sec*1000);
   T.restKind=st.rest;
   if(ms<=0){T.k++;spGo(t,true);return}
   T.phase='rest';T.restMs=ms;T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;
 }
 function spBlockStart(k){while(k>0&&T.steps[k-1].rest==='tr')k--;return k}
+const EK=['a','b','c','d'];
+function edtMarks(c,tot){
+  const fr={half:[[1/2,'metà']],thirds:[[1/3,'un terzo'],[2/3,'due terzi']],quarters:[[1/4,'un quarto'],[1/2,'metà'],[3/4,'tre quarti']]}[c.frac]||[];
+  return fr.map(([f,say])=>({rem:tot*(1-f),k:'half',say})).concat(String(c.minsLeft||'').split(/[,;\s]+/).map(num).filter(x=>x>0&&x*60000<tot)
+    .map(x=>({rem:x*60000,k:'warn',say:x<1?`mancano ${Math.round(x*60)} secondi`:x===1?'manca un minuto':`mancano ${fmtN(x,x%1?1:0)} minuti`})));
+}
+const edtRem=t=>T.zoneMs[T.zone]-(t-T.z0);
+function edtZone2(t){T.zr=false;T.zone=1;T.z0=t;T.cur=0;T.adj=T.cfg.c.rep;T.lastSec=null;T.warned=false;T.marks=edtMarks(T.cfg,T.zoneMs[1]);sound('change','seconda zona')}
 function tStop(){
   if(!T)return;T.done=true;T.endClock=clk();T.paused=true;T.acc=T.endClock;autoApply();
   if(!sesActive()){clearInterval(loopId);loopId=null;wake(false)}
@@ -1365,11 +1808,13 @@ function tStop(){
 function tReset(){T=null;if(!sesActive()){clearInterval(loopId);loopId=null;wake(false)}render()}
 function autoApply(){
   if(!S.draft||T.applied)return;const c=T.cfg;
+  if(T.mode==='amrap'&&c.link&&T.log.length){c.link.forEach((j,n)=>{const x=S.draft.ex[j],log=T.log.filter(l=>l.i===n);if(!x||!log.length)return;x.s=log.map(l=>[l.rep,l.rep>=c.ex[n].rep?'ok':'ko']);x.b=c.ex[n].rep;x.k=0;x.t=c.min;delete x.lad});T.applied=true}
+  if(T.mode==='rt'&&c.link&&T.sets.length){const x=S.draft.ex[c.link[0]];if(x){x.s=T.sets.map(r=>[r,'ok']);x.b=null;x.k=0;delete x.lad;x.t=Math.max(1,Math.round((T.workEnd??T.endClock)/60000))}T.applied=true}
   if(T.mode==='rec'){if(T.linked&&T.durs.length){const mins=Math.max(1,Math.round((T.workEnd??T.endClock)/60000));T.exs.forEach(x=>x.t=mins);T.applied=true}}
   else if(T.mode==='emom'&&c.link){T.giriFatti=T.slot<0?0:T.slots[T.slot].g+1;
     if(T.giriFatti){const mins=Math.round((T.giriFatti*c.ex.reduce((a,x)=>a+x.sec,0)+(c.restOn?Math.max(0,T.giriFatti-1)*c.restSec:0))/60);c.link.forEach(j=>{const x=S.draft.ex[j];if(x)x.t=mins});T.applied=true}}
-  else if(T.mode==='edt'&&c.link&&T.log.length&&T.log.every(l=>c.link[l.k==='a'?0:1]!=null)){
-    ['a','b'].forEach((k,n)=>{const log=T.log.filter(l=>l.k===k),lx=S.draft.ex[c.link[n]];if(log.length&&lx){lx.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);lx.t=c.min;lx.b=c[k].rep;lx.k=0}});T.applied=true}
+  else if(T.mode==='edt'&&c.link&&T.log.length&&T.log.every(l=>c.link[EK.indexOf(l.k)]!=null)){
+    EK.slice(0,c.zones*2).forEach((k,n)=>{const log=T.log.filter(l=>l.k===k),lx=S.draft.ex[c.link[n]];if(log.length&&lx){lx.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);lx.t=n<2?c.min:c.min2;lx.b=c[k].rep;lx.k=0}});T.applied=true}
   if(T.applied)scheduleSave();
 }
 
@@ -1385,7 +1830,7 @@ function sesBegin(){if(!SES.start)SES.start=Date.now()}
 function startWarm(){sesBegin();SES.phase='warm';SES.warmStart=Date.now();SES._ls=null;sesSave();ensureAudio();wake(true);ensureLoop();sound('change','riscaldamento');render()}
 function endWarm(){SES.warmEnd=Date.now();SES.phase='train';sesSave();S.tmode=SES.mode;sound('change','allenamento');tStart()}
 function startTrain(){sesBegin();SES.phase='train';sesSave();S.tmode=SES.mode;tStart()}
-function startCool(silent){sesBegin();SES.coolStart=Date.now();SES.phase='cool';SES._ls=null;sesSave();ensureAudio();wake(true);ensureLoop();if(!silent)sound('change','defaticamento');render()}
+function startCool(silent){sesBegin();SES.coolStart=Date.now();SES.phase='cool';SES._ls=null;SES._pk=null;SES._segs=null;sesSave();ensureAudio();wake(true);ensureLoop();if(!silent)sound('change','defaticamento');render()}
 function endSession(){
   const n=Date.now();if(!SES.start)SES.start=n;
   if(SES.phase==='warm')SES.warmEnd=n;if(SES.phase==='cool')SES.coolEnd=n;
@@ -1393,20 +1838,35 @@ function endSession(){
   const w=SES.warmStart?(SES.warmEnd||n)-SES.warmStart:0,cl=SES.coolStart?(SES.coolEnd||n)-SES.coolStart:0;
   const al=Math.max(0,(SES.coolStart||n)-(SES.warmEnd||SES.start));
   SES.tempi={risc:Math.round(w/1000),allen:Math.round(al/1000),defat:Math.round(cl/1000),tot:Math.round((n-SES.start)/1000)};
-  if(S.draft){S.draft.tempi=SES.tempi;scheduleSave();SES.saved=true}
+  if(S.draft){S.draft.tempi=SES.tempi;
+    if(SES.cfg.coolKind==='pos'&&SES.coolStart&&cl>=10000){const names=(SES.cfg.pos||[]).map((x,i)=>String(x.n||'').trim()||`Posizione ${i+1}`);
+      let ex=S.draft.ex.find(e=>/stretch|mobilit/i.test(e.n||'')&&!(e.s||[]).length);
+      if(!ex){ex={n:'Stretching',p:'',t:null,kg:null,z:null,pct:null,b:null,k:0,s:[],st:'Eseguito',f:'',note:''};S.draft.ex.push(ex)}
+      ex.p=`${names.length} posizioni: ${names.join(', ')}`;ex.t=Math.max(1,Math.round(cl/60000))}
+    scheduleSave();SES.saved=true}
   sesSave();sound('end');if(!T||T.done){wake(false);clearInterval(loopId);loopId=null}render();
 }
 function sesAfterTimer(){
   if(!SES||SES.phase!=='train')return;
-  if(SES.cfg.coolOn&&SES.cfg.coolAuto){startCool(true);return}
+  const finPend=S.draft&&!(T&&T.isFin)&&S.draft.ex.some(e=>e.fin)&&!S.draft.ex.filter(e=>e.fin).some(e=>(e.s||[]).some(x=>x[1]));
+  if(SES.cfg.coolOn&&SES.cfg.coolAuto&&!finPend){startCool(true);return}
   SES.phase='between';sesSave();
 }
+function posSegs(c){const out=[];(c.pos||[]).forEach((p,i)=>{if(i>0&&num(c.posTr)>0)out.push({tr:true,i,sec:num(c.posTr)});out.push({i,sec:Math.max(5,num(p.sec)||60),n:String(p.n||'').trim()||`Posizione ${i+1}`})});return out}
+const isPos=()=>SES&&SES.phase==='cool'&&SES.cfg.coolKind==='pos'&&(SES.cfg.pos||[]).length>0;
+function posClock(n){const segs=SES._segs||(SES._segs=posSegs(SES.cfg)),el=n-SES.coolStart,total=segs.reduce((a,x)=>a+x.sec*1000,0);let acc=0,k=segs.length-1;
+  for(let i=0;i<segs.length;i++){if(el<acc+segs[i].sec*1000){k=i;break}acc+=segs[i].sec*1000}if(el>=total)acc=total-segs[k].sec*1000;
+  return {segs,k,seg:segs[k],rem:acc+segs[k].sec*1000-el,el,total}}
 function phaseClock(n){const k=SES.phase,c=SES.cfg,el=n-(k==='warm'?SES.warmStart:SES.coolStart),tot=Math.max(.25,num(c[k+'Min'])||1)*60000;return {el,tot,fixed:c[k+'Mode']==='fix',rem:tot-el}}
 function sesTick(){
   if(!SES||!SES.start)return;
   const n=Date.now();
   document.querySelectorAll('.sClock').forEach(e=>e.textContent=fmtDur((SES.end||n)-SES.start));
   if(SES.phase!=='warm'&&SES.phase!=='cool')return;
+  if(isPos()){const q=posClock(n),el2=$('#pClock');if(el2)el2.textContent=mmss(q.rem);
+    if(q.el>=q.total){endSession();return}
+    if(q.k!==SES._pk){const first=SES._pk==null;SES._pk=q.k;SES._ls=null;if(!first)sound('change',q.seg.tr?'cambio':q.seg.n);if(S.tab==='timer')render()}
+    const x=Math.ceil(q.rem/1000);if(x!==SES._ls){if(x<=3&&x>=1&&SES._ls!=null)sound('tick',x);SES._ls=x}return}
   const pc=phaseClock(n),el=$('#pClock');if(el){const tx=pc.fixed?mmss(pc.rem):fmtDur(pc.el);const ch=tx.length!==el.textContent.length;el.textContent=tx;if(ch)fitRun()}
   if(pc.fixed){const x=Math.ceil(pc.rem/1000);if(x!==SES._ls){if(x<=3&&x>=1&&SES._ls!=null)sound('tick',x);SES._ls=x}
     if(pc.rem<=0){SES.phase==='warm'?endWarm():endSession()}}
@@ -1422,6 +1882,14 @@ function vPhase(){
     <div class="r-main"><p class="ex-now">Pronto per il riscaldamento?</p><p class="sub">${c.warmMode==='fix'?`Durata ${fmtN(num(c.warmMin)||0,1)}′`:'Finisce quando lo dici tu'}</p></div>
     <div class="r-side"><div class="ctl"><button class="btn primary big" data-a="sesWarm">Inizia riscaldamento</button></div>
     <div class="ctl ctl2"><button class="btn" data-a="sesSkipWarm">Salta, inizia l’allenamento</button><button class="btn" data-a="sesCancel">Annulla</button></div></div></div>`;
+  if(k==='cool'&&isPos()){const q=posClock(Date.now()),sg=q.seg,cnt=c.pos.length,nx=q.segs[q.k+1],nxPos=nx&&(nx.tr?q.segs[q.k+2]:nx);
+    const bg=sg.tr?'#E2E8F0':col,fg2=fgFor(bg),st2=`style="background:${bg};color:${fg2};--pbg:${bg};--pfg:${fg2}"`;
+    return `<div class="run full" id="runPanel" ${st2}>${sesTop('Stretching')}
+    <div class="r-main"><p class="giro" aria-label="Posizione ${sg.i+1} di ${cnt}">${sg.i+1}/${cnt}</p><p class="ph">${sg.tr?'Cambia posizione':'Tieni la posizione'}</p>
+      <p class="ex-now">${esc(sg.tr?(q.segs[q.k+1]||{}).n||'':sg.n)}</p><div class="clock" id="pClock" role="timer">${mmss(q.rem)}</div>
+      <p class="sub">${sg.tr?'Preparati':nxPos?`Poi: ${esc(nxPos.n)}`:'Ultima posizione'}</p></div>
+    <div class="r-side"><div class="ctl"><button class="btn primary big" data-a="posSkip">${sg.tr?'Inizia subito':'Posizione successiva'}</button></div>
+    <div class="ctl ctl2">${back}<button class="btn" data-a="sesEndNow">Fine defaticamento</button></div></div></div>`}
   const pc=phaseClock(Date.now());
   return `<div class="run full" id="runPanel" ${st}>${sesTop(k==='warm'?'Riscaldamento':'Defaticamento')}
     <div class="r-main"><p class="ph">${pc.fixed?'Tempo rimasto':'Tempo trascorso'}</p><div class="clock" id="pClock" role="timer">${pc.fixed?mmss(pc.rem):fmtDur(pc.el)}</div>
@@ -1436,21 +1904,31 @@ function vSesBox(){
       <p class="muted small" style="margin:0 0 10px">${SES.saved?'Tempi salvati nella seduta del diario.':'Non c’era una seduta aperta nel diario: i tempi restano solo qui.'}</p>
       <button class="btn" data-a="sesClose">Chiudi</button></section>`}
   return `<section class="sesbox"><div class="row"><span>Seduta in corso, fase di allenamento</span><span class="spacer"></span><b class="sClock">${fmtDur(Date.now()-SES.start)}</b></div>
-    <div class="row" style="margin-top:8px">${SES.cfg.coolOn?`<button class="btn primary" data-a="sesCool">Inizia defaticamento</button>`:''}<button class="btn" data-a="sesAskEnd">Termina seduta</button></div>
+    <div class="row" style="margin-top:8px">${S.draft&&S.draft.ex.some(e=>e.fin)?`<button class="btn primary" data-a="finGo">Avvia finisher${S.draft.fin&&S.draft.fin.wo?' '+esc(S.draft.fin.wo):''}</button>`:''}${SES.cfg.coolOn?`<button class="btn primary" data-a="sesCool">Inizia defaticamento</button>`:''}<button class="btn" data-a="sesAskEnd">Termina seduta</button></div>
     <p class="muted small" style="margin:8px 0 0">Per continuare la stessa seduta avvia un altro timer qui sotto.</p></section>`;
 }
 function vSesCfg(){
   const c=S.tc.sess;
+  const posUI=()=>`<div class="seg sm" role="group" aria-label="Tipo di defaticamento" style="max-width:440px;margin-top:6px">
+      <button data-a="tset" data-f="sess.coolKind" data-v="time" aria-pressed="${c.coolKind!=='pos'}">Tempo unico</button>
+      <button data-a="tset" data-f="sess.coolKind" data-v="pos" aria-pressed="${c.coolKind==='pos'}">Stretching a posizioni</button></div>
+    ${c.coolKind==='pos'?`${c.pos.map((x,i)=>`<div class="exrow" style="grid-template-columns:minmax(0,1fr) 90px 40px;margin-top:6px">
+        <label class="f">Posizione ${i+1}<input type="text" value="${esc(x.n)}" data-f="tc:sess.pos.${i}.n"></label>
+        <label class="f">Secondi<input type="number" inputmode="numeric" value="${esc(x.sec)}" data-f="tc:sess.pos.${i}.sec"></label>
+        ${c.pos.length>1?`<button class="btn ghost" data-a="posDel" data-i="${i}" aria-label="Togli la posizione ${i+1}" style="align-self:end">✕</button>`:'<span></span>'}</div>`).join('')}
+      <div class="row" style="margin-top:6px;align-items:flex-end">${c.pos.length<8?'<button class="btn" data-a="posAdd">+ Aggiungi posizione</button>':''}
+        <label class="f" style="width:170px">Cambio posizione (s)<input type="number" inputmode="numeric" value="${esc(c.posTr)}" data-f="tc:sess.posTr"></label></div>
+      <p class="muted small" style="margin:6px 0 0">Durata totale ${mmss(1000*(c.pos.reduce((a,x)=>a+(num(x.sec)||0),0)+(num(c.posTr)||0)*Math.max(0,c.pos.length-1)))}. Alla fine finisce nella seduta come «Stretching» con le posizioni e il tempo.</p>`:''}`;
   const ph=(k,label,when)=>`<div class="emx"><label class="row" style="flex-wrap:nowrap"><input type="checkbox" ${c[k+'On']?'checked':''} data-f="tc:sess.${k}On" style="width:22px;height:22px"> ${label}</label>
    ${c[k+'On']?`<div class="seg sm" role="group" aria-label="Avvio: ${label}" style="max-width:440px;margin-top:6px">
       <button data-a="tset" data-f="sess.${k}Auto" data-v="true" aria-pressed="${!!c[k+'Auto']}">Parte da solo ${when}</button>
       <button data-a="tset" data-f="sess.${k}Auto" data-v="false" aria-pressed="${!c[k+'Auto']}">Lo avvio io</button></div>
-    <div class="seg sm" role="group" aria-label="Durata: ${label}" style="max-width:440px;margin-top:6px">
+    ${k==='cool'?posUI():''}${k==='cool'&&c.coolKind==='pos'?'':`<div class="seg sm" role="group" aria-label="Durata: ${label}" style="max-width:440px;margin-top:6px">
       <button data-a="tset" data-f="sess.${k}Mode" data-v="fix" aria-pressed="${c[k+'Mode']==='fix'}">Tempo fisso</button>
       <button data-a="tset" data-f="sess.${k}Mode" data-v="open" aria-pressed="${c[k+'Mode']==='open'}">Finisce quando lo dico io</button></div>
-    ${c[k+'Mode']==='fix'?`<label class="f" style="max-width:160px;margin-top:6px">Minuti<input type="number" inputmode="decimal" value="${c[k+'Min']}" data-f="tc:sess.${k}Min"></label>`:''}
+    ${c[k+'Mode']==='fix'?`<label class="f" style="max-width:160px;margin-top:6px">Minuti<input type="number" inputmode="decimal" value="${c[k+'Min']}" data-f="tc:sess.${k}Min"></label>`:''}`}
     ${swatches('sess',k==='warm'?'colWarm':'colCool',k==='warm'?c.colWarm:c.colCool,PAL,`Colore: ${label}`)}`:''}</div>`;
-  return `<div><div class="muted small" style="margin-bottom:4px">Fasi della seduta (valgono per tutti i timer)</div>${ph('warm','Riscaldamento','all’inizio')}${ph('cool','Defaticamento','alla fine')}
+  return `<div><div class="muted small" style="margin-bottom:4px">Fasi della seduta (valgono per tutti i timer)</div>${ph('warm','Riscaldamento','all’inizio')}${ph('cool','Defaticamento (stretching e mobilità)','alla fine')}
    <p class="muted small" style="margin:6px 0 0">Il cronometro della seduta parte con il riscaldamento o con il primo timer; alla fine ti dà il tempo di ogni fase e lo salva nella seduta del diario.</p></div>`;
 }
 function warnBeep(rem){if(T.cfg.warnSec>3&&rem<=T.cfg.warnSec*1000&&!T.warned){T.warned=true;sound('warn')}}
@@ -1464,10 +1942,13 @@ function tick(){
   if(!T&&!sesActive()){clearInterval(loopId);loopId=null}
   if(!T||T.done||T.paused){updateRun();return}
   const t=clk();
-  if(T.mode==='tst'){if(tstTick(t))return}
+  if(T.mode==='amrap'){if(amTick(t))return}
+  else if(T.mode==='rt'){if(rtTick(t))return}
+  else if(T.mode==='tst'){if(tstTick(t))return}
   else if(T.mode==='rec'){
     if(T.phase==='lead'){const rem=T.cfg.lead*1000-t;countdownBeeps(rem);if(rem<=0){T.restKind=null;spGo(t,true)}}
     else if(T.phase==='work'){const st=spStep();if(st&&st.w){const rem=st.w*1000-(t-T.ph0);countdownBeeps(rem);warnBeep(rem);halfBeep(rem,st.w*1000);if(rem<=0&&spEndSet(t)==='stop'){render();return}}}
+    else if(T.phase==='rest'&&!isFinite(T.restMs)){}
     else if(T.phase==='rest'){const rem=T.restMs-(t-T.ph0);countdownBeeps(rem);warnBeep(rem);halfBeep(rem,T.restMs);
       if(rem<=0){if(T.final){tStop();sound('end');render();return}T.k++;spGo(t,false)}}
   }else if(T.mode==='emom'){
@@ -1481,8 +1962,12 @@ function tick(){
       warnBeep(T.rem)}
   }else if(T.mode==='edt'){
     if(T.final){const rf=T.cfg.restEndSec*1000-(t-T.finalStart);countdownBeeps(rf);if(rf<=0){tStop();sound('end');render();return}updateRun();return}
-    const rem=T.totalMs-t;if(rem<=10500)countdownBeeps(rem);warnBeep(rem);
+    if(t<T.leadMs){countdownBeeps(T.leadMs-t);updateRun();return}
+    if(!T.started){T.started=true;T.lastSec=null;if(T.leadMs)sound('change',T.cfg.a.n||'via')}
+    if(T.zr){const rz=T.cfg.restZ*60000-(t-T.zr0);countdownBeeps(rz);if(rz<=0)edtZone2(t);updateRun();return}
+    const rem=edtRem(t);if(rem<=10500)countdownBeeps(rem);warnBeep(rem);
     (T.marks||[]).forEach(mk=>{if(!mk.done&&rem<=mk.rem&&rem>3500){mk.done=true;sound(mk.k,mk.say)}});
+    if(rem<=0&&T.zone===0&&T.cfg.zones===2){if(T.cfg.restZ>0){T.zr=true;T.zr0=t;T.lastSec=null;T.warned=false;sound('change','pausa')}else edtZone2(t);updateRun();return}
     if(rem<=0){if(T.cfg.restEnd){T.final=true;T.finalStart=t;T.workEnd=t;T.lastSec=null;sound('change','riposo');updateRun();return}tStop();beepEnd();render();return}
   }
   updateRun();
@@ -1524,34 +2009,44 @@ function updateRun(){
 }
 function runKey(){
   if(T.done)return 'done';
+  if(T.mode==='amrap')return `am-${clk()<T.leadMs}-${T.cur}-${T.adj}-${T.log.length}-${T.paused}-${!!T.final}-${!!T.finalLogged}`;
+  if(T.mode==='rt')return `rt-${T.phase}-${T.sets.length}-${T.pend}-${T.paused}`;
   if(T.mode==='tst')return `tst-${clk()<T.lead}-${T.blk}-${T.counts.join(',')}-${T.paused}`;
   if(T.mode==='rec')return `rec-${T.phase}-${T.k}-${T.paused}-${T.marked||''}-${!!T.final}-${T.mk}`;
   if(T.mode==='emom')return `emom-${T.slot}-${T.paused}-${clk()<T.cfg.lead*1000}-${T.marked||''}`;
-  return `edt-${T.cur}-${T.adj}-${T.log.length}-${T.paused}-${!!T.final}-${!!T.finalLogged}`;
+  return `edt-${clk()<T.leadMs}-${T.zone}-${!!T.zr}-${T.cur}-${T.adj}-${T.log.length}-${T.paused}-${!!T.final}-${!!T.finalLogged}-${!!T.zrLogged}`;
 }
 function clockText(){
   const t=clk();
+  if(T.mode==='amrap'){if(T.final)return mmss(T.cfg.restEndSec*1000-(t-T.finalStart));if(t<T.leadMs)return mmss(T.leadMs-t);return mmss(T.totalMs-(t-T.leadMs))}
+  if(T.mode==='rt'){if(T.phase==='lead')return mmss(T.cfg.lead*1000-t);if(T.phase==='work')return mmssUp(t-T.ph0);if(T.phase==='rest')return T.cfg.rest>0?mmss(T.cfg.rest*1000-(t-T.ph0)):mmssUp(t-T.ph0);return mmssUp(t)}
   if(T.mode==='tst')return t<T.lead?mmss(T.lead-t):mmss(T.total-(t-T.lead));
-  if(T.mode==='rec'){const st=spStep();if(T.phase==='lead')return mmss(T.cfg.lead*1000-t);if(T.phase==='work')return st&&st.w?mmss(st.w*1000-(t-T.ph0)):mmssUp(t-T.ph0);if(T.phase==='rest')return mmss(T.restMs-(t-T.ph0));return mmssUp(t)}
+  if(T.mode==='rec'){const st=spStep();if(T.phase==='lead')return mmss(T.cfg.lead*1000-t);if(T.phase==='work')return st&&st.w?mmss(st.w*1000-(t-T.ph0)):mmssUp(t-T.ph0);if(T.phase==='rest')return isFinite(T.restMs)?mmss(T.restMs-(t-T.ph0)):mmssUp(t-T.ph0);return mmssUp(t)}
   if(T.mode==='emom'){const lead=T.cfg.lead*1000;if(t<lead)return mmss(lead-t);return mmss(T.rem??0)}
   if(T.final)return mmss(T.cfg.restEndSec*1000-(t-T.finalStart));
-  return mmss(T.totalMs-t);
+  if(t<T.leadMs)return mmss(T.leadMs-t);
+  if(T.zr)return mmss(T.cfg.restZ*60000-(t-T.zr0));
+  return mmss(edtRem(t));
 }
 function emomPaint(){
   if(!T||T.done)return null;
   const c=T.cfg,t=clk();let bg,rem=null;
+  if(T.mode==='amrap'){if(t<T.leadMs)return null;if(T.final){bg='#E2E8F0'}else{bg=AMCOL[T.cur%6];if(T.totalMs-(t-T.leadMs)<=c.warnSec*1000)bg=c.warnCol}return {bg,fg:fgFor(bg)}}
+  if(T.mode==='rt'){if(T.phase==='lead')return null;if(T.phase==='work')bg=c.colWork;else{bg=c.colRest;if(T.phase==='rest'&&c.rest>0&&c.rest*1000-(t-T.ph0)<=c.warnSec*1000)bg=c.warnCol}return {bg,fg:fgFor(bg)}}
   if(T.mode==='tst'){if(t<T.lead)return null;const u=t-T.lead,i=Math.min(2,Math.floor(u/T.bms));bg=c.col[i]||'#0284C7';if(T.bms*(i+1)-u<=c.warnSec*1000)bg=c.warnCol;return {bg,fg:fgFor(bg)}}
   if(T.mode==='emom'){if(T.slot<0||t<c.lead*1000)return null;const sl=T.slots[T.slot];bg=sl.rest?c.restCol:c.col[sl.i];rem=T.rem??0}
   else if(T.mode==='rec'){if(T.phase==='work'){bg=c.colWork;const st=spStep();if(st&&st.w)rem=st.w*1000-(t-T.ph0)}else{bg=c.colRest;if(T.phase==='rest')rem=T.restMs-(t-T.ph0);if(T.phase==='lead')rem=c.lead*1000-t}}
   else if(T.final){bg=c.restCol;rem=c.restEndSec*1000-(t-T.finalStart)}
-  else{bg=c.col[T.cur];rem=T.totalMs-t}
+  else if(t<T.leadMs)return null;
+  else if(T.zr){bg=c.restCol;rem=c.restZ*60000-(t-T.zr0)}
+  else{bg=c.col[T.cur];rem=edtRem(t)}
   if(rem!=null&&rem<=c.warnSec*1000)bg=c.warnCol;
   bg=bg||'#1D2830';return {bg,fg:fgFor(bg)};
 }
 function runClass(){
   if(T.done)return 'done';
   const t=clk();let rem=null,cls='';
-  if(T.mode==='emom'&&t<T.cfg.lead*1000){cls='rest';rem=T.cfg.lead*1000-t}else if(T.mode==='tst'&&t<T.lead){cls='rest';rem=T.lead-t}else return '';
+  if(T.mode==='emom'&&t<T.cfg.lead*1000){cls='rest';rem=T.cfg.lead*1000-t}else if(T.mode==='tst'&&t<T.lead){cls='rest';rem=T.lead-t}else if(T.mode==='amrap'&&t<T.leadMs){cls='rest';rem=T.leadMs-t}else if(T.mode==='rt'&&T.phase==='lead'){cls='rest';rem=T.cfg.lead*1000-t}else if(T.mode==='edt'&&t<T.leadMs){cls='rest';rem=T.leadMs-t}else return '';
   if(rem!=null&&rem<=3000&&rem>0&&!T.paused)cls='flash';
   return cls;
 }
@@ -1560,7 +2055,29 @@ function vRun(){
   const stopBtn=`<button class="btn" data-a="tAskStop">Termina</button>`;
   if(T.done)return vDone();
   let ph='',ex='',sub='',main='',extra='',giro='';
-  if(T.mode==='tst'){
+  if(T.mode==='amrap'){
+    const c=T.cfg,n=c.ex.length,e=c.ex[T.cur],nx=c.ex[(T.cur+1)%n],t=clk();
+    const tot=i=>T.log.filter(l=>l.i===i).reduce((a,l)=>a+l.rep,0);
+    const adj=`<div class="repadj"><button data-a="aRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${T.adj}</output><button data-a="aRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>`;
+    if(t<T.leadMs){ph='Si parte tra';ex=esc(e.n);sub=`${e.rep} ripetizioni`}
+    else if(T.final){ph='Riposo finale';sub=T.finalLogged?'Serie registrate':`Se stavi facendo ${esc(e.n)}, registrala`;
+      main=T.finalLogged?'<button class="btn primary" data-a="tSkipFinal">Termina il riposo</button>':`${adj}<button class="btn primary big" data-a="aDone">Registra la serie in corso</button>`}
+    else{giro=`<p class="giro" aria-label="${T.rounds} giri completati">${T.rounds}</p>`;ph=`Giri completati, tempo rimasto`;ex=esc(e.n);sub=`Target ${e.rep}${n>1?`, poi ${esc(nx.n)}`:''}`;
+      main=`${adj}<button class="btn primary big swap" data-a="aDone" aria-label="Conferma e passa${n>1?` a ${esc(nx.n)}`:''}">${n>1?'<svg viewBox="0 0 56 28" style="width:2.1em;height:1.05em;display:block;margin:auto" aria-hidden="true"><path d="M4 10.5H33V3L53 14L33 25V17.5H4Z" fill="currentColor"/></svg>':'✓'}</button>`}
+    extra=`<div class="tot" style="grid-template-columns:repeat(${Math.min(3,n)},minmax(0,1fr))">${c.ex.map((x,i)=>`<div style="${i===T.cur?'outline:3px solid currentColor;outline-offset:-3px':''}">${esc(x.n)}<b>${tot(i)} rep</b></div>`).join('')}</div>`;
+  }
+  else if(T.mode==='rt'){
+    const c=T.cfg,done=rtDone(),left=Math.max(0,c.target-done-(T.pend||0));
+    giro=`<p class="giro" aria-label="${done+(T.pend||0)} ripetizioni su ${c.target}">${done+(T.pend||0)}/${c.target}</p>`;ex=esc(c.n||'');
+    if(T.phase==='lead'){giro='';ph='Si parte tra';sub=`${c.target} ripetizioni da fare`}
+    else if(T.phase==='ready'){ph=`Serie ${T.sets.length+1}`;sub=`Mancano ${left} ripetizioni`;main='<button class="btn primary big" data-a="rtGo">Inizia</button>'}
+    else if(T.phase==='work'){ph=`Serie ${T.sets.length+1}`;sub=`Mancano ${left} ripetizioni`;main='<button class="btn primary big" data-a="rtEnd">Fine serie</button>'}
+    else{ph=c.rest>0?'Recupero: quante ne hai fatte?':'Recupero libero: quante ne hai fatte?';sub=left?`Mancano ${left} ripetizioni`:'Obiettivo raggiunto';
+      main=`<div class="repadj"><button data-a="rRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${T.pend}</output><button data-a="rRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
+        <button class="btn primary big" data-a="rtNextB">${left?'Inizia la serie dopo':'Fine: obiettivo raggiunto'}</button>`}
+    if(T.sets.length)extra=`<p class="sub">Serie fatte: ${T.sets.join(' · ')}</p>`;
+  }
+  else if(T.mode==='tst'){
     const c=T.cfg,E=ENDU[c.tipo],t=clk(),u=Math.max(0,t-T.lead),idx=Math.min(2,Math.floor(u/T.bms)),tot=T.counts.reduce((a,b)=>a+b,0);
     const nome=`${esc(c.n||'')}${num(c.kg)>0?`${c.n?', ':''}${fk(num(c.kg))} kg`:''}`;
     if(t<T.lead){ph='Si parte tra';ex=nome}
@@ -1577,12 +2094,13 @@ function vRun(){
     if(circ&&st)giro=T.phase==='lead'?'':(S.tc.emom.giroFmt==='down'?`<p class="giro" aria-label="Mancano ${T.cfg.giri-st.j} giri compreso questo">${T.cfg.giri-st.j}</p>`:`<p class="giro" aria-label="Giro ${st.j+1} di ${T.cfg.giri}">${st.j+1}/${T.cfg.giri}</p>`);
     const nx=T.steps[T.k+1],nxTxt=nx?`Poi: ${lbl(T.exs[nx.i],nx)}${!circ&&T.exs.length>1?`, serie ${nx.j+1}`:''}`:'Ultima serie';
     if(T.phase==='lead'){ph='Si parte tra';ex=e?lbl(e,st):'';}
-    else if(T.phase==='ready'){ph=serie;ex=e&&e.n?lbl(e,st):(p!=null?`${p} ripetizioni`:'');sub=T.k?'Recupero finito':'Quando sei pronto';main=`<button class="btn primary big" data-a="tGo">Inizia</button>`}
-    else if(T.phase==='work'){ph=serie;ex=e?(e.n?lbl(e,st):(p!=null?`${p} ripetizioni`:'')):'';sub=st&&st.rest==='tr'?nxTxt:'';
+    else if(T.phase==='ready'){ph=T.cfg.maxMode?`Esercizio ${st.i+1} di ${T.exs.length}`:serie;ex=e&&e.n?lbl(e,st):(p!=null?`${p} ripetizioni`:'');sub=T.k?'Recupero finito':'Quando sei pronto';main=`<button class="btn primary big" data-a="tGo">Inizia</button>`}
+    else if(T.phase==='work'){ph=T.cfg.maxMode?`Esercizio ${st.i+1} di ${T.exs.length}`:serie;ex=e?(e.n?lbl(e,st):(p!=null?`${p} ripetizioni`:'')):'';sub=T.cfg.maxMode?`Massime ripetizioni${e.s[st.j][1]===''&&e.s[st.j][0]!==''?`, l’ultima volta ${e.s[st.j][0]}`:''}`:(st&&st.rest==='tr'?nxTxt:'');
       if(circ&&st&&!st.w){const x=e.s[st.j];main=`<div class="repadj"><button data-a="lRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${x[0]===''?(p??0):x[0]}</output><button data-a="lRep" data-d="1" aria-label="Una ripetizione in più">+</button></div><button class="btn primary big" data-a="tEndSet">Fatto</button>`}
       else main=`<button class="btn primary big" data-a="tEndSet">${circ?'Fine stazione':'Fine serie'}</button>`}
-    else{ph=T.final?'Riposo finale':{tr:circ?'Pausa':'Cambio',between:'Cambio esercizio',main:circ?'Riposo tra i giri':'Recupero'}[T.restKind]||'Recupero';
-      sub=T.final?'Tutto fatto':nxTxt;main=`<button class="btn primary" data-a="tSkipRest">${T.final?'Termina il riposo':'Salta'}</button>`;
+    else{ph=T.final?(T.cfg.maxMode?'Riposo: segna le ripetizioni':'Riposo finale'):T.cfg.maxMode?'Riposo: segna le ripetizioni':{tr:circ?'Pausa':'Cambio',between:'Cambio esercizio',main:circ?'Riposo tra i giri':'Recupero'}[T.restKind]||'Recupero';
+      if(!T.final&&!isFinite(T.restMs))ph='Recupero libero';
+      sub=T.final?'Tutto fatto':nxTxt;main=`<button class="btn primary" data-a="tSkipRest">${T.final?'Termina il riposo':!isFinite(T.restMs)?'Inizia serie':'Salta'}</button>`;
       const mt=markTarget();if(mt)extra=vMark(mt)}
   }else if(T.mode==='emom'){
     const lead=clk()<T.cfg.lead*1000;
@@ -1593,20 +2111,23 @@ function vRun(){
       ph='';giro=T.cfg.giroFmt==='down'?`<p class="giro" aria-label="Mancano ${T.cfg.giri-s.g} giri compreso questo">${T.cfg.giri-s.g}</p>`:`<p class="giro" aria-label="Giro ${s.g+1} di ${T.cfg.giri}">${s.g+1}/${T.cfg.giri}</p>`;ex=nameOf(s)+(r?` × ${r}`:'');sub=nx?`Poi: ${nameOf(nx)}${repOf(nx.i,nx.g)?` × ${repOf(nx.i,nx.g)}`:''}`:'Ultimo intervallo';
       const mt=markTarget();if(mt)extra=vMark(mt)}
   }else{
-    const c=T.cfg,k=T.cur?'b':'a';const e=c[k];
+    const c=T.cfg,two=c.zones===2,zb=T.zone*2,k=EK[zb+T.cur],e=c[k],o=c[EK[zb+1-T.cur]];
     const tot=x=>T.log.filter(l=>l.k===x).reduce((a,l)=>a+l.rep,0),ser=x=>T.log.filter(l=>l.k===x).length;
-    if(T.final){ph='Riposo finale';ex='';sub=T.finalLogged?'Serie registrate':`Se stavi facendo una serie di ${esc(e.n)}, registrala`;
+    const adj=`<div class="repadj"><button data-a="eRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${T.adj}</output><button data-a="eRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>`;
+    if(clk()<T.leadMs){ph='Si parte tra';ex=esc(c.a.n);sub=`Target ${c.a.rep} ripetizioni, poi ${esc(c.b.n)}`;main=''}
+    else if(T.zr){ph='Pausa tra le PR Zone';ex='';sub=`Poi: ${esc(c.c.n)} e ${esc(c.d.n)}`;
+      main=`${T.zrLogged?'':`${adj}<button class="btn primary" data-a="eDone">Registra la serie in corso</button>`}<button class="btn${T.zrLogged?' primary':''}" data-a="edtSkipZ">Inizia la PR Zone 2</button>`}
+    else if(T.final){ph='Riposo finale';ex='';sub=T.finalLogged?'Serie registrate':`Se stavi facendo una serie di ${esc(e.n)}, registrala`;
       main=T.finalLogged?`<button class="btn primary" data-a="tSkipFinal">Termina il riposo</button>`:`<div class="repadj"><button data-a="eRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${T.adj}</output><button data-a="eRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
         <button class="btn primary" data-a="eDone">Registra la serie in corso</button>`;}
     else{
-    ph='Tempo rimasto';ex=esc(e.n);sub=`Target ${e.rep} ripetizioni`;
-    main=`<div class="repadj"><button data-a="eRep" data-d="-1" aria-label="Una ripetizione in meno">−</button><output>${T.adj}</output><button data-a="eRep" data-d="1" aria-label="Una ripetizione in più">+</button></div>
-      <button class="btn primary big" data-a="eDone">Fatto, passa a ${esc(c[T.cur?'a':'b'].n)}</button>`;
+    ph=two?`PR Zone ${T.zone+1}, tempo rimasto`:'Tempo rimasto';ex=esc(e.n);sub=`Target ${e.rep} ripetizioni, poi ${esc(o.n)}`;
+    main=`${adj}<button class="btn primary big swap" data-a="eDone" aria-label="Conferma le ripetizioni e passa a ${esc(o.n)}"><svg viewBox="0 0 56 28" style="width:2.1em;height:1.05em;display:block;margin:auto" aria-hidden="true"><path d="M4 10.5H33V3L53 14L33 25V17.5H4Z" fill="currentColor"/></svg></button>`;
     }
-    extra=`<div class="tot"><div>${esc(c.a.n)}<b>${tot('a')} rep</b>${ser('a')} serie</div><div>${esc(c.b.n)}<b>${tot('b')} rep</b>${ser('b')} serie</div></div>`;
+    extra=`<div class="tot">${[EK[zb],EK[zb+1]].map(x=>`<div>${esc(c[x].n)}<b>${tot(x)} rep</b>${ser(x)} serie</div>`).join('')}</div>`;
   }
   const pt=emomPaint();
-  const title=T.mode==='tst'?`Test ${ENDU[T.cfg.tipo].min}′`:T.mode==='rec'?(T.kind==='circ'?'Circuito':T.exs.length>1?(T.cfg.mode==='super'?grpName(T.exs.length):'Set&amp;Pause'):(T.exs[0]&&T.exs[0].n?esc(T.exs[0].n):'Set&amp;Pause')):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT';
+  const title=T.mode==='amrap'?'AMRAP':T.mode==='rt'?'RT':T.mode==='tst'?`Test ${ENDU[T.cfg.tipo].min}′`:T.mode==='rec'?(T.kind==='circ'?'Circuito':T.exs.length>1?(T.cfg.mode==='super'?grpName(T.exs.length):'Set&amp;Pause'):(T.exs[0]&&T.exs[0].n?esc(T.exs[0].n):'Set&amp;Pause')):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT';
   return `<div class="run full ${runClass()}" id="runPanel"${pt?` style="background:${pt.bg};color:${pt.fg};--pbg:${pt.bg};--pfg:${pt.fg}"`:''}>
     ${sesTop(title)}
     <div class="r-main">${giro}${ph||T.paused?`<p class="ph">${ph}${T.paused?' (in pausa)':''}</p>`:''}${ex?`<p class="ex-now">${ex}</p>`:''}
@@ -1616,9 +2137,15 @@ function vRun(){
 }
 function vDone(){
   const t=T.endClock;let body='',act='';
-  if(T.mode==='tst'){const c=T.cfg,x=enduCalc({tipo:c.tipo,kg:c.kg,rif:c.rif,parts:T.counts});
+  if(T.mode==='amrap'){const c=T.cfg,n=c.ex.length,tot=i=>T.log.filter(l=>l.i===i);const part=T.log.length-T.rounds*n;
+    body=`<p class="sub"><b>${T.rounds}</b> giri completi${part>0?` + ${part} ${part===1?'esercizio':'esercizi'}`:''} in ${c.min}′</p><div class="tot" style="grid-template-columns:repeat(${Math.min(3,n)},minmax(0,1fr))">${c.ex.map((x,i)=>`<div>${esc(x.n)}<b>${tot(i).reduce((a,l)=>a+l.rep,0)} rep</b>${tot(i).map(l=>l.rep).join(' ')||'–'}</div>`).join('')}</div>`;
+    if(T.log.length&&!T.applied)act=`<button class="btn primary" data-a="amSave">Inserisci nel diario</button><button class="btn" data-a="tReset">Non inserire</button>`}
+  else if(T.mode==='rt'){const c=T.cfg,d=rtDone(),mins=(T.workEnd??t)/60000;
+    body=`<p class="sub"><b>${d}</b> ripetizioni su ${c.target} in <b>${T.sets.length}</b> serie (${T.sets.join(' · ')||'–'}), tempo ${mmssUp(T.workEnd??t)}, densità ${fmtN(mins?d/mins:0,1)} rip/min</p>`;
+    if(T.sets.length&&!T.applied)act=`<button class="btn primary" data-a="rtSave">Inserisci nel diario</button><button class="btn" data-a="tReset">Non inserire</button>`}
+  else if(T.mode==='tst'){const c=T.cfg,x=enduCalc({tipo:c.tipo,kg:c.kg,rif:c.rif,parts:T.counts});
     body=`<p class="sub">${esc(c.n||'Test')}${num(c.kg)>0?`, ${fk(num(c.kg))} kg`:''}: <b>${x.tot}</b> ripetizioni (${x.parts.join(' + ')})</p>
-      <p class="sub"><b>${x.rate||'nessun giudizio'}</b>${x.rate2?` (scala Miletto: ${x.rate2})`:''}, ${x.pct}% del massimale, volume ${fmtN(x.vol,2)}${x.ton?`, tonnellaggio ${fmtN(x.ton)}`:''}, densità ${fmtN(x.dens,1)} rip/min${x.repset?`, ${x.repset} ripetizioni per serie consigliate`:''}</p>`;
+      <p class="sub"><b>${x.rate||'nessun giudizio'}</b>${x.rate2?` (scala originale: ${x.rate2})`:''}, ${x.pct}% del massimale, volume ${fmtN(x.vol,2)}${x.ton?`, tonnellaggio ${fmtN(x.ton)}`:''}, densità ${fmtN(x.dens,1)} rip/min${x.repset?`, ${x.repset} ripetizioni per serie consigliate`:''}</p>`;
     if(x.tot)act=`<button class="btn primary" data-a="tstSave">Salva il test</button><button class="btn" data-a="tstSave" data-d="1">Salva e inserisci nel diario</button><button class="btn" data-a="tReset">Non salvare</button>`}
   else if(T.mode==='rec'){
     const rows=T.exs.map(e=>{const d=e.s.filter(x=>x[1]);return `<li><b>${esc(e.n||'Serie')}</b>: ${d.length?d.map(x=>x[0]===''?'✓':x[0]).join(' '):'nessuna serie'}</li>`}).join('');
@@ -1630,7 +2157,7 @@ function vDone(){
     if(T.giriFatti)act=T.cfg.link?`<button class="btn primary" data-a="emomBack">Torna alla seduta</button>`:`<button class="btn primary" data-a="saveEmom">Inserisci nel diario</button><button class="btn" data-a="tReset">Non inserire</button>`;
   }else{
     const c=T.cfg;const tot=x=>T.log.filter(l=>l.k===x);
-    body=`<div class="tot"><div>${esc(c.a.n)}<b>${tot('a').reduce((a,l)=>a+l.rep,0)} rep</b>${tot('a').map(l=>l.rep).join(' ')||'nessuna serie'}</div><div>${esc(c.b.n)}<b>${tot('b').reduce((a,l)=>a+l.rep,0)} rep</b>${tot('b').map(l=>l.rep).join(' ')||'nessuna serie'}</div></div>`;
+    body=`<div class="tot">${EK.slice(0,c.zones*2).map(x=>`<div>${c.zones===2?`<span class="small">PR Zone ${x<'c'?1:2}</span><br>`:''}${esc(c[x].n)}<b>${tot(x).reduce((a,l)=>a+l.rep,0)} rep</b>${tot(x).map(l=>l.rep).join(' ')||'nessuna serie'}</div>`).join('')}</div>`;
     if(T.log.length)act=T.cfg.link?`<button class="btn primary" data-a="saveEdt">Salva nella seduta</button>`:`<button class="btn primary" data-a="saveEdt">Inserisci nel diario</button><button class="btn" data-a="tReset">Non inserire</button>`;
   }
   if(T.applied){act='';body+=`<p class="sub">Già salvato nella seduta.</p>`}
@@ -1663,10 +2190,11 @@ function updateMini(){
   const mi=$('#mini');if(!mi)return;
   if(S.tab==='timer'){mi.hidden=true;return}
   if((!T||T.done)&&SES&&SES.start&&sesActive()){mi.hidden=false;const n=Date.now();
-    if(SES.phase==='warm'||SES.phase==='cool'){const pc=phaseClock(n);$('#miniBtn').textContent=`${SES.phase==='warm'?'Riscaldamento':'Defaticamento'} ${pc.fixed?mmss(pc.rem):fmtDur(pc.el)}`}
+    if(isPos()){const q=posClock(n);$('#miniBtn').textContent=`${q.seg.tr?'Cambio':q.seg.n} ${mmss(q.rem)}`}
+    else if(SES.phase==='warm'||SES.phase==='cool'){const pc=phaseClock(n);$('#miniBtn').textContent=`${SES.phase==='warm'?'Riscaldamento':'Defaticamento'} ${pc.fixed?mmss(pc.rem):fmtDur(pc.el)}`}
     else $('#miniBtn').textContent=`Seduta ${fmtDur(n-SES.start)}`;return}
   if(!T||T.done){mi.hidden=true;return}
-  mi.hidden=false;$('#miniBtn').textContent=`${T.mode==='tst'?`Test ${T.counts.reduce((a,b)=>a+b,0)} rip.`:T.mode==='rec'?(T.phase==='rest'?(T.kind==='circ'?'Pausa':'Recupero'):(spStep()?`${T.exs[spStep().i].n||'Serie'} ${spStep().j+1}`:'')):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT'} ${clockText()}`;
+  mi.hidden=false;$('#miniBtn').textContent=`${T.mode==='amrap'?`AMRAP, giro ${T.rounds+1}`:T.mode==='rt'?`RT ${rtDone()}/${T.cfg.target}`:T.mode==='tst'?`Test ${T.counts.reduce((a,b)=>a+b,0)} rip.`:T.mode==='rec'?(T.phase==='rest'?(T.kind==='circ'?'Pausa':'Recupero'):(spStep()?`${T.exs[spStep().i].n||'Serie'} ${spStep().j+1}`:'')):T.mode==='emom'?emomName(T.cfg.ex.length):'EDT'} ${clockText()}`;
 }
 function ensureDraft(){if(!S.draft){newDraft(todayIso(),'',[])}return S.draft}
 
@@ -1692,12 +2220,12 @@ const A={
   emptyDraft(){newDraft(S.newDate,'',[]);S.saveMsg='';lastSaved='';render()},
   fromTpl(el){
     const src=S.hist.find(s=>s.id===el.dataset.id);if(!src)return;
-    const iso=S.newDate;newDraft(iso,src.wo,src.ex.filter(e=>e.n).map(e=>exFromHistory(e.n,iso,null)));
+    const iso=S.newDate;newDraft(iso,src.wo,src.ex.filter(e=>e.n&&!e.fin).map(e=>exFromHistory(e.n,iso,null)));
     S.saveMsg='';lastSaved='';render();
   },
   addEx(){
     const inp=$('#addName');const n=inp.value.trim();if(!n){inp.focus();return}
-    S.draft.ex.push(exFromHistory(n,S.draft.d,S.draft.id));scheduleSave();render();
+    const fi=S.draft.ex.findIndex(e=>e.fin),nx=exFromHistory(n,S.draft.d,S.draft.id);if(fi<0)S.draft.ex.push(nx);else S.draft.ex.splice(fi,0,nx);S.tc.rec.links=null;S.tc.emom.link=null;S.tc.edt.link=null;scheduleSave();render();
     const c=$('#card-'+(S.draft.ex.length-1));if(c)c.scrollIntoView({block:'start',behavior:'smooth'});
   },
   delEx(el){const i=+el.dataset.i;S.draft.ex.splice(i,1);S.progOpen.clear();S.tc.rec.links=null;S.tc.emom.link=null;S.tc.edt.link=null;scheduleSave();render()},
@@ -1742,15 +2270,30 @@ const A={
   toSession(){S.tab='diario';render();const ix=T&&T.mode==='emom'&&T.cfg.link?T.cfg.link[0]:T&&T.mode==='rec'&&T.linked&&S.tc.rec.links?S.tc.rec.links[0]:null;const c=ix!=null&&$('#card-'+ix);if(c)c.scrollIntoView({block:'start'});else window.scrollTo(0,0)},
   step(el){const [m,k]=el.dataset.f.split('.');S.tc[m][k]=Math.max(1,Math.min(50,(Number(S.tc[m][k])||0)+Number(el.dataset.d)));el.parentElement.querySelector('output').textContent=S.tc[m][k];
     if(m==='emom'||m==='circ'){if(m==='circ')savePrefs();render()}},
-  unlink(el){const m=el.dataset.m||'rec';if(m==='rec')S.tc.rec.links=null;else S.tc[m].link=null;S.tc.from=null;render()},
+  unlink(el){const m=el.dataset.m||'rec';if(m==='rec'||m==='circ')S.tc[m].links=null;else S.tc[m].link=null;if(m==='amrap'||m==='rt')render();S.tc.from=null;render()},
   linkTimer(el){
-    const i=+el.dataset.i;if(T&&!T.done){S.tab='timer';render();return}T=null;
+    const i=+el.dataset.i;if(T&&!T.done){S.tab='timer';render();return}T=null;S.finNext=false;S.tc.rec.over=null;
     const tp=timerPlan(i),ex=S.draft.ex,e=ex[i];
-    S.tc.rec.links=null;S.tc.emom.link=null;S.tc.edt.link=null;S.tc.from={p:e.p||'',ok:!!tp.pp};
+    S.tc.rec.links=null;S.tc.emom.link=null;S.tc.edt.link=null;S.tc.circ.links=null;S.tc.amrap.link=null;S.tc.rt.link=null;S.tc.from={p:e.p||'',ok:!!tp.pp};
+    if(tp.proto){const P=tp.proto,idx=tp.idx;S.tc.from={p:pName(P),ok:true};
+      if(P.tipo==='emom'){const c=S.tc.emom;c.k=idx.length;c.link=idx;c.giri=Math.max(1,num(P.giri)||10);c.restOn=num(P.restGiro)>0;c.restSec=num(P.restGiro)||60;
+        idx.forEach((j,n)=>{const sl=emSlot(P,n);c.ex[n]={n:ex[j].n,rep:ex[j].b??(num(sl.rep)||''),sec:Math.max(5,num(sl.sec)||60)}})}
+      else if(P.tipo==='amrap'){const c=S.tc.amrap;c.link=idx;c.min=Math.max(1,num(P.min)||10);c.ex=idx.map(j=>({n:ex[j].n,rep:ex[j].b??(num(P.rep)||10)}))}
+      else if(P.tipo==='rt'){const c=S.tc.rt;c.link=[i];c.n=ex[i].n;c.target=Math.max(1,num(P.target)||50);c.rep=P.rep||'';c.rest=num(P.rest)||0}
+      else if(P.tipo==='edt'){const c=S.tc.edt;c.link=idx;c.min=Math.max(1,num(P.min)||15);c.min2=c.min;c.restZ=num(P.restZ)??5;c.zones=idx.length>2?2:1;idx.forEach((j,n)=>{c[EK[n]]={n:ex[j].n,rep:ex[j].b??(num(P.rep)||5)}})}
+      else if(P.tipo==='circ'){const c=S.tc.circ;c.links=idx;c.giri=Math.max(1,num(P.giri)||3);c.restEx=num(P.restEx)??15;c.restGiro=num(P.restGiroC)??60;
+        c.items=idx.map((j,n)=>{const st=circSt(P,n);return {n:ex[j].n,tipo:st.work==='rep'?'rep':'time',val:st.work==='rep'?(ex[j].b??num(st.val)):num(st.val)}})}
+      else if(P.tipo==='st'||P.tipo==='ladder'){const c=S.tc.rec;if(P.tipo==='ladder')idx.forEach(j=>{const x=ex[j];if(!x.s.some(y=>y[1])){x.lad=ladList(P);x.b=null;x.k=0;x.s=[];setN(x,x.lad.length)}});
+        c.links=idx;c.items=idx.map(j=>({n:ex[j].n,sets:ex[j].s.length,rep:''}));c.mode=idx.length>1?'super':'sep';c.rest=P.tipo==='ladder'&&P.restMode==='mult'?'mult':P.tipo==='ladder'&&P.restMode==='free'?'free':num(P.rest)>0?'fix':'free';c.sec=num(P.rest)||60;c.mult=num(P.mult)||2;c.tr=0;c.between=c.sec;scheduleSave()}
+      else if(P.tipo==='max'){setupMax(idx,num(P.rest)||60)}
+      else{const c=S.tc.rec;c.links=idx;c.items=idx.map(j=>({n:ex[j].n,sets:ex[j].s.length,rep:ex[j].b??''}));c.mode=idx.length>1?'super':'sep';
+        c.rest=P.restMode==='mult'?'mult':'fix';c.sec=Math.max(5,num(P.rest)||90);c.mult=num(P.mult)||2;c.tr=num(P.tr)||0;c.between=c.sec}
+      S.tmode=tp.mode;S.tab='timer';render();window.scrollTo(0,0);return}
     if(tp.mode==='emom'){const c=S.tc.emom;c.k=tp.idx.length;c.link=tp.idx;c.giri=tp.pp.giri||Math.max(...tp.idx.map(j=>ex[j].s.length));
       tp.idx.forEach((j,n)=>{const q=parseProto(ex[j].p);c.ex[n]={n:ex[j].n,rep:q.rep??ex[j].b??'',sec:q.sec}});
       const rr=tp.idx.map(j=>String(ex[j].p||'').match(/(?:Rest|Riposo|Pausa)\s*(\d+)/i)).find(Boolean);if(rr){c.restOn=true;c.restSec=+rr[1]}}
-    else if(tp.mode==='edt'){const c=S.tc.edt;c.link=tp.idx;c.min=tp.pp.min;tp.idx.forEach((j,n)=>{const k=n?'b':'a';c[k]={n:ex[j].n,rep:ex[j].b??c[k].rep}})}
+    else if(tp.mode==='edt'){const c=S.tc.edt;c.link=tp.idx;c.min=tp.pp.min;c.zones=tp.idx.length>2?2:1;tp.idx.forEach((j,n)=>{const k=EK[n];c[k]={n:ex[j].n,rep:ex[j].b??c[k].rep}});
+      if(c.zones===2){const q=parseProto(ex[tp.idx[2]].p);if(q&&q.min)c.min2=q.min}}
     else{const c=S.tc.rec;c.links=tp.idx;c.items=tp.idx.map(j=>({n:ex[j].n,sets:ex[j].s.length,rep:ex[j].b??''}));c.mode=tp.idx.length>1?'super':'sep';if(tp.pp){c.rest='fix';c.sec=tp.pp.sec}}
     S.tmode=tp.mode;S.tab='timer';render();window.scrollTo(0,0);
   },
@@ -1778,7 +2321,7 @@ const A={
   tGo(){const t=clk();if(!T.durs.length&&T.k===0)T.blk=t;T.phase='work';T.ph0=t;T.lastSec=null;T.warned=false;T.halfDone=false;beepLong();updateRun()},
   tEndSet(){if(spEndSet(clk())==='stop'){render();return}updateRun()},
   mkMove(el){if(T.mk==null)return;const b=spBlockStart(T.mk),n=T.mk+Number(el.dataset.d);if(n<b||n>T.done_k)return;T.mk=n;T.marked='';updateRun()},
-  tSkipRest(){T.ph0=clk()-T.restMs},
+  tSkipRest(){if(T.mode==='rec'&&!T.final&&!isFinite(T.restMs)){T.k++;spGo(clk(),true);updateRun();return}T.ph0=clk()-T.restMs},
   lRep(el){const mt=markTarget();if(!mt)return;const x=mt.e.s[mt.j];const p=planned(mt.e,mt.j);const cur=x[0]===''?(p??0):Number(x[0]);x[0]=Math.max(0,cur+Number(el.dataset.d));
     if(p!=null&&x[1]!=='fat')x[1]=x[0]<p?'ko':'ok';T.marked=x.join(':');scheduleSave();updateRun()},
   lEsito(el){const mt=markTarget();if(!mt)return;const x=mt.e.s[mt.j];const p=planned(mt.e,mt.j);if(x[0]==='')x[0]=p??0;
@@ -1809,16 +2352,47 @@ const A={
     (c.link||[]).forEach(j=>{const x=S.draft&&S.draft.ex[j];if(x)x.t=mins});scheduleSave();tReset();S.tab='diario';render()},
   saveEdt(){
     const d=ensureDraft(),c=T.cfg;
-    ['a','b'].forEach((k,n)=>{const log=T.log.filter(l=>l.k===k);if(!log.length)return;
+    EK.slice(0,c.zones*2).forEach((k,n)=>{const log=T.log.filter(l=>l.k===k);if(!log.length)return;const mn=n<2?c.min:c.min2;
       const lx=c.link&&c.link[n]!=null?d.ex[c.link[n]]:null;
-      if(lx){lx.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);lx.t=c.min;lx.b=c[k].rep;lx.k=0;return}
+      if(lx){lx.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);lx.t=mn;lx.b=c[k].rep;lx.k=0;return}
       const ex=exFromHistory(c[k].n,d.d,d.id);
-      ex.p=`EDT ${c.min}′ × ${c[k].rep}`;ex.t=c.min;ex.b=c[k].rep;ex.k=0;delete ex._why;ex.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);d.ex.push(ex)});
+      ex.p=`EDT ${mn}′ × ${c[k].rep}${c.zones===2?` (PR Zone ${n<2?1:2})`:''}`;ex.t=mn;ex.b=c[k].rep;ex.k=0;delete ex._why;ex.s=log.map(l=>[l.rep,l.rep>=c[k].rep?'ok':'ko']);d.ex.push(ex)});
     scheduleSave();tReset();S.tab='diario';render();
   },
   exOpen(el){S.exSel=el.dataset.n;render();window.scrollTo(0,0)},
+  finAdd(){const inp=$('#finName'),n=inp?inp.value.trim():'';if(!n){if(inp)inp.focus();return}
+    const d=S.draft;d.fin=d.fin||{mode:'emom',sec:60,giri:5,rest:60,wo:''};const x=exFromHistory(n,d.d,d.id);x.fin=true;d.ex.push(x);S.tc.emom.link=null;S.tc.rec.links=null;scheduleSave();render()},
+  finMode(el){const d=S.draft;d.fin=d.fin||{sec:60,giri:5,rest:60,wo:''};d.fin.mode=el.dataset.v;if(d.fin.mode==='max')d.ex.forEach(e=>{if(e.fin&&!(e.s||[]).some(x=>x[1])){e.b=null;e.k=0;setN(e,1)}});scheduleSave();render()},
+  finDel(){confirmSheet('Togliere il finisher?','Gli esercizi del finisher vengono tolti da questa seduta.','Togli','finDelNow')},
+  finDelNow(){closeSheet();const d=S.draft;d.ex=d.ex.filter(e=>!e.fin);delete d.fin;delete d.finFrom;S.tc.emom.link=null;S.tc.rec.links=null;scheduleSave();render()},
+  finStart(){if(T&&!T.done){S.tab='timer';render();return}T=null;if(!finSetup())return;S.tab='timer';render();window.scrollTo(0,0)},
+  finGo(){if(!finSetup())return;A.tStart()},
+  finLoad(el){const src=S.hist.find(x=>x.id===el.dataset.id);if(!src||!S.draft)return;loadFin(S.draft,src);scheduleSave();render()},
+  posAdd(){const c=S.tc.sess;const l=c.pos[c.pos.length-1]||{sec:60};c.pos.push({n:`Posizione ${c.pos.length+1}`,sec:l.sec});savePrefs();render()},
+  posDel(el){S.tc.sess.pos.splice(+el.dataset.i,1);savePrefs();render()},
+  posSkip(){if(!isPos())return;const q=posClock(Date.now());SES.coolStart-=q.rem;sesSave();sesTick()},
+  ladSug(){const f=S.pf;f._sug=ladSuggest(f);render()},
+  ladUse(el){const f=S.pf,x=f._sug&&f._sug.list[+el.dataset.i];if(!x)return;Object.assign(f,clone(x.P),{tipo:'ladder'});render();window.scrollTo(0,0)},
+  ladFromEx(el){S.pf={...newPf(),tipo:'ladder',sugSrc:'test',sugN:el.dataset.n};S.pf._sug=ladSuggest(S.pf);S.exSel='';S.exView='proto';S.tab='esercizi';render();window.scrollTo(0,0)},
+  pfSt(el){const x=S.pf.stations[+el.dataset.i];x.work=el.dataset.v;const v=num(x.val)||0;if(x.work==='rep'&&v>30)x.val=10;if(x.work==='time'&&v<10)x.val=40;render()},
+  pfStAdd(){const f=S.pf,l=f.stations[f.stations.length-1]||{work:'time',val:40};f.stations.push({work:l.work,val:l.val});render()},
+  pfStDel(el){S.pf.stations.splice(+el.dataset.i,1);render()},
+  pfSet(el){const f=S.pf,k=el.dataset.k,v=el.dataset.v;f[k]=k==='k'?Number(v):v;if(k==='tipo'){if(v==='max'&&!(num(f.rest)>0))f.rest=60;if(v==='emom'&&f.group!=='super')f.group='super'}render()},
+  pfCancel(){S.pf=newPf();render()},
+  pfEdit(el){const P=S.protos.get(el.dataset.id);if(!P)return;const b=newPf();S.pf={...b,...clone(P),editId:P.id};if(P.tipo==='emom'&&!P.slots){S.pf.k=emK(P);S.pf.slots=[0,1,2].map(()=>({sec:P.sec,rep:P.rep||''}))}if(P.tipo==='circ'&&!P.stations)S.pf.stations=[{work:P.work||'time',val:P.val||40}];render();window.scrollTo(0,0)},
+  async pfSave(){const f=S.pf,P={...clone(f)};delete P.editId;delete P._sug;['sugN','sugKg','sugRm','sugRep','sugVol','sugSrc'].forEach(k=>delete P[k]);if(P.verso==='ar'){P.verso='sugiu';P.top2='1'}P.id=f.editId||('p'+Date.now().toString(36));const old=S.protos.get(P.id);P.src=old&&old.src||[];P.updated=Date.now();
+    ['serie','rest','mult','tr','giri','sec','restGiro','min','restZ','val','restEx','restGiroC','k','target','da','a','passo','volte','lung','sposta','loDa','loA','hiDa','hiA'].forEach(k=>{if(P[k]!==''&&P[k]!=null)P[k]=num(P[k])});
+    if(P.tipo==='emom'){P.slots=P.slots.map(x=>({sec:num(x.sec)||60,rep:String(x.rep||'')}));P.sec=P.slots[0].sec;P.rep=P.slots[0].rep;P.group=P.k>1?'super':'single'}
+    if(P.tipo==='circ')P.stations=P.stations.map(x=>({work:x.work==='rep'?'rep':'time',val:num(x.val)||(x.work==='rep'?10:40)}));
+    S.protos.set(P.id,P);await saveProtoDoc(P);
+    if(S.draft)S.draft.ex.forEach(e=>{if(e.pid===P.id)e.p=pName(P)});
+    S.pf=newPf();render();sheet(`<h3>Protocollo salvato</h3><p class="muted">${esc(pName(P))}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`)},
+  pfAskDel(el){confirmSheet('Eliminare il protocollo?','Le sedute già registrate mantengono il testo del protocollo.','Elimina','pfDel',`data-id="${esc(el.dataset.id)}"`)},
+  async pfDel(el){closeSheet();const P=S.protos.get(el.dataset.id);if(!P)return;const x={...P,deleted:true,updated:Date.now()};S.protos.set(x.id,x);await saveProtoDoc(x);render()},
+  pfRebuild(){const n=ensureProtos(true);render();sheet(`<h3>Fatto</h3><p class="muted">${n?`${n} protocolli aggiunti dalle sedute recenti.`:'Nessun protocollo nuovo da aggiungere.'}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`)},
   exView(el){S.exView=el.dataset.v;render()},
   setProg(el){S.prog=el.dataset.v;render()},
+  setProgM(el){S.progM=el.dataset.v;render()},
   exBack(){S.exSel='';render();window.scrollTo(0,0)},
   newTest(el){S.tf=newTf();S.tf.n=el.dataset.n;S.tab='massimali';render();window.scrollTo(0,0)},
   tfTipo(el){const f=S.tf;f.tipo=el.dataset.v;
@@ -1873,11 +2447,28 @@ const A={
   defRebuildNow(){closeSheet();const n=ensureDefaults(true);render();sheet(`<h3>Fatto</h3><p class="muted">${n} massimali di default ricalcolati.</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`)},
   exportBak(){
     const all=new Map(S.stor);for(const [id,x] of S.sed)all.set(id,x);
-    saveFile(`diario-backup-${todayIso()}.json`,JSON.stringify({app:'diario-allenamento',v:1,exported:new Date().toISOString(),cfg:S.cfg,sedute:[...all.values()],test:[...S.tests.values()],misure:[...S.misure.values()]}));
+    saveFile(`diario-backup-${todayIso()}.json`,JSON.stringify({app:'diario-allenamento',v:1,exported:new Date().toISOString(),cfg:S.cfg,sedute:[...all.values()],test:[...S.tests.values()],misure:[...S.misure.values()],protocolli:[...S.protos.values()]}));
   },
   importBtn(){closeSheet();$('#fileImp').click()},
   eRep(el){T.adj=Math.max(0,T.adj+Number(el.dataset.d));updateRun()},
-  eDone(){const k=T.cur?'b':'a';if(T.final){if(T.finalLogged)return;T.log.push({k,rep:T.adj});T.finalLogged=true;beepShort();updateRun();return}T.log.push({k,rep:T.adj});T.cur=1-T.cur;T.adj=T.cfg[T.cur?'b':'a'].rep;beepShort();updateRun()},
+  aRep(el){T.adj=Math.max(0,T.adj+Number(el.dataset.d));updateRun()},
+  aDone(){if(clk()<T.leadMs)return;const c=T.cfg;
+    if(T.final){if(T.finalLogged)return;T.log.push({i:T.cur,rep:T.adj});T.finalLogged=true;beepShort();updateRun();return}
+    T.log.push({i:T.cur,rep:T.adj});T.cur=(T.cur+1)%c.ex.length;if(T.cur===0){T.rounds++;sound('change',`giro ${T.rounds+1}`)}else beepShort();T.adj=c.ex[T.cur].rep;updateRun()},
+  amAdd(){const c=S.tc.amrap;c.ex.push({n:'',rep:(c.ex[c.ex.length-1]||{rep:10}).rep});render()},
+  amDel(el){S.tc.amrap.ex.splice(+el.dataset.i,1);render()},
+  amSave(){const d=ensureDraft(),c=T.cfg;c.ex.forEach((x,i)=>{const log=T.log.filter(l=>l.i===i);if(!log.length)return;const e=exFromHistory(x.n,d.d,d.id);delete e._why;delete e.lad;
+    e.p=`AMRAP ${c.min}′`;e.t=c.min;e.b=x.rep;e.k=0;e.s=log.map(l=>[l.rep,l.rep>=x.rep?'ok':'ko']);d.ex.push(e)});scheduleSave();tReset();S.tab='diario';render()},
+  rtGo(){T.phase='work';T.ph0=clk();T.lastSec=null;beepLong();updateRun()},
+  rtEnd(){T.phase='rest';T.ph0=clk();T.pend=rtDefault();T.lastSec=null;T.warned=false;T.halfDone=false;beepShort();updateRun()},
+  rRep(el){T.pend=Math.max(0,(T.pend||0)+Number(el.dataset.d));updateRun()},
+  rtNextB(){rtNext(clk())},
+  rtSave(){const d=ensureDraft(),c=T.cfg,e=exFromHistory(c.n||'Esercizio',d.d,d.id);delete e._why;delete e.lad;e.p=`RT ${c.target} rip.`;e.b=null;e.k=0;e.s=T.sets.map(r=>[r,'ok']);e.t=Math.max(1,Math.round((T.workEnd??T.endClock)/60000));d.ex.push(e);scheduleSave();tReset();S.tab='diario';render()},
+  eDone(){if(clk()<T.leadMs)return;const k=EK[T.zone*2+T.cur];
+    if(T.zr){if(T.zrLogged)return;T.log.push({k,rep:T.adj});T.zrLogged=true;beepShort();updateRun();return}
+    if(T.final){if(T.finalLogged)return;T.log.push({k,rep:T.adj});T.finalLogged=true;beepShort();updateRun();return}
+    T.log.push({k,rep:T.adj});T.cur=1-T.cur;T.adj=T.cfg[EK[T.zone*2+T.cur]].rep;beepShort();updateRun()},
+  edtSkipZ(){if(T&&T.zr)T.zr0=clk()-T.cfg.restZ*60000},
 };
 const canSave=()=>!!S.downloads||STANDALONE;
 async function saveFile(filename,data){
@@ -1912,6 +2503,10 @@ async function importBackup(obj){
   for(const t of Array.isArray(obj.test)?obj.test:[]){if(!t||typeof t.id!=='string')continue;const c=S.tests.get(t.id);
     if(!c||(t.updated||0)>(c.updated||0)){S.tests.set(t.id,t);nt++;if(S.mode==='db')await saveTestDoc(t)}}
   if(nt&&S.mode!=='db')await saveTestDoc({});
+  let np=0;
+  for(const P of Array.isArray(obj.protocolli)?obj.protocolli:[]){if(!P||typeof P.id!=='string')continue;const c=S.protos.get(P.id);
+    if(!c||(P.updated||0)>(c.updated||0)){S.protos.set(P.id,P);np++;if(S.mode==='db')await saveProtoDoc(P)}}
+  if(np&&S.mode!=='db')await saveProtoDoc({});
   let nm=0;
   for(const m of Array.isArray(obj.misure)?obj.misure:[]){if(!m||typeof m.id!=='string')continue;const c=S.misure.get(m.id);
     if(!c||(m.updated||0)>(c.updated||0)){S.misure.set(m.id,m);nm++;if(S.mode==='db')await saveMisDoc(m)}}
@@ -1939,6 +2534,9 @@ function onField(el,isChange){
   if(kind==='st'){S.storEx=v;render();return}
   if(kind==='ex'){S.exQ=v;const l=$('#exList');if(l)l.innerHTML=vExList();return}
   if(kind==='cx'){if(!S.exSel)return;const c=S.cfg.esercizi[S.exSel]=S.cfg.esercizi[S.exSel]||{};c[a]=num(v);saveCfg();return}
+  if(kind==='pf'){const f=S.pf;if(el.type==='checkbox'){f[a]=el.checked?el.dataset.on:(a==='group'?'single':'');render();return}
+    if(a.includes('.')){const [arr,i,k]=a.split('.');f[arr][+i][k]=v}else f[a]=v;
+    if(['da','a','passo','volte','lung','sposta','loDa','loA','hiDa','hiA','seq'].includes(a)){const lp=$('#ladPrev');if(lp)lp.textContent=ladPrev(f)}const nm=$('#pfName');if(nm)nm.textContent=pName(f);return}
   if(kind==='mf'){const f=S.mf;if(a.startsWith('v.'))f.vals[a.slice(2)]=v;else f[a]=v;return}
   if(kind==='tf'){const f=S.tf;if(a.startsWith('parts.'))f.parts[+a.slice(6)]=v;else f[a]=v;
     if(a==='d'&&!f.fromTouched){f.from=v;const el=$('#tfFrom');if(el)el.value=v}
@@ -1956,6 +2554,7 @@ function onField(el,isChange){
   if(kind==='d'){if(!S.draft)return;
     if(a==='d'){if(!v)return;S.draft.d=v;const m=$('#sessMeta');if(m)m.textContent=`${ggOf(v)}, settimana ${weekOf(v)}`;
       S.draft.ex.forEach((e,i)=>{if(autoPct(e,v)){const el=$('#pct-'+i);if(el)el.value=pctShowOf(e);refreshCard(i)}})}
+    else if(a.startsWith('fin.')){S.draft.fin=S.draft.fin||{mode:'emom',sec:60,giri:5,rest:60,wo:''};S.draft.fin[a.slice(4)]=v}
     else S.draft[a]=v;scheduleSave();return}
   if(kind==='e'){
     const i=+a,e=S.draft.ex[i];if(!e)return;
@@ -1965,6 +2564,9 @@ function onField(el,isChange){
     else if(b==='b'){e.b=num(v);syncSets(e)}
     else if(b==='k'){e.k=Math.max(0,num(v)||0);syncSets(e)}
     else if(b==='n_s'){const n=num(v);if(n&&n>=1&&n<=20)setN(e,n);else return}
+    else if(b==='pid'){const P=v&&S.protos.get(v);e.pid=P?v:null;
+      delete e.lad;if(P){e.p=pName(P);if(P.tipo==='ladder'){e.lad=ladList(P);e.b=null;e.k=0;e.s=[];setN(e,e.lad.length)}else if((P.tipo==='sp'||P.tipo==='st')&&num(P.serie)>0){if(P.tipo==='st'&&num(P.rep)>0){e.b=num(P.rep);e.k=0}setN(e,num(P.serie))}else if(P.tipo==='rt'){e.b=null;e.k=0}else if((P.tipo==='emom'||P.tipo==='circ')&&num(P.giri)>0)setN(e,num(P.giri));else if(P.tipo==='max'){e.b=null;e.k=0;setN(e,1)}}
+      S.tc.rec.links=null;S.tc.emom.link=null;S.tc.edt.link=null;S.tc.circ.links=null;scheduleSave();render();return}
     else e[b]=v;
     if(b==='n'){if(autoPct(e,S.draft.d))setP();const ic=document.querySelector('#card-'+i+' .card-h .exi');if(ic)ic.outerHTML=exIcon(v,38)}
     if(b==='st'&&v==='Non eseguito')e.s.forEach(x=>{x[1]='skip'});
