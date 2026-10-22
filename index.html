@@ -366,14 +366,17 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const num=v=>{if(v===''||v==null)return null;const n=Number(String(v).replace(',','.'));return isFinite(n)?n:null};
 function repMax(p){let r=null;for(const [q,n] of REPMAX){if(p>=q-1e-9)r=n}return r}
 function planned(e,i){if(Array.isArray(e.lad)&&e.lad[i]!=null)return e.lad[i];if(e.b==null)return null;return e.b+(i<(e.k||0)?1:0)}
-function store(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
-function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
+let PID=(()=>{try{return localStorage.getItem('diario-profilo')||'main'}catch(e){return 'main'}})();
+const DEVKEYS=new Set(['diario-profili','diario-profilo']);
+const K=k=>(PID==='main'||DEVKEYS.has(k)||!k.startsWith('diario-'))?k:`${k}@${PID}`;
+function store(k,v){try{localStorage.setItem(K(k),JSON.stringify(v));return true}catch(e){return false}}
+function load(k){try{const v=localStorage.getItem(K(k));return v?JSON.parse(v):null}catch(e){return null}}
 
 /* ---------- stato ---------- */
 const newTf=()=>({d:todayIso(),n:'',tipo:'1rm',kg:'',bw:'',rep:'',rir:0,parts:['','',''],rif:'',rifTouched:false,from:todayIso(),fromTouched:false,note:'',editId:null});
 const newMf=()=>({d:todayIso(),vals:{},note:'',editId:null});
 const STANDALONE=!(window.claude&&typeof window.claude.use==='function');
-const S={protos:new Map(),protosLoaded:false,pf:null,progM:'e1',prog:'6m',exView:'list',misure:new Map(),mf:null,testSub:'test',tests:new Map(),testsLoaded:false,exSel:'',exQ:'',tf:null,tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
+const S={prof:{list:[{id:'main',nome:''}],sum:{},ask:true},devMem:null,devEx:'',teamSrc:'dev',team:{members:new Map(),meta:{},names:{},code:null,unsub:null,mem:null,ex:''},protos:new Map(),protosLoaded:false,pf:null,progM:'e1',prog:'6m',exView:'list',misure:new Map(),mf:null,testSub:'test',tests:new Map(),testsLoaded:false,exSel:'',exQ:'',tf:null,tab:'diario',mode:'loading',stor:new Map(),sed:new Map(),hist:[],cfg:{esercizi:{}},draft:null,
   saveMsg:'',storEx:'',storWeeks:8,open:new Set(),progOpen:new Set(),newDate:todayIso(),downloads:null,
   tmode:'rec',tc:{amrap:{min:10,lead:10,ex:[{n:'',rep:10},{n:'',rep:10}],warnSec:10,warnCol:'#FFC000',half:false,restEnd:false,restEndSec:120,link:null},
   rt:{n:'',target:50,rep:'',rest:60,lead:10,colWork:'#0284C7',colRest:'#16A34A',warnSec:3,warnCol:'#FFC000',half:false,link:null},
@@ -455,6 +458,7 @@ const pctShowOf=e=>e.pct!=null?Math.round(e.pct*1000)/10:'';
 function autoPct(e,iso){if(e.pctMan||!e.n)return false;const t=maxFor(e.n,iso);if(!t||!(Number(e.kg)>0))return false;const p=Math.round(Number(e.kg)/t.rm*1000)/1000;if(p===e.pct)return false;e.pct=p;return true}
 const isRmType=k=>k==='1rm'||k==='reps'||k==='brz';
 const fk=x=>fmtN(x,x%1?1:0);
+const noteTxt=x=>String(x||'').replace(/^Dal foglio Excel/,'Dallo storico').replace(/^Dal foglio Misure$/,'');
 function testDesc(t){
   if(t.tipo==='brz')return `${num(t.bw)>0?`${fk(num(t.bw))} + `:''}${fk(num(t.kg)||0)} kg × ${t.rep}${t.rir?` (+${t.rir} in riserva)`:''}: 1RM ${fmtN(t.rm,1)} kg (Brzycki)`;
   if(t.tipo==='maxrep')return `${t.rep} ripetizioni massime a corpo libero`;
@@ -489,7 +493,7 @@ function ensureDefaults(force){
     if(e.st!=='Non eseguito'&&Number(e.kg)>0&&Number(e.pct)>0)best[e.n]={d:x.d,kg:Number(e.kg),pct:Number(e.pct)}}));
   const now=Date.now();let n=0;
   Object.entries(best).forEach(([nm,b])=>{const t={id:'def_'+slug(nm),d:b.d,n:nm,tipo:'default',kg:b.kg,pct:b.pct,rm:Math.round(b.kg/b.pct*10)/10,from:'2023-01-01',
-    note:`Dal foglio Excel: ${fmtN(b.kg,b.kg%1?1:0)} kg al ${fmtN(b.pct*100)}% il ${fmtD(b.d)}`,updated:now};S.tests.set(t.id,t);saveTestDoc(t);n++});
+    note:`Dallo storico: ${fmtN(b.kg,b.kg%1?1:0)} kg al ${fmtN(b.pct*100)}% il ${fmtD(b.d)}`,updated:now};S.tests.set(t.id,t);saveTestDoc(t);n++});
   return n;
 }
 async function applyTest(t){
@@ -502,9 +506,11 @@ async function applyTest(t){
 }
 
 /* ---------- storico: unione ---------- */
+function woNorm(s){const R=S.cfg&&S.cfg.woRen||[],v=s.woN||0;if(v>=R.length||!s.wo)return;if(s.wo0===undefined)s.wo0=s.wo;let w=s.wo;for(let i=v;i<R.length;i++)w=R[i][w]??w;s.wo=w;s.woN=R.length;if(s.gg===undefined)return}
 function merge(){
   const m=new Map(S.stor);
   for(const [id,s] of S.sed){if(s.deleted)m.delete(id);else m.set(id,s)}
+  m.forEach(woNorm);if(S.draft)woNorm(S.draft);if(S.mode==='db')setTimeout(teamPublishSoon,0);setTimeout(profPublishSoon,0);
   S.hist=[...m.values()].sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:(a.id<b.id?1:-1));
   const names=new Set();S.hist.forEach(s=>s.ex.forEach(e=>e.n&&names.add(e.n)));
   S.names=[...names].sort((a,b)=>a.localeCompare(b,'it'));
@@ -555,7 +561,7 @@ function syncSets(e){e.s.forEach((x,i)=>{if(x[1]===''){const p=planned(e,i);x[0]
 
 /* ---------- bozza e salvataggio ---------- */
 function newDraft(iso,wo,exs){
-  S.draft={id:`${iso}_${Date.now().toString(36)}`,d:iso,wo:wo||'',note:'',ex:exs||[],isNew:true};
+  S.draft={id:`${iso}_${Date.now().toString(36)}`,d:iso,wo:wo||'',woN:(S.cfg.woRen||[]).length,note:'',ex:exs||[],isNew:true};
   proposeFin(S.draft);persistDraft();
 }
 function loadFin(d,src){
@@ -613,7 +619,7 @@ function vFin(d){
 function persistDraft(){store('diario-bozza',S.draft)}
 function sessionObj(dr){
   const ex=dr.ex.map(e=>{const o={...e};delete o._why;delete o._w;return o});
-  return {...(dr.fin&&dr.ex.some(e=>e.fin)?{fin:dr.fin}:{}),id:dr.id,d:dr.d,gg:ggOf(dr.d),wo:dr.wo,set:dr.set!=null&&dr.d===dr._d0?dr.set:weekOf(dr.d),note:dr.note||'',ex,...(dr.tempi?{tempi:dr.tempi}:{}),updated:Date.now()};
+  return {...(dr.fin&&dr.ex.some(e=>e.fin)?{fin:dr.fin}:{}),...(dr.wo0!==undefined?{wo0:dr.wo0}:{}),woN:(S.cfg.woRen||[]).length,id:dr.id,d:dr.d,gg:ggOf(dr.d),wo:dr.wo,set:dr.set!=null&&dr.d===dr._d0?dr.set:weekOf(dr.d),note:dr.note||'',ex,...(dr.tempi?{tempi:dr.tempi}:{}),updated:Date.now()};
 }
 let saveTimer=null,saveChain=Promise.resolve(),lastSaved='';
 function scheduleSave(){persistDraft();clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,1200);setSaveMsg('Modifiche da salvare')}
@@ -651,6 +657,8 @@ async function init(){
       claude.use('downloads').then(d=>{S.downloads=d;if(S.tab==='storico')render()}).catch(()=>{});
     }
   }catch(e){}
+  try{if(db&&uid){const pd=await db.doc(`data/users/${uid}/profili`).get();if(pd.exists)S.prof={sum:{},ask:true,...pd.data()}}else{const pl=load('diario-profili');if(pl&&Array.isArray(pl.list))S.prof={sum:{},ask:true,...pl}}}catch(e){}
+  if(!S.prof.list.some(x=>x.id===PID)){PID='main';try{localStorage.setItem('diario-profilo','main')}catch(e){}S.draft=load('diario-bozza')}
   if(!db||!uid){
     S.mode='local';
     const all=load('diario-sedute')||{};S.sed=new Map(Object.entries(all));
@@ -659,20 +667,22 @@ async function init(){
     S.tests=new Map(Object.entries(load('diario-test')||{}));S.testsLoaded=true;
     S.misure=new Map(Object.entries(load('diario-misure')||{}));
     S.protos=new Map(Object.entries(load('diario-proto')||{}));S.protosLoaded=true;
-    merge();ensureDefaults();ensureProtos();render();return;
+    merge();ensureDefaults();ensureProtos();render();profAsk();return;
   }
-  S.base=db.doc(`data/users/${uid}/diario`);
+  S.base=db.doc(`data/users/${uid}/diario${PID==='main'?'':'_'+PID}`);S.db=db;S.uid=uid;S.userNS=user;
   try{
     const q=await S.base.collection('storico').get();
     q.docs.forEach(d=>{const v=d.data();(v&&v.sedute||[]).forEach(s=>S.stor.set(s.id,s))});
   }catch(e){S.loadErr=true}
-  S.mode='db';merge();render();
+  S.mode='db';merge();render();profAsk();
   S.base.collection('sedute').onSnapshot(q=>{
     S.sed=new Map(q.docs.map(d=>[d.id,d.data()]));merge();
     if(S.tab==='storico')render();
   },()=>{S.loadErr=true});
   S.base.onSnapshot(d=>{
-    const v=d.exists?d.data():null;S.cfg={esercizi:{},...(v?clone(v):{})};loadPrefs();
+    const v=d.exists?d.data():null;const before=(S.cfg.woRen||[]).length;S.cfg={esercizi:{},...(v?clone(v):{})};loadPrefs();
+    if((S.cfg.woRen||[]).length!==before){merge();render()}
+    if(!S.team.code&&teamCodes().length)teamWatch(teamCodes()[0]);
   },()=>{});
   S.base.collection('test').onSnapshot(q=>{
     S.tests=new Map(q.docs.map(d=>[d.id,d.data()]));S.testsLoaded=true;ensureDefaults();
@@ -759,7 +769,7 @@ function banner(){
 function vDiario(){
   if(!S.draft)return vNuova();
   const d=S.draft;
-  return `<div class="top"><h1>Seduta</h1><span class="save" id="saveMsg">${esc(S.saveMsg)}</span></div>${banner()}
+  return `<div class="top"><h1>Seduta</h1>${profChip()}<span class="save" id="saveMsg">${esc(S.saveMsg)}</span></div>${banner()}
   <div class="sess-head">
     <label class="f">Data<input type="date" value="${d.d}" data-f="d:d"></label>
     <label class="f">WO<input type="text" value="${esc(d.wo)}" data-f="d:wo" maxlength="6" autocapitalize="characters"></label>
@@ -781,14 +791,36 @@ function vDiario(){
 }
 function vNuova(){
   const seen=new Map();
-  for(const s of S.hist){if(s.wo&&!seen.has(s.wo))seen.set(s.wo,s);if(seen.size>=8)break}
-  const tpls=[...seen.values()];
-  return `<div class="top" style="align-items:center"><svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true" style="flex:none"><defs><linearGradient id="lgbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3B46"/><stop offset="1" stop-color="#141B20"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#lgbg)"/><g fill="none" stroke-width="5.4" stroke-linecap="round"><path d="M36.2 16.0A19.5 19.5 0 0 1 51.0 30.8" stroke="#92D050"/><path d="M51.0 39.2A19.5 19.5 0 0 1 36.2 54.0" stroke="#FFC000"/><path d="M27.8 54.0A19.5 19.5 0 0 1 13.0 39.2" stroke="#E3342F"/><path d="M13.0 30.8A19.5 19.5 0 0 1 27.8 16.0" stroke="#0070C0"/></g><rect x="27" y="5.5" width="10" height="4" rx="1.6" fill="#E6EBE8"/><rect x="30.4" y="8.5" width="3.2" height="5" fill="#E6EBE8"/><g fill="#fff"><rect x="22" y="33.4" width="20" height="3.2" rx="1.6"/><rect x="21.4" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="38.2" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="18.4" y="30.2" width="3.4" height="9.6" rx="1.3"/><rect x="42.2" y="30.2" width="3.4" height="9.6" rx="1.3"/></g></svg><h1>Nuova seduta</h1></div>${banner()}
+  const lim=S.hist.length?isoMinus(S.hist[0].d,183):'';
+  for(const s of S.hist){if(s.d<lim)break;if(s.wo&&!seen.has(s.wo))seen.set(s.wo,s)}
+  const tpls=[...seen.values()].sort((a,b)=>a.wo.localeCompare(b.wo,'it'));
+  return `<div class="top" style="align-items:center;flex-wrap:wrap">${''}<svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true" style="flex:none"><defs><linearGradient id="lgbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3B46"/><stop offset="1" stop-color="#141B20"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#lgbg)"/><g fill="none" stroke-width="5.4" stroke-linecap="round"><path d="M36.2 16.0A19.5 19.5 0 0 1 51.0 30.8" stroke="#92D050"/><path d="M51.0 39.2A19.5 19.5 0 0 1 36.2 54.0" stroke="#FFC000"/><path d="M27.8 54.0A19.5 19.5 0 0 1 13.0 39.2" stroke="#E3342F"/><path d="M13.0 30.8A19.5 19.5 0 0 1 27.8 16.0" stroke="#0070C0"/></g><rect x="27" y="5.5" width="10" height="4" rx="1.6" fill="#E6EBE8"/><rect x="30.4" y="8.5" width="3.2" height="5" fill="#E6EBE8"/><g fill="#fff"><rect x="22" y="33.4" width="20" height="3.2" rx="1.6"/><rect x="21.4" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="38.2" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="18.4" y="30.2" width="3.4" height="9.6" rx="1.3"/><rect x="42.2" y="30.2" width="3.4" height="9.6" rx="1.3"/></g></svg><h1>Nuova seduta</h1>${profChip()}</div>${banner()}
   <label class="f" style="max-width:220px">Data<input type="date" value="${S.newDate}" data-f="new:date"></label>
   ${tpls.length?`<p class="muted small" style="margin:16px 0 0">Riparti da un allenamento: copio gli esercizi dell’ultima volta e propongo il piano successivo.</p>
   <div class="tpl">${tpls.map(s=>`<button data-a="fromTpl" data-id="${esc(s.id)}"><span class="wo">${esc(s.wo)}</span>
     <span class="what">${esc(s.ex.filter(e=>!e.fin).map(e=>e.n).join(', '))}${s.ex.some(e=>e.fin)?` <span class="muted small">+ finisher${s.fin&&s.fin.wo?' '+esc(s.fin.wo):''}</span>`:''}</span><span class="when">Ultima volta ${ggOf(s.d).toLowerCase()} ${fmtD(s.d)}</span></button>`).join('')}</div>`:''}
-  <button class="btn" data-a="emptyDraft" style="margin-top:${tpls.length?0:16}px">Seduta vuota</button>`;
+  <div class="row" style="margin-top:${tpls.length?0:16}px"><button class="btn" data-a="emptyDraft">Seduta vuota</button><button class="btn ghost" data-a="woPanel">Rinomina WO</button></div>`;
+}
+function woStats(){
+  const st=new Map(),wk=new Map();
+  for(const s of S.hist){if(!s.wo)continue;const o=st.get(s.wo)||{wo:s.wo,n:0,first:s.d,last:s.d,ex:new Map(),pos:[]};o.n++;if(s.d<o.first)o.first=s.d;if(s.d>o.last)o.last=s.d;
+    s.ex.forEach(e=>{if(!e.fin&&e.n)o.ex.set(e.n,(o.ex.get(e.n)||0)+1)});st.set(s.wo,o);const mo=mondayOf(s.d);if(!wk.has(mo))wk.set(mo,[]);wk.get(mo).push(s)}
+  const lim=S.hist.length?isoMinus(S.hist[0].d,112):'';
+  wk.forEach((l,mo)=>{if(mo<lim)return;l.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0).forEach((s,i)=>st.get(s.wo).pos.push(i))});
+  return [...st.values()].map(o=>({...o,act:o.pos.length>=3,avg:o.pos.length?o.pos.reduce((a,b)=>a+b,0)/o.pos.length:99,top:[...o.ex.entries()].sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0])}));
+}
+function woProposal(){
+  const l=woStats(),act=l.filter(o=>o.act).sort((a,b)=>a.avg-b.avg),old=l.filter(o=>!o.act).sort((a,b)=>a.first<b.first?-1:1),map={};
+  [...act,...old].forEach((o,i)=>{map[o.wo]=i<26?String.fromCharCode(65+i):`W${i+1}`});return map;
+}
+function vWoPanel(){
+  const l=woStats(),prop=S.woEdit||woProposal(),R=S.cfg.woRen||[];
+  const rows=[...l].sort((a,b)=>(prop[a.wo]||a.wo).localeCompare(prop[b.wo]||b.wo,'it',{numeric:true}));
+  return `<h3>Rinomina WO</h3><p class="muted small">Proposta: i WO in uso negli ultimi quattro mesi in ordine di come cadono nella settimana, poi quelli non più usati in ordine di prima comparsa. Puoi cambiare ogni nuovo codice. Lo storico non viene riscritto: ogni seduta conserva il codice di origine e la rinomina si può annullare.</p>
+    <div style="overflow-x:auto;max-height:55vh"><table class="tbl"><thead><tr><th>Ora</th><th>Esercizi</th><th>Sedute</th><th>Ultima</th><th>Nuovo</th></tr></thead><tbody>
+    ${rows.map(o=>`<tr><td style="font-family:var(--f-num);font-size:20px;font-weight:700">${esc(o.wo)}</td><td style="font-family:var(--f-text);font-size:14px;text-align:left">${esc(o.top.join(', '))}${o.act?'':' <span class="muted small">(non più usato)</span>'}</td><td>${o.n}</td><td style="font-size:14px">${fmtD(o.last)}</td>
+      <td><input type="text" value="${esc(prop[o.wo]??o.wo)}" maxlength="4" data-wo="${esc(o.wo)}" class="woNew" style="width:64px;text-transform:uppercase;font-family:var(--f-num);font-size:20px;font-weight:700" aria-label="Nuovo codice per ${esc(o.wo)}"></td></tr>`).join('')}</tbody></table></div>
+    <div class="row" style="margin-top:14px"><button class="btn primary" data-a="woApply">Applica</button>${R.length?'<button class="btn" data-a="woUndo">Annulla l’ultima rinomina</button>':''}<button class="btn" data-a="closeSheet">Chiudi</button></div>`;
 }
 function vCard(e,i){
   const cfg=S.cfg.esercizi[e.n]||{};
@@ -917,6 +949,17 @@ function ensureProtos(force){
   seen.forEach(o=>{S.protos.set(o.id,o);saveProtoDoc(o)});
   return seen.size;
 }
+function applyProto(e,P){
+  e.pid=P?P.id:null;delete e.lad;if(!P)return;e.p=pName(P);
+  if(P.tipo==='ladder'){e.lad=ladList(P);e.b=null;e.k=0;e.s=[];setN(e,e.lad.length)}
+  else if((P.tipo==='sp'||P.tipo==='st')&&num(P.serie)>0){if(P.tipo==='st'&&num(P.rep)>0){e.b=num(P.rep);e.k=0}setN(e,num(P.serie))}
+  else if(P.tipo==='rt'){e.b=null;e.k=0}
+  else if((P.tipo==='emom'||P.tipo==='circ')&&num(P.giri)>0)setN(e,num(P.giri));
+  else if(P.tipo==='max'){e.b=null;e.k=0;setN(e,1)}
+}
+function protoSlots(P){if(P.tipo==='emom')return emK(P);if(P.tipo==='edt')return 2;if(P.tipo==='circ')return Array.isArray(P.stations)&&P.stations.length?P.stations.length:3;if(P.tipo==='amrap')return 2;if(P.tipo==='max')return 3;if((P.tipo==='sp'||P.tipo==='ladder')&&P.group==='super')return 2;return 1}
+function addToDraft(x){const d=ensureDraft(),fi=d.ex.findIndex(e=>e.fin);if(fi<0)d.ex.push(x);else d.ex.splice(fi,0,x);S.tc.rec.links=null;S.tc.emom.link=null;S.tc.edt.link=null;S.tc.circ.links=null;return d.ex.indexOf(x)}
+function goCard(i){S.tab='diario';render();setTimeout(()=>{const c=$('#card-'+i);if(c)c.scrollIntoView({block:'start'})},60)}
 function protoUse(id){const P=S.protos.get(id),src=new Set((P&&P.src||[]).map(normP));let n=0;for(const s of S.hist)if(s.ex.some(e=>e.pid===id||(!e.pid&&src.has(normP(e.p)))))n++;return n}
 function pfFields(){
   const f=S.pf,inp=(l,k,ty='number',ex='')=>`<label class="f">${l}<input type="${ty}" ${ty==='number'?'inputmode="decimal" step="any"':''} value="${esc(f[k])}" data-f="pf:${k}" ${ex}></label>`;
@@ -1004,9 +1047,136 @@ function vProtocolli(){
     <div class="row" style="margin-top:8px"><button class="btn primary" data-a="pfSave">Salva protocollo</button>${f.editId?'<button class="btn" data-a="pfCancel">Annulla</button>':''}</div></section>
   <section class="card"><h3>Protocolli</h3>
     ${list.length?PTIPI.map(([k,l])=>{const g=list.filter(P=>P.tipo===k);return g.length?`<h3 style="font-size:16px;margin:12px 0 2px" class="muted">${l}</h3>${g.map(P=>{const u=protoUse(P.id);return `<div class="trow"><div><b>${esc(pName(P))}</b>${P.nome?`<div class="muted small">${esc(pAuto(P))}</div>`:''}<div class="muted small">${u?`Usato in ${u} ${u===1?'seduta':'sedute'}`:'Non ancora usato'}${(P.src||[]).length?`; corrisponde a «${esc(P.src.slice(0,2).join('», «'))}»${P.src.length>2?'…':''}`:''}</div></div>
-      <div class="acts"><button class="btn" data-a="pfEdit" data-id="${esc(P.id)}">Modifica</button><button class="btn ghost danger" data-a="pfAskDel" data-id="${esc(P.id)}">Elimina</button></div></div>`}).join('')}`:''}).join(''):'<p class="muted">Ancora nessun protocollo.</p>'}
+      <div class="acts"><button class="btn primary" data-a="pUse" data-id="${esc(P.id)}">Usa in seduta</button><button class="btn" data-a="pfEdit" data-id="${esc(P.id)}">Modifica</button><button class="btn ghost danger" data-a="pfAskDel" data-id="${esc(P.id)}">Elimina</button></div></div>`}).join('')}`:''}).join(''):'<p class="muted">Ancora nessun protocollo.</p>'}
     ${S.hist.length?'<button class="btn" data-a="pfRebuild" style="margin-top:10px">Aggiungi quelli usati negli ultimi mesi</button>':''}
     <p class="muted small" style="margin:8px 0 0">Nella seduta scegli il protocollo di ogni esercizio: il timer usa questi valori. Gli esercizi con lo stesso protocollo di gruppo (superset, E2MOM, EDT, circuito) partono insieme.</p></section>`;
+}
+
+/* ----- profili sul dispositivo ----- */
+const profName=id=>{const x=S.prof.list.find(p=>p.id===id);return (x&&x.nome)||(id==='main'?'Profilo principale':'Profilo')};
+async function saveProf(){try{if(S.mode==='db'&&S.db&&S.uid)await S.db.doc(`data/users/${S.uid}/profili`).set(S.prof);else store('diario-profili',S.prof)}catch(e){}}
+let profPubT=null;
+function profPublishSoon(){if(S.prof.list.length<2||!S.hist.length)return;clearTimeout(profPubT);profPubT=setTimeout(()=>{const sm=teamSummary(),key=JSON.stringify({...sm,upd:0});if(key===S.profLastKey)return;S.profLastKey=key;S.prof.sum={...S.prof.sum,[PID]:sm};saveProf()},6000)}
+function profSwitch(id){if(id===PID){closeSheet();return}if(T&&!T.done){confirmSheet('Cambiare profilo?','Il timer in corso verrà fermato.','Cambia','profGoNow',`data-id="${esc(id)}"`);return}profGo(id)}
+function profGo(id){try{if(S.draft)persistDraft()}catch(e){}try{localStorage.setItem('diario-profilo',id);sessionStorage.setItem('diario-chiesto','1')}catch(e){}location.reload()}
+function profAsk(){let asked=false;try{asked=sessionStorage.getItem('diario-chiesto')==='1';sessionStorage.removeItem('diario-chiesto')}catch(e){}if(asked||S.prof.list.length<2||S.prof.ask===false)return;sheet(vProfPick('Chi si allena?'))}
+function profChip(){return S.prof.list.length>1?`<button class="btn ghost" data-a="profPick" style="margin-left:auto;font-size:17px" aria-label="Profilo in uso: ${esc(profName(PID))}. Cambia profilo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="vertical-align:-4px;margin-right:4px"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>${esc(profName(PID))} ▾</button>`:''}
+function vProfPick(title){return `<h3>${title}</h3><div style="display:grid;gap:8px;margin-top:10px">${S.prof.list.map((x,i)=>`<button class="btn ${x.id===PID?'primary':''}" data-a="profUse" data-id="${esc(x.id)}" style="justify-content:flex-start;font-size:20px;min-height:56px"><span class="chipx" style="background:${TCOL[i%10]}"></span>${esc(profName(x.id))}${x.id===PID?' (in uso)':''}</button>`).join('')}</div>
+  <div class="row" style="margin-top:14px"><button class="btn" data-a="profManage">Gestisci profili</button><button class="btn" data-a="closeSheet">Chiudi</button></div>`}
+function vProfili(){
+  const L=S.prof.list;
+  return `<section class="card"><h3 style="margin-bottom:6px">Profili su questo dispositivo</h3>
+    <p class="muted small" style="margin:0 0 8px">Ogni profilo ha le sue sedute, i suoi test, protocolli, dati biometrici e impostazioni. Utile se più persone usano lo stesso tablet.</p>
+    ${L.map((x,i)=>`<div class="trow"><div style="display:flex;align-items:center;gap:8px"><span class="chipx" style="background:${TCOL[i%10]}"></span><input type="text" value="${esc(x.nome||'')}" placeholder="${esc(profName(x.id))}" data-f="pl:${esc(x.id)}" aria-label="Nome del profilo" style="max-width:220px">${x.id===PID?' <b class="small">in uso</b>':''}</div>
+      <div class="acts">${x.id!==PID?`<button class="btn" data-a="profUse" data-id="${esc(x.id)}">Usa</button>`:''}${x.id!=='main'&&x.id!==PID?`<button class="btn ghost danger" data-a="profAskDel" data-id="${esc(x.id)}">Elimina</button>`:''}</div></div>`).join('')}
+    <div class="row" style="margin-top:10px;align-items:flex-end"><label class="f" style="flex:1;min-width:180px">Nuovo profilo<input type="text" id="profNew" maxlength="30" placeholder="Nome"></label><button class="btn" data-a="profAdd">Aggiungi</button></div>
+    ${L.length>1?`<label class="row" style="flex-wrap:nowrap;margin-top:10px"><input type="checkbox" ${S.prof.ask!==false?'checked':''} data-f="pl:__ask" style="width:22px;height:22px"> All’apertura chiedi chi si allena</label>`:''}
+    ${S.mode==='db'&&PID!=='main'?'<p class="muted small" style="margin:8px 0 0">Le squadre online sono disponibili solo con il profilo principale.</p>':''}</section>`;
+}
+
+/* ----- squadra ----- */
+const teamOk=()=>S.mode==='db'&&!!S.db&&!!S.uid&&PID==='main';
+const teamCodes=()=>(S.cfg&&S.cfg.team&&S.cfg.team.codes)||[];
+const teamShare=()=>!(S.cfg&&S.cfg.team&&S.cfg.team.share===false);
+function genCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<6;i++)c+=a[Math.floor(Math.random()*a.length)];return c}
+function teamSummary(){
+  const from=isoMinus(todayIso(),365),info=new Map();
+  for(const s of S.hist){if(s.d<from)break;for(const e of s.ex){if(!e.n||e.st==='Non eseguito')continue;info.set(e.n,(info.get(e.n)||0)+1)}}
+  const names=[...info.entries()].sort((a,b)=>b[1]-a[1]).slice(0,25).map(x=>x[0]),ex={};
+  const r=(x,d)=>x==null?null:Math.round(x*d)/d;
+  names.forEach(n=>{const sr=exSeries(n,from).slice(-60);const t=maxFor(n,todayIso());ex[n]={p:sr.map(x=>[x.d,r(x.e1,10),r(x.dens,100),r(x.pi,10)]),rm:t?t.rm:null}});
+  const weeks=[];let mo=mondayOf(todayIso());for(let i=0;i<12;i++){const nx=isoMinus(mo,-7);weeks.push([mo,S.hist.filter(s=>s.d>=mo&&s.d<nx).length]);mo=isoMinus(mo,7)}
+  return {v:1,squadre:teamCodes(),upd:Date.now(),ex,weeks:weeks.reverse()};
+}
+let teamPubT=null;
+function teamPublishSoon(){if(!teamOk()||!teamCodes().length)return;clearTimeout(teamPubT);teamPubT=setTimeout(()=>teamPublish(false),8000)}
+async function teamPublish(force){
+  if(!teamOk())return;
+  try{
+    if(!teamCodes().length||!teamShare()){if(S.teamPubbed||force){await S.db.doc('membri/'+S.uid).delete();S.teamPubbed=false;S.teamLastKey=''}return}
+    const sm=teamSummary(),key=JSON.stringify({...sm,upd:0});if(!force&&key===S.teamLastKey)return;
+    await S.db.doc('membri/'+S.uid).set(sm);S.teamLastKey=key;S.teamPubbed=true;S.teamErr='';
+  }catch(e){S.teamErr=(e&&e.code)||'errore';if(S.tab==='esercizi'&&S.exView==='team')render()}
+}
+function teamWatch(code){
+  if(S.team.unsub){try{S.team.unsub()}catch(e){}}S.team.unsub=null;S.team.members=new Map();S.team.code=code||null;S.team.mem=null;
+  if(!code||!teamOk())return;
+  try{S.team.unsub=S.db.collection('membri').where('squadre','array-contains',code).onSnapshot(q=>{S.team.members=new Map(q.docs.map(d=>[d.id,d.data()]));teamNames();if(S.tab==='esercizi'&&S.exView==='team')render()},()=>{})}catch(e){}
+  S.db.doc('squadre/'+code).get().then(d=>{S.team.meta[code]=d.exists?d.data():null;if(S.tab==='esercizi'&&S.exView==='team')render()}).catch(()=>{});
+}
+async function teamNames(){try{const ps=await S.userNS.profiles([...S.team.members.keys()]);S.team.names=ps||{};if(S.tab==='esercizi'&&S.exView==='team')render()}catch(e){}}
+const tName=id=>id===S.uid?'Tu':((S.team.names[id]&&S.team.names[id].name)||'Atleta');
+const TCOL=['#0284C7','#F97316','#16A34A','#9333EA','#DC2626','#0D9488','#CA8A04','#DB2777','#475569','#65A30D'];
+const PMI={e1:1,dens:2,pi:3};
+function memSeries(m,n,from){const x=m.ex&&m.ex[n];if(!x)return [];const k=PMI[S.progM]||1;return x.p.filter(p=>p[0]>=from&&p[k]!=null).map(p=>({d:p[0],v:p[k]}))}
+function mChart(title,series,dec){
+  const all=series.flatMap(s=>s.pts);if(all.length<2)return '';
+  const W=640,H=240,L=52,R=14,T=14,B=30,xs=all.map(p=>isoUTC(p.d)),x0=Math.min(...xs),x1=Math.max(...xs),vs=all.map(p=>p.v);let lo=Math.min(...vs),hi=Math.max(...vs);const pd=(hi-lo)*.1||1;lo-=pd;hi+=pd;
+  const X=t=>L+(W-L-R)*(x1===x0?.5:(t-x0)/(x1-x0)),Y=v=>H-B-(H-T-B)*(v-lo)/(hi-lo);
+  return `<div class="chart"><h3>${title}</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">
+    ${[0,1,2,3].map(i=>{const v=lo+(hi-lo)*(i+.5)/4;return `<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${L-6}" y="${Y(v)+5}" font-size="15" fill="var(--muted)" text-anchor="end">${fmtN(v,dec)}</text>`}).join('')}
+    <text x="${L}" y="${H-8}" font-size="15" fill="var(--muted)">${fmtD(new Date(x0).toISOString().slice(0,10))}</text><text x="${W-R}" y="${H-8}" font-size="15" fill="var(--muted)" text-anchor="end">${fmtD(new Date(x1).toISOString().slice(0,10))}</text>
+    ${series.map(s=>s.pts.length?`<polyline fill="none" stroke="${s.c}" stroke-width="${s.me?3.4:2.2}" stroke-linejoin="round" points="${s.pts.map(p=>`${X(isoUTC(p.d))},${Y(p.v)}`).join(' ')}"/>`:'').join('')}
+  </svg><div class="legend">${series.map(s=>`<span><i style="background:${s.c}"></i>${esc(s.name)}</span>`).join('')}</div></div>`;
+}
+function vTeam(){
+  const multi=S.prof.list.length>1,canOnline=S.mode==='db';
+  const src=multi&&(S.teamSrc==='dev'||!canOnline)?'dev':'online';
+  const seg=multi&&canOnline?`<div class="seg" role="group" aria-label="Quale squadra" style="max-width:520px;margin-bottom:12px"><button data-a="teamSrc" data-v="dev" aria-pressed="${src==='dev'}">Profili di questo dispositivo</button><button data-a="teamSrc" data-v="online" aria-pressed="${src==='online'}">Squadre online</button></div>`:'';
+  if(src==='dev'){
+    S.prof.sum={...S.prof.sum,[PID]:teamSummary()};
+    const mem=new Map(S.prof.list.filter(x=>S.prof.sum[x.id]).map(x=>[x.id,S.prof.sum[x.id]]));
+    const ctx={k:'dev',members:mem,me:PID,name:id=>id===PID?`${profName(id)} (tu)`:profName(id),color:id=>TCOL[Math.max(0,S.prof.list.findIndex(x=>x.id===id))%10],mem:S.devMem,ex:S.devEx};
+    return seg+(ctx.mem&&mem.has(ctx.mem)?vBoardMember(ctx,ctx.mem):`<section class="card"><div class="muted small">Squadra</div><h2 style="margin:0">Profili di questo dispositivo</h2><p class="muted small" style="margin:4px 0 0">${S.prof.list.length} profili. I dati di ogni profilo si aggiornano quando quel profilo usa l’app.</p></section>${vBoard(ctx)}`);
+  }
+  let hint='';if(!multi)hint=`<p class="muted small">Più persone sullo stesso tablet? Aggiungi i profili in Test → Dati biometrici: qui comparirà anche la squadra del dispositivo.</p>`;
+  if(!teamOk())return seg+(S.mode==='db'&&PID!=='main'?'<section class="card"><h3>Squadre online</h3><p>Le squadre online sono disponibili solo con il profilo principale di questo account.</p></section>':`<section class="card"><h3>Squadra</h3><p>Le squadre online funzionano nella versione su claude.ai, dove ognuno entra con il proprio account Claude e i dati di ciascuno restano privati.</p><p class="muted small" style="margin:0">Nell’app installata i dati restano su questo dispositivo: per comparire in una squadra online, importa il backup nella versione su claude.ai.</p></section>`)+hint;
+  const codes=teamCodes(),code=S.team.code&&codes.includes(S.team.code)?S.team.code:codes[0]||null;
+  const join=`<section class="card"><h3 style="margin-bottom:8px">${codes.length?'Un’altra squadra':'Entra in una squadra'}</h3>
+      <div class="row" style="align-items:flex-end"><label class="f" style="width:160px">Codice<input type="text" id="tmCode" maxlength="6" autocapitalize="characters" style="text-transform:uppercase"></label><button class="btn primary" data-a="teamJoin">Entra</button></div>
+      <div class="row" style="align-items:flex-end;margin-top:10px"><label class="f" style="flex:1;min-width:180px">Oppure crea una squadra: nome<input type="text" id="tmName" maxlength="40"></label><button class="btn" data-a="teamCreate">Crea</button></div>
+      <p class="muted small" style="margin:8px 0 0">Chi entra condivide solo i riepiloghi degli andamenti (forza stimata, densità, PowerIndex, massimali in uso e sedute a settimana). Sedute, note, test e dati biometrici restano privati. I riepiloghi sono leggibili da chi ha accesso all’app.</p>${S.teamErr?`<p class="down small">Non riesco a scrivere nella squadra (${esc(S.teamErr)}): chi ti ha condiviso l’app deve darti il ruolo di Contributor.</p>`:''}</section>`;
+  if(!code)return seg+join+hint;
+  if(S.team.code!==code)teamWatch(code);
+  const meta=S.team.meta[code],ids=[...S.team.members.keys()];
+  const ctx={k:'team',members:S.team.members,me:S.uid,name:tName,color:id=>TCOL[Math.max(0,ids.indexOf(id))%10],mem:S.team.mem,ex:S.team.ex};
+  if(ctx.mem&&S.team.members.has(ctx.mem))return seg+vBoardMember(ctx,ctx.mem);
+  return seg+`<section class="card"><div class="row" style="align-items:flex-start"><div><div class="muted small">Squadra</div><h2 style="margin:0">${esc(meta&&meta.nome||code)}</h2><div class="muted small">Codice <b style="font-family:var(--f-num);font-size:18px;letter-spacing:.08em">${esc(code)}</b> · ${ids.length} ${ids.length===1?'atleta':'atleti'}</div></div><span class="spacer"></span>
+      ${codes.length>1?`<select data-f="tm:sel" aria-label="Squadra">${codes.map(c=>`<option value="${esc(c)}" ${c===code?'selected':''}>${esc((S.team.meta[c]||{}).nome||c)}</option>`).join('')}</select>`:''}</div>
+    <label class="row" style="flex-wrap:nowrap;margin-top:10px"><input type="checkbox" ${teamShare()?'checked':''} data-f="tm:share" style="width:22px;height:22px"> Condividi i miei andamenti con la squadra</label>
+    <div class="row" style="margin-top:8px"><button class="btn ghost danger" data-a="teamLeave" data-c="${esc(code)}">Esci dalla squadra</button></div></section>
+  ${vBoard(ctx)}${join}`;
+}
+function vBoard(ctx){
+  const from=periodStart(),mem=[...ctx.members.entries()];
+  const cnt=new Map();mem.forEach(([,m])=>Object.keys(m.ex||{}).forEach(n=>cnt.set(n,(cnt.get(n)||0)+1)));
+  const exs=[...cnt.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'it')).map(x=>x[0]);
+  const exSel=ctx.ex&&cnt.has(ctx.ex)?ctx.ex:exs[0],M=PMET.find(x=>x[0]===S.progM)||PMET[0];
+  const rows=mem.map(([id,m])=>{const pts=exSel?memSeries(m,exSel,from):[],tr=trendOf(pts.map(p=>p.v));const w4=(m.weeks||[]).slice(-4).reduce((a,x)=>a+x[1],0);
+    let up=0,down=0;Object.keys(m.ex||{}).forEach(n=>{const t=trendOf(memSeries(m,n,from).map(p=>p.v));if(t){if(t.pct>1)up++;else if(t.pct<-1)down++}});return {id,m,pts,tr,w4,up,down}})
+    .sort((a,b)=>(b.id===ctx.me)-(a.id===ctx.me)||ctx.name(a.id).localeCompare(ctx.name(b.id),'it'));
+  const trs=rows.filter(r=>r.tr),avg=trs.length?trs.reduce((a,r)=>a+r.tr.pct,0)/trs.length:null;
+  const nm=id=>`<span class="chipx" style="background:${ctx.color(id)}"></span>${esc(ctx.name(id))}`;
+  return `${pSeg()}<div class="seg sm" role="group" aria-label="Misura" style="max-width:480px;margin-bottom:12px">${PMET.map(([k,l])=>`<button data-a="setProgM" data-v="${k}" aria-pressed="${S.progM===k}">${l}</button>`).join('')}</div>
+  <section class="card"><h3 style="margin-bottom:6px">Atleti</h3>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Atleta</th><th>Sedute (4 sett.)</th><th>Migliorano</th><th>Peggiorano</th><th>Aggiornato</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr data-a="boardMem" data-k="${ctx.k}" data-id="${esc(r.id)}" style="cursor:pointer"><td style="font-family:var(--f-text);font-size:16px">${nm(r.id)}</td><td>${r.w4}</td><td class="up">${r.up}</td><td class="down">${r.down}</td><td style="font-size:14px">${r.m.upd?fmtD(new Date(r.m.upd).toISOString().slice(0,10)):'–'}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Ancora nessun dato.</td></tr>'}</tbody></table></div>
+    <p class="muted small" style="margin:6px 0 0">Tocca un atleta per vedere i suoi andamenti. «Migliorano / Peggiorano» = esercizi con tendenza in salita o in discesa nel periodo, per la misura scelta.</p></section>
+  ${exs.length?`<section class="card"><div class="row" style="align-items:flex-end"><h3 style="margin-right:8px">Confronto per esercizio</h3><span class="spacer"></span>
+      <label class="f" style="min-width:220px">Esercizio<select data-f="bx:${ctx.k}">${exs.map(n=>`<option value="${esc(n)}" ${n===exSel?'selected':''}>${esc(n)} (${cnt.get(n)})</option>`).join('')}</select></label></div>
+    ${avg!=null?`<p class="lead2">${M[1]} della squadra: <b class="${trCls(avg)}">${trArr(avg)} ${fmtPct(avg)}</b> in media (${trs.length} ${trs.length===1?'atleta':'atleti'} con abbastanza sedute).</p>`:'<p class="muted">Servono almeno 4 sedute nel periodo per una tendenza.</p>'}
+    ${mChart(`${M[1]}${M[2]?` (${M[2]})`:''}: ${esc(exSel)}`,rows.map(r=>({name:ctx.name(r.id),c:ctx.color(r.id),me:r.id===ctx.me,pts:r.pts})),M[3])}
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Atleta</th><th>Inizio</th><th>Fine</th><th>Variazione</th><th>Massimale in uso</th></tr></thead><tbody>
+    ${rows.map(r=>{const x=r.m.ex&&r.m.ex[exSel];return `<tr><td style="font-family:var(--f-text);font-size:16px">${nm(r.id)}</td><td>${r.tr?fmtN(r.tr.a,M[3]):'–'}</td><td>${r.tr?fmtN(r.tr.b,M[3]):'–'}</td><td class="${r.tr?trCls(r.tr.pct):''}">${r.tr?`${trArr(r.tr.pct)} ${fmtPct(r.tr.pct)}`:'–'}</td><td>${x&&x.rm?`${fmtN(x.rm,1)} kg`:'–'}</td></tr>`}).join('')}</tbody></table></div></section>`:''}`;
+}
+function vBoardMember(ctx,id){
+  const m=ctx.members.get(id),from=periodStart(),M=PMET.find(x=>x[0]===S.progM)||PMET[0];
+  const rows=Object.keys(m.ex||{}).map(n=>{const pts=memSeries(m,n,from);return {n,pts,tr:trendOf(pts.map(p=>p.v)),last:pts.length?pts[pts.length-1].d:''}}).filter(r=>r.pts.length).sort((a,b)=>a.last<b.last?1:-1);
+  return `<div class="top"><button class="btn ghost" data-a="boardMem" data-k="${ctx.k}" data-id="" style="padding-left:0">← Squadra</button></div>
+    <h2 style="margin:0 0 4px"><span class="chipx" style="background:${ctx.color(id)}"></span>${esc(ctx.name(id))}</h2><p class="muted small" style="margin:0 0 10px">Aggiornato il ${m.upd?fmtD(new Date(m.upd).toISOString().slice(0,10)):'–'}; sedute nelle ultime 4 settimane: ${(m.weeks||[]).slice(-4).reduce((a,x)=>a+x[1],0)}</p>
+    ${pSeg()}<div class="seg sm" role="group" aria-label="Misura" style="max-width:480px;margin-bottom:12px">${PMET.map(([k,l])=>`<button data-a="setProgM" data-v="${k}" aria-pressed="${S.progM===k}">${l}</button>`).join('')}</div>
+    ${rows.map(r=>{const c=r.tr?trCls(r.tr.pct):'flat',x=m.ex[r.n];return `<div class="prow" style="cursor:default">${exIcon(r.n,40)}<span><b>${esc(r.n)}</b><br><span class="muted small">${r.pts.length} sedute${x.rm?`, massimale ${fmtN(x.rm,1)} kg`:''}</span></span>${spark(r.pts.map(p=>p.v),c)}
+      <span class="v">${r.tr?fmtN(r.tr.b,M[3]):fmtN(r.pts[r.pts.length-1].v,M[3])}<small class="${c}">${r.tr?`${trArr(r.tr.pct)} ${fmtPct(r.tr.pct)}`:'poche sedute'}</small></span></div>`}).join('')||'<p class="muted">Nessun dato nel periodo scelto.</p>'}`;
 }
 
 /* ----- guida ----- */
@@ -1016,6 +1186,13 @@ function vGuida(){
   const tb=(h,rows)=>`<div style="overflow-x:auto"><table class="tbl"><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   return `<div class="top"><h1>Guida</h1></div><div class="guide">
   <p class="muted" style="margin:0 0 14px">Come usare l’app e come sono calcolati i numeri. Tocca un titolo per aprirlo.</p>
+  ${sec('Comporre una seduta: da dove partire',`<ul>
+    <li><b>Da un WO</b> (Diario → Nuova seduta): copia gli esercizi dell’ultima seduta con quel WO, con il piano successivo e il finisher.</li>
+    <li><b>Da una seduta vuota</b>: aggiungi gli esercizi uno per uno.</li>
+    <li><b>Da un esercizio</b> (Esercizi → scheda dell’esercizio → «Aggiungi alla seduta»): lo aggiunge alla seduta aperta, oppure ne apre una nuova di oggi.</li>
+    <li><b>Da un protocollo</b> (Esercizi → Protocolli → «Usa in seduta»): scegli gli esercizi (uno, o più se il protocollo è di gruppo: E2MOM, superset, EDT, circuito, AMRAP…) e li trovi nella seduta già con quel protocollo; il pulsante del timer sulla scheda parte già impostato.</li>
+    <li><b>Solo il timer</b> (scheda Timer): senza toccare il diario.</li></ul>
+    <p><b>Registrare o no.</b> Una seduta composta resta nel diario finché non la elimini (Diario → «Elimina seduta»). I timer usati senza seduta, alla fine, chiedono «Inserisci nel diario» o «Non inserire»: così puoi provare un protocollo o fare un allenamento extra senza registrarlo.</p>`)}
   ${sec('Una seduta, passo per passo',`<ul>
     <li><b>Nuova seduta</b>: scegli il WO (X, F, Z, A…). Copio gli esercizi dell’ultima volta con il piano successivo già pronto; oppure parti da «Seduta vuota».</li>
     <li><b>Segna le serie</b>: un tocco su una serie = completata; un secondo tocco apre esito (a fatica, fallita con le ripetizioni vere, non eseguita) e − / +.</li>
@@ -1059,9 +1236,18 @@ function vGuida(){
   ${sec('Esercizi, Andamento, Test e Misure',`<ul>
     <li><b>Esercizi</b>: massimale in uso, tabella carichi, progressione, test, andamento e sedute di ogni esercizio.</li>
     <li><b>Andamento</b>: per periodo (3 mesi, 6 mesi, 1 anno, tutto) e per misura (forza stimata, densità, PowerIndex) vedi chi migliora e chi peggiora; nella scheda dell’esercizio i grafici.</li>
-    <li><b>Test</b>: 1RM, ripetizioni con carico, 5RM / corpo libero, massime ripetizioni a corpo libero, Test 30′ e 15′. I test sul massimale valgono dalla data «Applica da» e aggiornano la % delle sedute da quella data. I massimali di default vengono dalle ultime settimane del foglio Excel.</li>
-    <li><b>Misure</b>: peso corporeo e circonferenze con la differenza dalla volta prima.</li></ul>`)}
-  ${sec('Storico, backup e tablet',`<p>Lo <b>Storico</b> mostra le sedute per settimana; aprendone una puoi modificarla o eliminarla. «Esporta CSV» crea un file per Excel.</p>
+    <li><b>Test</b>: 1RM, ripetizioni con carico, 5RM / corpo libero, massime ripetizioni a corpo libero, Test 30′ e 15′. I test sul massimale valgono dalla data «Applica da» e aggiornano la % delle sedute da quella data. I massimali di default vengono dalle ultime settimane dello storico.</li>
+    <li><b>Dati biometrici</b>: profilo (nome, sesso, data di nascita ed età), peso corporeo e circonferenze, con l’età a ogni data e la differenza dalla volta prima.</li></ul>`)}
+  ${sec('Profili sullo stesso dispositivo',`<p>Se più persone usano lo stesso tablet, crea un profilo per ciascuno in <b>Test → Dati biometrici → Profili su questo dispositivo</b>. Ogni profilo ha sedute, test, protocolli, dati biometrici, impostazioni e seduta in corso separati.</p>
+    <ul><li>All’apertura l’app chiede «Chi si allena?» (si può disattivare); per cambiare profilo tocca il nome in alto nel Diario.</li>
+    <li>In <b>Esercizi → Squadra → Profili di questo dispositivo</b> vedi tutti i profili come una squadra: atleti, esercizi in miglioramento, confronto per esercizio e andamenti di ognuno. I dati di un profilo si aggiornano quando quel profilo usa l’app.</li>
+    <li>Il backup esporta il profilo in uso: per salvare tutti, esporta da ciascun profilo.</li></ul>`)}
+  ${sec('Squadra',`<p>Nella versione su claude.ai ognuno entra con il proprio account e vede solo le proprie sedute. In <b>Esercizi → Squadra</b> puoi creare una squadra (ricevi un codice) o entrare in una con il codice.</p>
+    <ul><li><b>Cosa si condivide</b>: solo i riepiloghi degli andamenti di ogni esercizio (forza stimata, densità, PowerIndex), i massimali in uso e quante sedute a settimana; sedute, note, test e dati biometrici restano privati. Puoi smettere di condividere con una casella o uscire dalla squadra.</li>
+    <li><b>Cosa vedi</b>: l’elenco degli atleti con sedute delle ultime 4 settimane ed esercizi in miglioramento o in calo; il confronto per esercizio con le linee di tutti e la variazione media della squadra; toccando un atleta, i suoi andamenti uno per uno.</li>
+    <li><b>Per invitare</b>: condividi l’app dal menu «Condividi» di claude.ai con il ruolo Contributor, poi dai il codice della squadra.</li>
+    <li>Nell’app installata sul tablet la squadra non c’è (i dati restano sul dispositivo): importa il backup nella versione su claude.ai per aggiornare i tuoi riepiloghi.</li></ul>`)}
+  ${sec('Storico, backup e tablet',`<p>Lo <b>Storico</b> mostra le sedute per settimana; aprendone una puoi modificarla o eliminarla. «Esporta CSV» crea un file da aprire con un foglio di calcolo.</p>
     <p><b>Esporta / Importa backup</b> sposta sedute, test, misure e impostazioni tra l’app su claude.ai e quella installata sul tablet: vengono aggiunte solo le cose nuove o modificate. Sul tablet i dati stanno nella memoria di Chrome: esporta un backup ogni tanto.</p>`)}
   ${sec('Formule',`${tb(['Valore','Come si calcola'],[
     ['TotRep','somma delle ripetizioni delle serie segnate (non quelle saltate)'],
@@ -1070,7 +1256,7 @@ function vGuida(){
     ['1RM calc','Kg ÷ % 1RM'],
     ['Delta Kg 1RM','1RM calc − Kg'],
     ['Densità','TotRep ÷ Tempo (minuti)'],
-    ['PowerIndex','(parte intera del Volume)² ÷ Tempo, come nel foglio'],
+    ['PowerIndex','(parte intera del Volume)² ÷ Tempo'],
     ['% 1RM automatica','Kg ÷ massimale valido nella data della seduta'],
     ['Serie fallite','serie sotto il proprio obiettivo (base, o base+1 per le prime serie)'],
     ['Riepilogo seduta','somme di TotRep, tonnellaggio e volume; densità e PowerIndex medi degli esercizi; densità della seduta = TotRep ÷ minuti totali'],
@@ -1084,7 +1270,7 @@ function vGuida(){
     <h3 style="margin:14px 0 6px">Altre stime</h3>
     ${tb(['Cosa','Formula'],[
       ['5RM / corpo libero (Brzycki)','1RM = (peso corporeo + sovraccarico) ÷ (1,0278 − 0,0278 × ripetizioni), arrotondato per eccesso al mezzo chilo'],
-      ['Solo peso corporeo','% = peso corporeo ÷ 1RM; ripetizioni massime dalla tabella del foglio corpo libero; per serie = metà'],
+      ['Solo peso corporeo','% = peso corporeo ÷ 1RM; ripetizioni massime dalla tabella corpo libero (95% = 2, 93% = 3, 90% = 4, 87% = 5, 85% = 6, 83% = 7, 80% = 8, 77% = 9, 75% = 10, 70% = 11, 67% = 12, 65% = 15, 60% = 20); per serie = metà'],
       ['Massime ripetizioni a corpo libero','schemi al 40, 50, 60, 70 e 80% (per difetto)'],
       ['Forza stimata (Andamento)','per ogni serie: Kg ÷ % delle ripetizioni massime stimate. Ripetizioni massime = ripetizioni segnate (sempre quelle fatte davvero, anche nelle serie fallite o a fatica) + ripetizioni che probabilmente avevi ancora in riserva: completata = secondo la fatica dell’esercizio (Facile 3,5, Liscia 2, Difficile 1, Dura 0), a fatica 0,5, fallita 0 (eri al limite). Si tiene la serie migliore della seduta. Tendenza = media del primo quarto contro l’ultimo quarto del periodo']])}
     <h3 style="margin:14px 0 6px">Test 30′ e 15′</h3>
@@ -1108,7 +1294,7 @@ function vSessSum(s,strict){
     ${(()=>{const rows=s.ex.map(e=>({e,m:metrics(e,strict)})).filter(x=>x.e.st!=='Non eseguito'&&x.m.tot!=null);if(!rows.length)return '';
       return `<div style="overflow-x:auto;margin-top:10px"><table class="tbl"><thead><tr><th>Esercizio</th><th>TotRep</th><th>Volume</th><th>Tempo</th><th>Densità</th><th>PowerIndex</th></tr></thead><tbody>
       ${rows.map(({e,m})=>`<tr><td style="font-family:var(--f-text);font-size:15px">${exIcon(e.n,20)} ${esc(e.n)}${e.fin?' <span class="muted small">(finisher)</span>':''}</td><td>${fmtN(m.tot)}</td><td>${fmtN(m.vol,2)}</td><td>${Number(e.t)?`${fmtN(Number(e.t))}′`:'–'}</td><td>${fmtN(m.dens,2)}</td><td>${fmtN(m.pi,1)}</td></tr>`).join('')}</tbody></table></div>`})()}
-    <p class="muted small" style="margin:6px 0 0">Densità e PowerIndex medi come nel riepilogo del foglio Excel; la densità della seduta è ripetizioni totali ÷ minuti totali. Densità e PowerIndex di un esercizio servono il campo Tempo.</p>`;
+    <p class="muted small" style="margin:6px 0 0">Densità e PowerIndex medi degli esercizi; la densità della seduta è ripetizioni totali ÷ minuti totali. Densità e PowerIndex di un esercizio servono il campo Tempo.</p>`;
 }
 function sessSumTxt(s,strict){const r=sessSum(s,strict);return `Seduta: ${fmtN(r.tot)} rip., tonnellaggio ${fmtN(r.ton)}, volume ${fmtN(r.vol,2)}${r.dens!=null?`, densità media ${fmtN(r.dens,2)}`:''}${r.pi!=null?`, PowerIndex medio ${fmtN(r.pi,1)}`:''}${r.tm?`, ${fmtN(r.tm)}′`:''}`}
 
@@ -1169,7 +1355,7 @@ function vProgList(){
   const up=rows.filter(r=>r.tr.pct>1).length,down=rows.filter(r=>r.tr.pct<-1).length;
   return `${pSeg()}<div class="seg sm" role="group" aria-label="Misura" style="max-width:480px;margin-bottom:12px">${PMET.map(([k,l])=>`<button data-a="setProgM" data-v="${k}" aria-pressed="${S.progM===k}">${l}</button>`).join('')}</div>
     <p class="lead2">${rows.length?`${M[1]}: in questo periodo migliori in <b class="up">${up}</b> ${up===1?'esercizio':'esercizi'}, peggiori in <b class="down">${down}</b>, stabile negli altri ${rows.length-up-down}.`:'Servono almeno 4 sedute nel periodo per vedere una tendenza.'}</p>
-    <p class="muted small" style="margin:4px 0 14px">${M[0]==='e1'?'':'Densità = ripetizioni al minuto; PowerIndex = volume² ÷ tempo, come nel foglio. Contano solo le sedute con il tempo segnato. '}Forza stimata dagli allenamenti: carico e ripetizioni fatte, più quelle che probabilmente avevi in riserva (dalla fatica e dal colore delle serie). Confronto l’inizio e la fine del periodo.</p>
+    <p class="muted small" style="margin:4px 0 14px">${M[0]==='e1'?'':'Densità = ripetizioni al minuto; PowerIndex = volume² ÷ tempo. Contano solo le sedute con il tempo segnato. '}Forza stimata dagli allenamenti: carico e ripetizioni fatte, più quelle che probabilmente avevi in riserva (dalla fatica e dal colore delle serie). Confronto l’inizio e la fine del periodo.</p>
     ${rows.map(r=>{const c=trCls(r.tr.pct);return `<button class="prow" data-a="exOpen" data-n="${esc(r.n)}">${exIcon(r.n,40)}<span><b>${esc(r.n)}</b><br><span class="muted small">${r.vals.length} sedute, ultima ${fmtD(r.o.last)}</span></span>${spark(r.vals,c)}
       <span class="v">${fmtN(r.tr.b,M[3])}<small class="${c}">${trArr(r.tr.pct)} ${fmtPct(r.tr.pct)}</small></span></button>`}).join('')}`;
 }
@@ -1223,7 +1409,9 @@ function vEsercizi(){
   const seg=`<div class="seg" role="group" aria-label="Vista" style="max-width:520px">
     <button data-a="exView" data-v="list" aria-pressed="${S.exView==='list'}">Elenco</button>
     <button data-a="exView" data-v="prog" aria-pressed="${S.exView==='prog'}">Andamento</button>
-    <button data-a="exView" data-v="proto" aria-pressed="${S.exView==='proto'}">Protocolli</button></div>`;
+    <button data-a="exView" data-v="proto" aria-pressed="${S.exView==='proto'}">Protocolli</button>
+    <button data-a="exView" data-v="team" aria-pressed="${S.exView==='team'}">Squadra</button></div>`;
+  if(S.exView==='team')return `<div class="top"><h1>Esercizi</h1></div>${banner()}${seg}${vTeam()}`;
   if(S.exView==='proto')return `<div class="top"><h1>Esercizi</h1></div>${banner()}${seg}${vProtocolli()}`;
   if(S.exView==='prog')return `<div class="top"><h1>Esercizi</h1></div>${banner()}${seg}${vProgList()}`;
   return `<div class="top"><h1>Esercizi</h1></div>${banner()}${seg}
@@ -1237,11 +1425,11 @@ function vEsercizio(n){
   <h1 style="margin-bottom:14px;display:flex;align-items:center;gap:12px">${exIcon(n,56)}<span>${esc(n)}</span></h1>
   <section class="card"><div class="row"><div><div class="muted small">Massimale in uso oggi</div>
     ${t?`<div class="big-rm">${fmtN(t.rm,1)} kg</div><div class="muted small">${esc(testDesc(t))}${t.tipo==='default'?'':`, test del ${fmtD(t.d)}`}, applicato dal ${fmtD(t.from||t.d)}</div>`:'<p class="muted" style="margin:4px 0">Nessun massimale registrato.</p>'}</div>
-    <span class="spacer"></span><button class="btn" data-a="ladFromEx" data-n="${esc(n)}">Proponi ladder</button><button class="btn primary" data-a="newTest" data-n="${esc(n)}">Nuovo test</button></div></section>
+    <span class="spacer"></span><button class="btn" data-a="exToSess" data-n="${esc(n)}">Aggiungi alla seduta</button><button class="btn" data-a="ladFromEx" data-n="${esc(n)}">Proponi ladder</button><button class="btn primary" data-a="newTest" data-n="${esc(n)}">Nuovo test</button></div></section>
   <h2 style="margin:22px 0 10px">Andamento</h2>${vProgDetail(n)}
   ${t?`<section class="card"><h3 style="margin-bottom:8px">Tabella carichi</h3><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>% 1RM</th><th>Rip. massime</th><th>Kg</th></tr></thead><tbody>
     ${[...REPMAX].reverse().map(([q,r])=>`<tr><td>${fmtN(q*100)}%</td><td>${r}</td><td>${fmtN(Math.ceil(t.rm*q))}</td></tr>`).join('')}</tbody></table></div>
-    <p class="muted small" style="margin:8px 0 0">Kg arrotondati per eccesso al chilo, come nel foglio Excel.</p></section>`:''}
+    <p class="muted small" style="margin:8px 0 0">Kg arrotondati per eccesso al chilo.</p></section>`:''}
   <section class="card"><h3 style="margin-bottom:8px">Progressione</h3>
     <div class="prog" style="margin:0"><p>Quando tutte le serie arrivano al tetto, la seduta dopo riparte dalla base con più carico.</p>
     <label class="f">Tetto rep<input type="number" inputmode="numeric" value="${cfg.tetto??''}" data-f="cx:tetto"></label>
@@ -1258,13 +1446,13 @@ function vEsercizio(n){
 function vTestRow(t){
   const rmT=t.rm>0&&t.tipo!=='default';
   return `<div class="trow"><div><b>${t.tipo==='default'?'Default':fmtD(t.d)}</b>${rmT?` <span class="muted small">applicato dal ${fmtD(t.from||t.d)}</span>`:''}
-    <div>${esc(S.tab==='massimali'?t.n+': ':'')}${esc(testDesc(t))}</div>${t.note?`<div class="muted small">${esc(t.note)}</div>`:''}</div>
+    <div>${esc(S.tab==='massimali'?t.n+': ':'')}${esc(testDesc(t))}</div>${noteTxt(t.note)?`<div class="muted small">${esc(noteTxt(t.note))}</div>`:''}</div>
     <div class="acts">${t.tipo==='default'?'':`<button class="btn" data-a="tfEdit" data-id="${esc(t.id)}">Modifica</button>`}<button class="btn ghost danger" data-a="tfAskDel" data-id="${esc(t.id)}">Elimina</button></div></div>`;
 }
 const TIPI=[['1rm','1RM'],['reps','Ripetizioni con carico'],['brz','5RM / corpo libero'],['maxrep','Max rip. corpo libero'],['t30','Test 30′'],['t15','Test 15′']];
 const TIPI_INFO={'1rm':'Il carico massimo sollevato per una ripetizione.',
-  reps:'Carico e ripetizioni fatte: il massimale si stima con la tabella del tuo foglio (ripetizioni massime ↔ % del massimale), contando anche quelle in riserva.',
-  brz:'Come nel foglio TabelleForzaCorpoLibero: peso corporeo + sovraccarico e ripetizioni (5RM a RPE 9). Il massimale si stima con la formula di Brzycki. Per gli esercizi con bilanciere lascia il peso corporeo vuoto.',
+  reps:'Carico e ripetizioni fatte: il massimale si stima con la tabella ripetizioni massime ↔ % del massimale, contando anche quelle in riserva.',
+  brz:'Peso corporeo + sovraccarico e ripetizioni (5RM a RPE 9). Il massimale si stima con la formula di Brzycki. Per gli esercizi con bilanciere lascia il peso corporeo vuoto.',
   maxrep:'Il massimo numero di ripetizioni a corpo libero: ne ricavo gli schemi di lavoro al 40–80%.',
   t30:'Massimo di ripetizioni tecniche in 30′ con circa il 70% del massimale, segnate ogni 10′.',
   t15:'Massimo di ripetizioni tecniche in 15′ con circa l’80% del massimale, segnate ogni 5′.'};
@@ -1306,17 +1494,26 @@ function vTestForm(){
     ${isRmType(k)?'<p class="muted small" style="margin:0 0 10px">Dalla data «Applica da» la % 1RM degli allenamenti di questo esercizio si calcola su questo massimale, salvo che tu la scriva a mano.</p>':'<p class="muted small" style="margin:0 0 10px">Questo test non cambia il massimale: resta nello storico dell’esercizio.</p>'}
     <div class="row"><button class="btn primary" data-a="tfSave">Salva test</button>${f.editId?'<button class="btn" data-a="tfCancel">Annulla</button>':''}</div></section>`;
 }
+const etaAl=(nasc,iso)=>{if(!nasc||!iso)return null;const a=nasc.split('-').map(Number),b=iso.split('-').map(Number);let y=b[0]-a[0];if(b[1]<a[1]||(b[1]===a[1]&&b[2]<a[2]))y--;return y>=0&&y<120?y:null};
+function vProfilo(){const pr=S.cfg.profilo||{},eta=etaAl(pr.nascita,todayIso());
+  return `<section class="card"><h3 style="margin-bottom:10px">Profilo</h3>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin:0">
+      <label class="f">Nome<input type="text" value="${esc(pr.nome||'')}" data-f="pr:nome"></label>
+      <label class="f">Sesso<select data-f="pr:sesso"><option value="">–</option>${[['M','Maschio'],['F','Femmina'],['A','Altro']].map(([k,l])=>`<option value="${k}" ${pr.sesso===k?'selected':''}>${l}</option>`).join('')}</select></label>
+      <label class="f">Data di nascita<input type="date" value="${esc(pr.nascita||'')}" data-f="pr:nascita"></label>
+      <div class="f"><span>Età</span><b id="prEta" style="font-family:var(--f-num);font-size:26px;line-height:44px">${eta!=null?`${eta} anni`:'–'}</b></div></div>
+    <p class="muted small" style="margin:6px 0 0">Con la data di nascita l’età si aggiorna da sola e compare anche accanto a ogni misurazione.</p></section>`}
 function vMisure(){
-  if(!S.mf)S.mf=newMf();const f=S.mf,list=misList();
+  if(!S.mf)S.mf=newMf();const f=S.mf,list=misList(),nasc=(S.cfg.profilo||{}).nascita;
   const delta=(m,i,k)=>{const prev=list.slice(i+1).find(x=>num(x.vals&&x.vals[k])>0),a=num(m.vals&&m.vals[k]);if(!(a>0)||!prev)return '';const d=a-num(prev.vals[k]);if(!d)return '';return ` <span class="muted small">${d>0?'+':'−'}${fmtN(Math.abs(d),d%1?1:0)}</span>`};
   return `<section class="card"><h3 style="margin-bottom:10px">${f.editId?'Modifica misurazione':'Nuova misurazione'}</h3>
     <label class="f" style="max-width:200px;margin-bottom:10px">Data<input type="date" value="${f.d}" data-f="mf:d"></label>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">${MIS.map(([k,l,u])=>`<label class="f">${l} (${u})<input type="number" inputmode="decimal" step="any" value="${esc(f.vals[k]??'')}" data-f="mf:v.${k}"></label>`).join('')}</div>
     <label class="f" style="margin-top:8px">Note<input type="text" value="${esc(f.note)}" data-f="mf:note"></label>
     <div class="row" style="margin-top:12px"><button class="btn primary" data-a="mfSave">Salva misure</button>${f.editId?'<button class="btn" data-a="mfCancel">Annulla</button>':''}</div></section>
-  <section class="card"><h3 style="margin-bottom:8px">Storico misure</h3>
-    ${list.length?`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th>${MIS.map(([,l,u])=>`<th>${l} (${u})</th>`).join('')}<th></th></tr></thead><tbody>
-      ${list.map((m,i)=>`<tr><td>${fmtD(m.d)}</td>${MIS.map(([k])=>`<td>${num(m.vals&&m.vals[k])>0?fmtN(num(m.vals[k]),num(m.vals[k])%1?1:0):'–'}${delta(m,i,k)}</td>`).join('')}
+  <section class="card"><h3 style="margin-bottom:8px">Storico dati biometrici</h3>
+    ${list.length?`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th>${nasc?'<th>Età</th>':''}${MIS.map(([,l,u])=>`<th>${l} (${u})</th>`).join('')}<th></th></tr></thead><tbody>
+      ${list.map((m,i)=>`<tr><td>${fmtD(m.d)}</td>${nasc?`<td>${etaAl(nasc,m.d)??'–'}</td>`:''}${MIS.map(([k])=>`<td>${num(m.vals&&m.vals[k])>0?fmtN(num(m.vals[k]),num(m.vals[k])%1?1:0):'–'}${delta(m,i,k)}</td>`).join('')}
         <td style="white-space:nowrap"><button class="btn" data-a="mfEdit" data-id="${esc(m.id)}">Modifica</button> <button class="btn ghost danger" data-a="mfAskDel" data-id="${esc(m.id)}">Elimina</button></td></tr>`).join('')}</tbody></table></div>
       <p class="muted small" style="margin:8px 0 0">Accanto a ogni valore la differenza rispetto alla misurazione precedente.</p>`:'<p class="muted">Ancora nessuna misurazione.</p>'}</section>`;
 }
@@ -1324,19 +1521,19 @@ function vMassimali(){
   if(!S.tf)S.tf=newTf();
   const sub=`<div class="seg" role="group" aria-label="Sezione" style="max-width:520px">
     <button data-a="testSub" data-v="test" aria-pressed="${S.testSub!=='misure'}">Test e massimali</button>
-    <button data-a="testSub" data-v="misure" aria-pressed="${S.testSub==='misure'}">Misure</button></div>`;
-  if(S.testSub==='misure')return `<div class="top"><h1>Test</h1></div>${banner()}${sub}${vMisure()}`;
+    <button data-a="testSub" data-v="misure" aria-pressed="${S.testSub==='misure'}">Dati biometrici</button></div>`;
+  if(S.testSub==='misure')return `<div class="top"><h1>Test</h1></div>${banner()}${sub}${vProfili()}${vProfilo()}${vMisure()}`;
   const all=[...S.tests.values()].filter(t=>!t.deleted);
   const tests=all.filter(t=>t.tipo!=='default').sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0),defs=all.filter(t=>t.tipo==='default').sort((a,b)=>a.n.localeCompare(b.n,'it'));
   return `<div class="top"><h1>Test</h1></div>${banner()}${sub}
   ${vTestForm()}
   <section class="card"><h3>Test registrati</h3>${tests.length?tests.map(vTestRow).join(''):'<p class="muted">Ancora nessun test.</p>'}</section>
   <section class="card"><h3>Massimali di default</h3>
-    <p class="muted small" style="margin:4px 0 8px">Ricavati dalle ultime settimane del foglio Excel (kg ÷ % di intensità). Valgono finché non registri un test; puoi correggerli qui.</p>
-    ${defs.map(t=>`<div class="trow"><div><b>${exIcon(t.n,22)} ${esc(t.n)}</b><div class="muted small">${esc(t.note||'')}</div></div>
+    <p class="muted small" style="margin:4px 0 8px">Ricavati dalle ultime settimane dello storico (kg ÷ % di intensità). Valgono finché non registri un test; puoi correggerli qui.</p>
+    ${defs.map(t=>`<div class="trow"><div><b>${exIcon(t.n,22)} ${esc(t.n)}</b><div class="muted small">${esc(noteTxt(t.note))}</div></div>
       <div class="acts"><input type="number" inputmode="decimal" step="any" value="${t.rm}" data-f="dm:${esc(t.id)}" style="width:116px" aria-label="1RM di ${esc(t.n)} in kg"><span>kg</span>
       <button class="btn ghost danger" data-a="tfAskDel" data-id="${esc(t.id)}">Elimina</button></div></div>`).join('')||'<p class="muted">Nessun massimale di default.</p>'}
-    ${S.stor.size?'<button class="btn" data-a="defRebuild" style="margin-top:8px">Ricalcola dai dati Excel</button>':''}</section>`;
+    ${S.stor.size?'<button class="btn" data-a="defRebuild" style="margin-top:8px">Ricalcola dallo storico</button>':''}</section>`;
 }
 
 /* ----- storico ----- */
@@ -2371,6 +2568,49 @@ const A={
   posAdd(){const c=S.tc.sess;const l=c.pos[c.pos.length-1]||{sec:60};c.pos.push({n:`Posizione ${c.pos.length+1}`,sec:l.sec});savePrefs();render()},
   posDel(el){S.tc.sess.pos.splice(+el.dataset.i,1);savePrefs();render()},
   posSkip(){if(!isPos())return;const q=posClock(Date.now());SES.coolStart-=q.rem;sesSave();sesTick()},
+  woPanel(){S.woEdit=null;sheet(vWoPanel())},
+  woApply(){const map={},used=new Set();let err='';
+    document.querySelectorAll('.woNew').forEach(inp=>{const o=inp.dataset.wo,n=String(inp.value||'').trim().toUpperCase();if(!n){err='Ogni WO deve avere un codice.';return}if(used.has(n))err=`Il codice ${n} è usato due volte.`;used.add(n);if(n!==o)map[o]=n});
+    if(err){const p=document.querySelector('.sheet p.muted');if(p)p.innerHTML=`<b class="down">${esc(err)}</b>`;return}
+    if(!Object.keys(map).length){closeSheet();return}
+    S.cfg.woRen=[...(S.cfg.woRen||[]),map];saveCfg();if(S.draft&&S.draft.wo&&map[S.draft.wo]){S.draft.wo0=S.draft.wo0??S.draft.wo;S.draft.wo=map[S.draft.wo];S.draft.woN=S.cfg.woRen.length;scheduleSave()}
+    merge();closeSheet();render();sheet(`<h3>WO rinominati</h3><p class="muted">${Object.entries(map).map(([a,b])=>`${esc(a)} → ${esc(b)}`).join(', ')}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`)},
+  woUndo(){const R=S.cfg.woRen||[];if(!R.length)return;const last=R[R.length-1],inv={};Object.entries(last).forEach(([a,b])=>inv[b]=a);S.cfg.woRen=[...R,inv];saveCfg();
+    if(S.draft&&S.draft.wo&&inv[S.draft.wo]){S.draft.wo=inv[S.draft.wo];S.draft.woN=S.cfg.woRen.length;scheduleSave()}merge();closeSheet();render()},
+  async teamCreate(){const nm=($('#tmName')||{}).value||'';if(!nm.trim()){const f=$('#tmName');if(f)f.focus();return}
+    try{let code=genCode();for(let i=0;i<5;i++){const d=await S.db.doc('squadre/'+code).get();if(!d.exists)break;code=genCode()}
+      await S.db.doc('squadre/'+code).set({nome:nm.trim().slice(0,40),creata:Date.now(),da:S.uid});
+      S.cfg.team={codes:[...teamCodes(),code],share:true};saveCfg();await teamPublish(true);teamWatch(code);render();
+      sheet(`<h3>Squadra creata</h3><p>Codice: <b style="font-family:var(--f-num);font-size:30px;letter-spacing:.1em">${code}</b></p><p class="muted">Per far entrare qualcuno: condividigli questa app dal menu «Condividi» di claude.ai con il ruolo <b>Contributor</b>, poi dagli il codice. Ognuno vede le proprie sedute; nella squadra compaiono solo i riepiloghi.</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`)}
+    catch(e){S.teamErr=(e&&e.code)||'errore';render()}},
+  async teamJoin(){const code=String(($('#tmCode')||{}).value||'').trim().toUpperCase();if(!code)return;
+    try{const d=await S.db.doc('squadre/'+code).get();if(!d.exists){sheet('<h3>Codice non trovato</h3><p class="muted">Controlla il codice con chi ha creato la squadra.</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>');return}
+      if(!teamCodes().includes(code)){S.cfg.team={codes:[...teamCodes(),code],share:teamShare()};saveCfg()}await teamPublish(true);teamWatch(code);render()}
+    catch(e){S.teamErr=(e&&e.code)||'errore';render()}},
+  teamLeave(el){confirmSheet('Uscire dalla squadra?','I tuoi riepiloghi non saranno più visibili in questa squadra. Le tue sedute non cambiano.','Esci','teamLeaveNow',`data-c="${esc(el.dataset.c)}"`)},
+  async teamLeaveNow(el){closeSheet();const c=el.dataset.c;S.cfg.team={codes:teamCodes().filter(x=>x!==c),share:teamShare()};saveCfg();await teamPublish(true);teamWatch(teamCodes()[0]||null);render()},
+  boardMem(el){if(el.dataset.k==='dev')S.devMem=el.dataset.id||null;else S.team.mem=el.dataset.id||null;render();window.scrollTo(0,0)},
+  teamSrc(el){S.teamSrc=el.dataset.v;render()},
+  profPick(){sheet(vProfPick('Cambia profilo'))},
+  profUse(el){profSwitch(el.dataset.id)},
+  profGoNow(el){closeSheet();if(T){try{tStop()}catch(e){}}profGo(el.dataset.id)},
+  profManage(){closeSheet();S.tab='massimali';S.testSub='misure';render();window.scrollTo(0,0)},
+  profAdd(){const inp=$('#profNew'),n=inp?inp.value.trim():'';if(!n){if(inp)inp.focus();return}
+    if(S.prof.list.length===1&&!S.prof.list[0].nome&&S.cfg.profilo&&S.cfg.profilo.nome)S.prof.list[0].nome=S.cfg.profilo.nome;
+    S.prof.list=[...S.prof.list,{id:'p'+Date.now().toString(36),nome:n.slice(0,30)}];if(!S.prof.sum[PID]&&S.hist.length)S.prof.sum[PID]=teamSummary();saveProf();render()},
+  profAskDel(el){confirmSheet(`Eliminare il profilo «${esc(profName(el.dataset.id))}»?`,S.mode==='db'?'Il profilo sparisce dall’elenco; i suoi dati restano salvati e tornano se ricrei il collegamento.':'Vengono cancellati da questo dispositivo tutte le sue sedute, i test e le impostazioni. Esporta prima un backup se vuoi tenerli.','Elimina','profDel',`data-id="${esc(el.dataset.id)}"`)},
+  profDel(el){closeSheet();const id=el.dataset.id;S.prof.list=S.prof.list.filter(x=>x.id!==id);const sm={...S.prof.sum};delete sm[id];S.prof.sum=sm;
+    if(S.mode!=='db'){try{Object.keys(localStorage).filter(k=>k.startsWith('diario-')&&k.endsWith('@'+id)).forEach(k=>localStorage.removeItem(k))}catch(e){}}saveProf();render()},
+  exToSess(el){const d=ensureDraft(),x=exFromHistory(el.dataset.n,d.d,d.id);const i=addToDraft(x);scheduleSave();S.exSel='';goCard(i)},
+  pUse(el){const P=S.protos.get(el.dataset.id);if(!P)return;const n=protoSlots(P);
+    sheet(`<h3>${esc(pName(P))}</h3><p class="muted">Scegli ${n>1?`fino a ${n} esercizi, nell’ordine in cui li fai`:'l’esercizio'}: li aggiungo alla seduta di oggi${S.draft?' aperta':' (ne apro una nuova)'} con questo protocollo.</p>
+      ${Array.from({length:n},(_,i)=>`<label class="f" style="margin-top:8px">${n>1?`Esercizio ${i+1}`:'Esercizio'}<input type="text" id="pu${i}" list="names"></label>`).join('')}
+      <div class="row" style="margin-top:14px"><button class="btn primary" data-a="pUseGo" data-id="${esc(P.id)}" data-n="${n}">Aggiungi alla seduta</button><button class="btn" data-a="closeSheet">Annulla</button></div>`);
+    setTimeout(()=>{const f=$('#pu0');if(f)f.focus()},50)},
+  pUseGo(el){const P=S.protos.get(el.dataset.id);if(!P)return;const names=[];for(let i=0;i<+el.dataset.n;i++){const v=($('#pu'+i)||{}).value;if(v&&v.trim())names.push(v.trim())}
+    if(!names.length){const f=$('#pu0');if(f)f.focus();return}
+    closeSheet();const d=ensureDraft();let first=null;names.forEach(n=>{const x=exFromHistory(n,d.d,d.id);delete x._why;applyProto(x,P);const i=addToDraft(x);if(first==null)first=i});
+    scheduleSave();goCard(first)},
   ladSug(){const f=S.pf;f._sug=ladSuggest(f);render()},
   ladUse(el){const f=S.pf,x=f._sug&&f._sug.list[+el.dataset.i];if(!x)return;Object.assign(f,clone(x.P),{tipo:'ladder'});render();window.scrollTo(0,0)},
   ladFromEx(el){S.pf={...newPf(),tipo:'ladder',sugSrc:'test',sugN:el.dataset.n};S.pf._sug=ladSuggest(S.pf);S.exSel='';S.exView='proto';S.tab='esercizi';render();window.scrollTo(0,0)},
@@ -2443,7 +2683,7 @@ const A={
     S.tf=newTf();render();
     sheet(`<h3>Test salvato</h3><p class="muted">${msg}</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`);
   },
-  defRebuild(){confirmSheet('Ricalcolare i massimali di default?','Li ricavo di nuovo dalle ultime settimane del foglio Excel; i tuoi test non vengono toccati.','Ricalcola','defRebuildNow')},
+  defRebuild(){confirmSheet('Ricalcolare i massimali di default?','Li ricavo di nuovo dalle ultime settimane dello storico; i tuoi test non vengono toccati.','Ricalcola','defRebuildNow')},
   defRebuildNow(){closeSheet();const n=ensureDefaults(true);render();sheet(`<h3>Fatto</h3><p class="muted">${n} massimali di default ricalcolati.</p><div class="row" style="margin-top:14px"><button class="btn primary" data-a="closeSheet">Ok</button></div>`)},
   exportBak(){
     const all=new Map(S.stor);for(const [id,x] of S.sed)all.set(id,x);
@@ -2497,6 +2737,8 @@ async function importBackup(obj){
   if(obj.cfg){const c=obj.cfg;
     if(c.esercizi)for(const k in c.esercizi)if(!S.cfg.esercizi[k]){S.cfg.esercizi[k]=c.esercizi[k];cfg=true}
     if(c.timer&&!S.cfg.timer){S.cfg.timer=c.timer;S.prefsLoaded=false;loadPrefs();cfg=true}
+    if(Array.isArray(c.woRen)&&c.woRen.length>(S.cfg.woRen||[]).length){S.cfg.woRen=clone(c.woRen);cfg=true}
+    if(c.profilo&&!S.cfg.profilo){S.cfg.profilo=clone(c.profilo);cfg=true}
     if(cfg)saveCfg();
   }
   let nt=0;
@@ -2537,6 +2779,11 @@ function onField(el,isChange){
   if(kind==='pf'){const f=S.pf;if(el.type==='checkbox'){f[a]=el.checked?el.dataset.on:(a==='group'?'single':'');render();return}
     if(a.includes('.')){const [arr,i,k]=a.split('.');f[arr][+i][k]=v}else f[a]=v;
     if(['da','a','passo','volte','lung','sposta','loDa','loA','hiDa','hiA','seq'].includes(a)){const lp=$('#ladPrev');if(lp)lp.textContent=ladPrev(f)}const nm=$('#pfName');if(nm)nm.textContent=pName(f);return}
+  if(kind==='bx'){if(a==='dev')S.devEx=v;else S.team.ex=v;render();return}
+  if(kind==='pl'){if(a==='__ask'){S.prof.ask=el.checked;saveProf();return}const x=S.prof.list.find(p=>p.id===a);if(x){x.nome=v.slice(0,30);clearTimeout(S.plT);S.plT=setTimeout(saveProf,800)}return}
+  if(kind==='tm'){if(a==='ex'){S.team.ex=v;render();return}if(a==='sel'){teamWatch(v);render();return}
+    if(a==='share'){S.cfg.team={codes:teamCodes(),share:el.checked};saveCfg();teamPublish(true);render();return}return}
+  if(kind==='pr'){S.cfg.profilo=S.cfg.profilo||{};S.cfg.profilo[a]=v;saveCfg();if(a==='nome'&&S.prof.list.length>1){const x=S.prof.list.find(p=>p.id===PID);if(x){x.nome=v.slice(0,30);clearTimeout(S.plT);S.plT=setTimeout(saveProf,800)}}const pe=$('#prEta');if(pe){const x=etaAl(S.cfg.profilo.nascita,todayIso());pe.textContent=x!=null?`${x} anni`:'–'}return}
   if(kind==='mf'){const f=S.mf;if(a.startsWith('v.'))f.vals[a.slice(2)]=v;else f[a]=v;return}
   if(kind==='tf'){const f=S.tf;if(a.startsWith('parts.'))f.parts[+a.slice(6)]=v;else f[a]=v;
     if(a==='d'&&!f.fromTouched){f.from=v;const el=$('#tfFrom');if(el)el.value=v}
@@ -2564,8 +2811,7 @@ function onField(el,isChange){
     else if(b==='b'){e.b=num(v);syncSets(e)}
     else if(b==='k'){e.k=Math.max(0,num(v)||0);syncSets(e)}
     else if(b==='n_s'){const n=num(v);if(n&&n>=1&&n<=20)setN(e,n);else return}
-    else if(b==='pid'){const P=v&&S.protos.get(v);e.pid=P?v:null;
-      delete e.lad;if(P){e.p=pName(P);if(P.tipo==='ladder'){e.lad=ladList(P);e.b=null;e.k=0;e.s=[];setN(e,e.lad.length)}else if((P.tipo==='sp'||P.tipo==='st')&&num(P.serie)>0){if(P.tipo==='st'&&num(P.rep)>0){e.b=num(P.rep);e.k=0}setN(e,num(P.serie))}else if(P.tipo==='rt'){e.b=null;e.k=0}else if((P.tipo==='emom'||P.tipo==='circ')&&num(P.giri)>0)setN(e,num(P.giri));else if(P.tipo==='max'){e.b=null;e.k=0;setN(e,1)}}
+    else if(b==='pid'){applyProto(e,v&&S.protos.get(v));
       S.tc.rec.links=null;S.tc.emom.link=null;S.tc.edt.link=null;S.tc.circ.links=null;scheduleSave();render();return}
     else e[b]=v;
     if(b==='n'){if(autoPct(e,S.draft.d))setP();const ic=document.querySelector('#card-'+i+' .card-h .exi');if(ic)ic.outerHTML=exIcon(v,38)}
