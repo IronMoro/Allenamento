@@ -371,9 +371,10 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const num=v=>{if(v===''||v==null)return null;const n=Number(String(v).replace(',','.'));return isFinite(n)?n:null};
 function repMax(p){let r=null;for(const [q,n] of REPMAX){if(p>=q-1e-9)r=n}return r}
 function planned(e,i){if(Array.isArray(e.lad)&&e.lad[i]!=null)return e.lad[i];if(e.b==null)return null;return e.b+(i<(e.k||0)?1:0)}
-let PID=(()=>{try{return localStorage.getItem('diario-profilo')||'main'}catch(e){return 'main'}})();
+const NS=(typeof window!=='undefined'&&window.DIARIO_NS)?String(window.DIARIO_NS)+':':'';
+let PID=(()=>{try{return localStorage.getItem(NS+'diario-profilo')||'main'}catch(e){return 'main'}})();
 const DEVKEYS=new Set(['diario-profili','diario-profilo']);
-const K=k=>(PID==='main'||DEVKEYS.has(k)||!k.startsWith('diario-'))?k:`${k}@${PID}`;
+const K=k=>NS+((PID==='main'||DEVKEYS.has(k)||!k.startsWith('diario-'))?k:`${k}@${PID}`);
 function store(k,v){try{localStorage.setItem(K(k),JSON.stringify(v));return true}catch(e){return false}}
 function load(k){try{const v=localStorage.getItem(K(k));return v?JSON.parse(v):null}catch(e){return null}}
 
@@ -663,7 +664,7 @@ async function init(){
     }
   }catch(e){}
   try{if(db&&uid){const pd=await db.doc(`data/users/${uid}/profili`).get();if(pd.exists)S.prof={sum:{},ask:true,...pd.data()}}else{const pl=load('diario-profili');if(pl&&Array.isArray(pl.list))S.prof={sum:{},ask:true,...pl}}}catch(e){}
-  if(!S.prof.list.some(x=>x.id===PID)){PID='main';try{localStorage.setItem('diario-profilo','main')}catch(e){}S.draft=load('diario-bozza')}
+  if(!S.prof.list.some(x=>x.id===PID)){PID='main';try{localStorage.setItem(NS+'diario-profilo','main')}catch(e){}S.draft=load('diario-bozza')}
   if(!db||!uid){
     S.mode='local';
     const all=load('diario-sedute')||{};S.sed=new Map(Object.entries(all));
@@ -766,7 +767,7 @@ function render(){
 }
 function banner(){
   if(S.mode==='loading')return `<p class="banner">Carico i tuoi dati…</p>`;
-  if(S.mode==='local'&&STANDALONE)return S.hist.length?'':`<p class="banner">Per ritrovare qui il tuo storico importa il file di backup (diario-backup….json). <button class="btn" data-a="importBtn">Importa backup</button></p>`;
+  if(S.mode==='local'&&STANDALONE)return S.hist.length?'':`<p class="banner">Hai già usato quest’app su un altro dispositivo? Importa il file di backup (diario-backup….json) per ritrovare le tue sedute. <button class="btn" data-a="importBtn">Importa backup</button></p>`;
   if(S.mode==='local')return `<p class="banner">Qui i dati restano solo su questo dispositivo e lo storico importato non è disponibile. Apri l’app da claude.ai, con l’accesso fatto, per ritrovare tutto.</p>`;
   if(S.loadErr)return `<p class="banner">Una parte dello storico non si è caricata. Ricarica la pagina per riprovare.</p>`;
   return '';
@@ -801,12 +802,12 @@ function vNuova(){
   const lim=S.hist.length?isoMinus(S.hist[0].d,183):'';
   for(const s of S.hist){if(s.d<lim)break;if(s.wo&&!seen.has(s.wo))seen.set(s.wo,s)}
   const tpls=[...seen.values()].sort((a,b)=>a.wo.localeCompare(b.wo,'it'));
-  return `<div class="top" style="align-items:center;flex-wrap:wrap">${''}<svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true" style="flex:none"><defs><linearGradient id="lgbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3B46"/><stop offset="1" stop-color="#141B20"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#lgbg)"/><g fill="none" stroke-width="5.4" stroke-linecap="round"><path d="M36.2 16.0A19.5 19.5 0 0 1 51.0 30.8" stroke="#92D050"/><path d="M51.0 39.2A19.5 19.5 0 0 1 36.2 54.0" stroke="#FFC000"/><path d="M27.8 54.0A19.5 19.5 0 0 1 13.0 39.2" stroke="#E3342F"/><path d="M13.0 30.8A19.5 19.5 0 0 1 27.8 16.0" stroke="#0070C0"/></g><rect x="27" y="5.5" width="10" height="4" rx="1.6" fill="#E6EBE8"/><rect x="30.4" y="8.5" width="3.2" height="5" fill="#E6EBE8"/><g fill="#fff"><rect x="22" y="33.4" width="20" height="3.2" rx="1.6"/><rect x="21.4" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="38.2" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="18.4" y="30.2" width="3.4" height="9.6" rx="1.3"/><rect x="42.2" y="30.2" width="3.4" height="9.6" rx="1.3"/></g></svg><h1>Nuova seduta</h1>${profChip()}</div>${banner()}
+  return `<div class="top" style="align-items:center;flex-wrap:wrap">${''}<svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true" style="flex:none"><defs><linearGradient id="lgbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3B46"/><stop offset="1" stop-color="#141B20"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#lgbg)"/><g fill="none" stroke-width="5.4" stroke-linecap="round"><path d="M36.2 16.0A19.5 19.5 0 0 1 51.0 30.8" stroke="#92D050"/><path d="M51.0 39.2A19.5 19.5 0 0 1 36.2 54.0" stroke="#FFC000"/><path d="M27.8 54.0A19.5 19.5 0 0 1 13.0 39.2" stroke="#E3342F"/><path d="M13.0 30.8A19.5 19.5 0 0 1 27.8 16.0" stroke="#0070C0"/></g><rect x="27" y="5.5" width="10" height="4" rx="1.6" fill="#E6EBE8"/><rect x="30.4" y="8.5" width="3.2" height="5" fill="#E6EBE8"/><g fill="#fff"><rect x="22" y="33.4" width="20" height="3.2" rx="1.6"/><rect x="21.4" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="38.2" y="27.7" width="4.4" height="14.6" rx="1.6"/><rect x="18.4" y="30.2" width="3.4" height="9.6" rx="1.3"/><rect x="42.2" y="30.2" width="3.4" height="9.6" rx="1.3"/></g></svg><h1>Nuova seduta</h1>${profChip()}</div>${banner()}${vBenvenuto()}
   <label class="f" style="max-width:220px">Data<input type="date" value="${S.newDate}" data-f="new:date"></label>
   ${tpls.length?`<p class="muted small" style="margin:16px 0 0">Riparti da un allenamento: copio gli esercizi dell’ultima volta e propongo il piano successivo.</p>
   <div class="tpl">${tpls.map(s=>`<button data-a="fromTpl" data-id="${esc(s.id)}"><span class="wo">${esc(s.wo)}</span>
     <span class="what">${esc(s.ex.filter(e=>!e.fin).map(e=>e.n).join(', '))}${s.ex.some(e=>e.fin)?` <span class="muted small">+ finisher${s.fin&&s.fin.wo?' '+esc(s.fin.wo):''}</span>`:''}</span><span class="when">Ultima volta ${ggOf(s.d).toLowerCase()} ${fmtD(s.d)}</span></button>`).join('')}</div>`:''}
-  <div class="row" style="margin-top:${tpls.length?0:16}px"><button class="btn" data-a="emptyDraft">Seduta vuota</button><button class="btn ghost" data-a="woPanel">Rinomina WO</button></div>`;
+  <div class="row" style="margin-top:${tpls.length?0:16}px"><button class="btn" data-a="emptyDraft">Seduta vuota</button>${S.hist.length?'<button class="btn ghost" data-a="woPanel">Rinomina WO</button>':''}</div>`;
 }
 function woStats(){
   const st=new Map(),wk=new Map();
@@ -828,6 +829,13 @@ function vWoPanel(){
     ${rows.map(o=>`<tr><td style="font-family:var(--f-num);font-size:20px;font-weight:700">${esc(o.wo)}</td><td style="font-family:var(--f-text);font-size:14px;text-align:left">${esc(o.top.join(', '))}${o.act?'':' <span class="muted small">(non più usato)</span>'}</td><td>${o.n}</td><td style="font-size:14px">${fmtD(o.last)}</td>
       <td><input type="text" value="${esc(prop[o.wo]??o.wo)}" maxlength="4" data-wo="${esc(o.wo)}" class="woNew" style="width:64px;text-transform:uppercase;font-family:var(--f-num);font-size:20px;font-weight:700" aria-label="Nuovo codice per ${esc(o.wo)}"></td></tr>`).join('')}</tbody></table></div>
     <div class="row" style="margin-top:14px"><button class="btn primary" data-a="woApply">Applica</button>${R.length?'<button class="btn" data-a="woUndo">Annulla l’ultima rinomina</button>':''}<button class="btn" data-a="closeSheet">Chiudi</button></div>`;
+}
+function vBenvenuto(){
+  if(S.hist.length||S.mode==='loading'||load('diario-benvenuto')===false)return '';
+  return `<section class="card" style="border-width:2px;border-color:var(--ink)"><h2 style="margin:0 0 6px">Benvenuto!</h2>
+    <p style="margin:0 0 6px">È un diario di allenamento con i timer per la palestra (recupero, EMOM, EDT, AMRAP, circuiti, ladder…) e i grafici dei tuoi progressi.</p>
+    <p class="muted" style="margin:0 0 10px">Per cominciare: tocca «Seduta vuota», scrivi un codice nel campo WO (es. A) e aggiungi gli esercizi. Tutto si salva da solo, solo su questo dispositivo.</p>
+    <div class="row"><button class="btn primary" data-a="benvGuida">Come iniziare (2 minuti)</button><button class="btn" data-a="emptyDraft">Inizia subito</button><button class="btn ghost" data-a="benvNo">Non mostrare più</button></div></section>`;
 }
 function vCard(e,i){
   const cfg=S.cfg.esercizi[e.n]||{};
@@ -1065,8 +1073,8 @@ async function saveProf(){try{if(S.mode==='db'&&S.db&&S.uid)await S.db.doc(`data
 let profPubT=null;
 function profPublishSoon(){if(S.prof.list.length<2||!S.hist.length)return;clearTimeout(profPubT);profPubT=setTimeout(()=>{const sm=teamSummary(),key=JSON.stringify({...sm,upd:0});if(key===S.profLastKey)return;S.profLastKey=key;S.prof.sum={...S.prof.sum,[PID]:sm};saveProf()},6000)}
 function profSwitch(id){if(id===PID){closeSheet();return}if(T&&!T.done){confirmSheet('Cambiare profilo?','Il timer in corso verrà fermato.','Cambia','profGoNow',`data-id="${esc(id)}"`);return}profGo(id)}
-function profGo(id){try{if(S.draft)persistDraft()}catch(e){}try{localStorage.setItem('diario-profilo',id);sessionStorage.setItem('diario-chiesto','1')}catch(e){}location.reload()}
-function profAsk(){let asked=false;try{asked=sessionStorage.getItem('diario-chiesto')==='1';sessionStorage.removeItem('diario-chiesto')}catch(e){}if(asked||S.prof.list.length<2||S.prof.ask===false)return;sheet(vProfPick('Chi si allena?'))}
+function profGo(id){try{if(S.draft)persistDraft()}catch(e){}try{localStorage.setItem(NS+'diario-profilo',id);sessionStorage.setItem(NS+'diario-chiesto','1')}catch(e){}location.reload()}
+function profAsk(){let asked=false;try{asked=sessionStorage.getItem(NS+'diario-chiesto')==='1';sessionStorage.removeItem(NS+'diario-chiesto')}catch(e){}if(asked||S.prof.list.length<2||S.prof.ask===false)return;sheet(vProfPick('Chi si allena?'))}
 function profChip(){return S.prof.list.length>1?`<button class="btn ghost" data-a="profPick" style="margin-left:auto;font-size:17px" aria-label="Profilo in uso: ${esc(profName(PID))}. Cambia profilo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="vertical-align:-4px;margin-right:4px"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>${esc(profName(PID))} ▾</button>`:''}
 function vProfPick(title){return `<h3>${title}</h3><div style="display:grid;gap:8px;margin-top:10px">${S.prof.list.map((x,i)=>`<button class="btn ${x.id===PID?'primary':''}" data-a="profUse" data-id="${esc(x.id)}" style="justify-content:flex-start;font-size:20px;min-height:56px"><span class="chipx" style="background:${TCOL[i%10]}"></span>${esc(profName(x.id))}${x.id===PID?' (in uso)':''}</button>`).join('')}</div>
   <div class="row" style="margin-top:14px"><button class="btn" data-a="profManage">Gestisci profili</button><button class="btn" data-a="closeSheet">Chiudi</button></div>`}
@@ -1189,7 +1197,7 @@ function vBoardMember(ctx,id){
 
 /* ----- guida ----- */
 function vGuida(){
-  const sec=(t,b,open)=>`<details${open?' open':''}><summary>${t}</summary><div class="gb">${b}</div></details>`;
+  const sec=(t,b,open)=>`<details${open||(S.guideOpen&&t.startsWith(S.guideOpen))?' open':''}><summary>${t}</summary><div class="gb">${b}</div></details>`;
   const ch=(c,t)=>`<span class="chipx" style="background:${c}"></span>${t}`;
   const tb=(h,rows)=>`<div style="overflow-x:auto"><table class="tbl"><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   return `<div class="top"><h1>Guida</h1></div><div class="guide">
@@ -2648,7 +2656,9 @@ const A={
     S.prof.list=[...S.prof.list,{id:'p'+Date.now().toString(36),nome:n.slice(0,30)}];if(!S.prof.sum[PID]&&S.hist.length)S.prof.sum[PID]=teamSummary();saveProf();render()},
   profAskDel(el){confirmSheet(`Eliminare il profilo «${esc(profName(el.dataset.id))}»?`,S.mode==='db'?'Il profilo sparisce dall’elenco; i suoi dati restano salvati e tornano se ricrei il collegamento.':'Vengono cancellati da questo dispositivo tutte le sue sedute, i test e le impostazioni. Esporta prima un backup se vuoi tenerli.','Elimina','profDel',`data-id="${esc(el.dataset.id)}"`)},
   profDel(el){closeSheet();const id=el.dataset.id;S.prof.list=S.prof.list.filter(x=>x.id!==id);const sm={...S.prof.sum};delete sm[id];S.prof.sum=sm;
-    if(S.mode!=='db'){try{Object.keys(localStorage).filter(k=>k.startsWith('diario-')&&k.endsWith('@'+id)).forEach(k=>localStorage.removeItem(k))}catch(e){}}saveProf();render()},
+    if(S.mode!=='db'){try{Object.keys(localStorage).filter(k=>k.startsWith(NS+'diario-')&&k.endsWith('@'+id)).forEach(k=>localStorage.removeItem(k))}catch(e){}}saveProf();render()},
+  benvGuida(){S.guideOpen='Iniziare da zero';S.tab='guida';render();window.scrollTo(0,0)},
+  benvNo(){store('diario-benvenuto',false);render()},
   exToSess(el){const d=ensureDraft(),x=exFromHistory(el.dataset.n,d.d,d.id);const i=addToDraft(x);scheduleSave();S.exSel='';goCard(i)},
   pUse(el){const P=S.protos.get(el.dataset.id);if(!P)return;const n=protoSlots(P);
     sheet(`<h3>${esc(pName(P))}</h3><p class="muted">Scegli ${n>1?`fino a ${n} esercizi, nell’ordine in cui li fai`:'l’esercizio'}: li aggiungo alla seduta di oggi${S.draft?' aperta':' (ne apro una nuova)'} con questo protocollo.</p>
