@@ -1091,7 +1091,7 @@ function teamSummary(){
   for(const s of S.hist){if(s.d<from)break;for(const e of s.ex){if(!e.n||e.st==='Non eseguito')continue;info.set(e.n,(info.get(e.n)||0)+1)}}
   const names=[...info.entries()].sort((a,b)=>b[1]-a[1]).slice(0,25).map(x=>x[0]),ex={};
   const r=(x,d)=>x==null?null:Math.round(x*d)/d;
-  names.forEach(n=>{const sr=exSeries(n,from).slice(-60);const t=maxFor(n,todayIso());ex[n]={p:sr.map(x=>[x.d,r(x.e1,10),r(x.dens,100),r(x.pi,10),r(x.vol,100)]),rm:t?t.rm:null}});
+  names.forEach(n=>{const sr=exSeries(n,from).slice(-60);const t=maxFor(n,todayIso());ex[n]={p:sr.map(x=>[x.d,r(x.e1,10),r(x.dens,100),r(x.pi,10),r(x.vol,100),r(x.ton,1)]),rm:t?t.rm:null}});
   const weeks=[];let mo=mondayOf(todayIso());for(let i=0;i<12;i++){const nx=isoMinus(mo,-7);weeks.push([mo,S.hist.filter(s=>s.d>=mo&&s.d<nx).length]);mo=isoMinus(mo,7)}
   return {v:1,squadre:teamCodes(),upd:Date.now(),ex,weeks:weeks.reverse()};
 }
@@ -1114,7 +1114,7 @@ function teamWatch(code){
 async function teamNames(){try{const ps=await S.userNS.profiles([...S.team.members.keys()]);S.team.names=ps||{};if(S.tab==='esercizi'&&S.exView==='team')render()}catch(e){}}
 const tName=id=>id===S.uid?'Tu':((S.team.names[id]&&S.team.names[id].name)||'Atleta');
 const TCOL=['#0284C7','#F97316','#16A34A','#9333EA','#DC2626','#0D9488','#CA8A04','#DB2777','#475569','#65A30D'];
-const PMI={e1:1,dens:2,pi:3,vol:4};
+const PMI={e1:1,dens:2,pi:3,vol:4,ton:5};
 function memSeries(m,n,from){const x=m.ex&&m.ex[n];if(!x)return [];const k=PMI[S.progM]||1;return x.p.filter(p=>p[0]>=from&&p[k]!=null).map(p=>({d:p[0],v:p[k]}))}
 function mChart(title,series,dec){
   const all=series.flatMap(s=>s.pts);if(all.length<2)return '';
@@ -1235,9 +1235,10 @@ function vGuida(){
     <li><b>Test</b>: Test 30′ / 15′ con +1 a ogni ripetizione, divise nei tre blocchi.</li></ul>
     <p>Per tutti: preparazione, colori, avviso prima della fine, avviso a metà, suoni (anche a voce), schermo intero, riposo alla fine. «Torna alla seduta» lascia il timer acceso. I timer avviati dalla seduta scrivono serie e tempo nel diario; gli altri a fine timer chiedono se inserirli.</p>`)}
   ${sec('Andamento: capire se e quanto migliori',`<p>Lo trovi in <b>Esercizi → Andamento</b> (tutti gli esercizi) e nella scheda di ogni esercizio (il dettaglio).</p>
-    <h3 style="margin:10px 0 4px">Le quattro misure</h3><ul>
-    <li><b>Forza stimata</b>: il massimale che i tuoi allenamenti fanno pensare. Per ogni serie: kg ÷ % delle ripetizioni massime stimate (quelle fatte + quelle che probabilmente avevi in riserva secondo fatica e colore della serie); si tiene la serie migliore della seduta. È di solito più bassa del massimale dei test: conta la direzione.</li>
+    <h3 style="margin:10px 0 4px">Le cinque misure</h3><ul>
+    <li><b>Forza stimata</b>: il massimale che dimostri con quello che hai fatto in seduta. Per ogni serie: ripetizioni massime stimate = ripetizioni fatte + quelle che probabilmente avevi ancora in riserva (fallita 0, a fatica 0,5, completata secondo la fatica e almeno 1); dalla tabella ripetizioni ↔ % trovi la percentuale; forza stimata = kg ÷ %. Si tiene la serie migliore della seduta. Esempio: 6 ripetizioni a fatica con 80 kg → 6,5 ripetizioni massime → 84% → 95,2 kg. Con recuperi brevi (EMOM, superset) la stanchezza abbassa le ripetizioni, quindi la stima è di solito più bassa del massimale dei test: conta la direzione della linea.</li>
     <li><b>Volume</b>: ripetizioni × % 1RM. Sale se fai più ripetizioni o usi carichi più vicini al massimale.</li>
+    <li><b>Tonnellaggio</b>: kg × ripetizioni, il peso totale sollevato; non dipende dai massimali né da stime (a corpo libero i kg sono peso corporeo + zavorra).</li>
     <li><b>Densità</b>: ripetizioni al minuto (serve il campo Tempo).</li>
     <li><b>PowerIndex</b>: volume² ÷ tempo; premia molto lavoro in poco tempo (serve il campo Tempo).</li></ul>
     <h3 style="margin:10px 0 4px">La vista d’insieme</h3>
@@ -1272,7 +1273,7 @@ function vGuida(){
     <li>Alla fine hai i tempi di riscaldamento, allenamento, defaticamento e totale, salvati nella seduta.</li></ul>`)}
   ${sec('Esercizi, Andamento, Test e Misure',`<ul>
     <li><b>Esercizi</b>: massimale in uso, tabella carichi, progressione, test, andamento e sedute di ogni esercizio.</li>
-    <li><b>Andamento</b>: per periodo e per misura (forza stimata, volume, densità, PowerIndex) vedi quali esercizi migliorano; nella scheda dell’esercizio i grafici per seduta o per settimana (vedi «Andamento» qui sopra).</li>
+    <li><b>Andamento</b>: per periodo e per misura (forza stimata, tonnellaggio, volume, densità, PowerIndex) vedi quali esercizi migliorano; nella scheda dell’esercizio i grafici per seduta o per settimana (vedi «Andamento» qui sopra).</li>
     <li><b>Test</b>: 1RM, ripetizioni con carico, 5RM / corpo libero, massime ripetizioni a corpo libero, Test 30′ e 15′. I test sul massimale valgono dalla data «Applica da» e aggiornano la % delle sedute da quella data. I massimali di default vengono dalle ultime settimane dello storico.</li>
     <li><b>Dati biometrici</b>: profilo (nome, sesso, data di nascita ed età), peso corporeo e circonferenze, con l’età a ogni data e la differenza dalla volta prima.</li></ul>`)}
   ${sec('Profili sullo stesso dispositivo',`<p>Se più persone usano lo stesso tablet, crea un profilo per ciascuno in <b>Test → Dati biometrici → Profili su questo dispositivo</b>. Ogni profilo ha sedute, test, protocolli, dati biometrici, impostazioni e seduta in corso separati.</p>
@@ -1309,7 +1310,7 @@ function vGuida(){
       ['5RM / corpo libero (Brzycki)','1RM = (peso corporeo + sovraccarico) ÷ (1,0278 − 0,0278 × ripetizioni), arrotondato per eccesso al mezzo chilo'],
       ['Solo peso corporeo','% = peso corporeo ÷ 1RM; ripetizioni massime dalla tabella corpo libero (95% = 2, 93% = 3, 90% = 4, 87% = 5, 85% = 6, 83% = 7, 80% = 8, 77% = 9, 75% = 10, 70% = 11, 67% = 12, 65% = 15, 60% = 20); per serie = metà'],
       ['Massime ripetizioni a corpo libero','schemi al 40, 50, 60, 70 e 80% (per difetto)'],
-      ['Forza stimata (Andamento)','per ogni serie: Kg ÷ % delle ripetizioni massime stimate. Ripetizioni massime = ripetizioni segnate (sempre quelle fatte davvero, anche nelle serie fallite o a fatica) + ripetizioni che probabilmente avevi ancora in riserva: completata = secondo la fatica dell’esercizio (Facile 3,5, Liscia 2, Difficile 1, Dura 0), a fatica 0,5, fallita 0 (eri al limite). Si tiene la serie migliore della seduta. Tendenza = media del primo quarto contro l’ultimo quarto del periodo']])}
+      ['Forza stimata (Andamento)','per ogni serie: Kg ÷ % delle ripetizioni massime stimate. Ripetizioni massime = ripetizioni segnate (sempre quelle fatte davvero, anche nelle serie fallite o a fatica) + ripetizioni che probabilmente avevi ancora in riserva: completata = secondo la fatica dell’esercizio (Facile 3,5, Liscia 2, Difficile 1) e comunque almeno 1, perché una serie riuscita non era al limite; a fatica 0,5; fallita 0 (eri al limite). Senza fatica segnata, una serie completata vale 1,5. Si tiene la serie migliore della seduta. Tendenza = media del primo quarto contro l’ultimo quarto del periodo']])}
     <h3 style="margin:14px 0 6px">Test 30′ e 15′</h3>
     ${tb(['','Test 30′','Test 15′'],[['Peso consigliato','70% del 1RM','80% del 1RM'],['Blocchi','3 × 10′','3 × 5′'],['Ottimo','oltre 110','oltre 55'],['Buono','oltre 90','oltre 45'],['Discreto','oltre 70','oltre 35'],['Sufficiente','da 50','da 25'],['Scala originale','150 / 120 / 90 / 60','–']])}
     <p class="muted small">Volume = totale × %; tonnellaggio = totale × peso; densità = totale ÷ minuti; nel 15′ le ripetizioni per serie consigliate seguono la % usata (90% = 1, 85% = 2, 80% = 3, 75% = 4, 70% = 5, 65% = 6, 60% = 8).</p>`)}
@@ -1340,7 +1341,7 @@ const RIRF={'Facile':3.5,'Facile/Liscia':2.5,'Liscia':2,'Liscia/Difficile':1.5,'
 function sessE1(e){
   const kg=Number(e.kg);if(e.st==='Non eseguito'||!(kg>0))return null;let best=null;
   (e.s||[]).forEach(x=>{const r=Number(x[0]);if(!(r>0)||x[1]==='skip')return;
-    const rir=x[1]==='ko'?0:x[1]==='fat'?.5:(RIRF[e.f]??1.5),p=pctOfReps(Math.min(30,r+rir));if(p){const v=kg/p;if(best==null||v>best)best=v}});
+    const rir=x[1]==='ko'?0:x[1]==='fat'?.5:Math.max(1,RIRF[e.f]??1.5),p=pctOfReps(Math.min(30,r+rir));if(p){const v=kg/p;if(best==null||v>best)best=v}});
   return best;
 }
 const PERIODI=[['3m','3 mesi',3],['6m','6 mesi',6],['12m','1 anno',12],['all','Tutto',0]];
@@ -1348,7 +1349,7 @@ function periodStart(){const p=PERIODI.find(x=>x[0]===S.prog)||PERIODI[1];if(!p[
 function exSeries(name,from){
   const out=[];
   for(const s of S.hist){if(s.d<from)continue;for(const e of s.ex){if(e.n!==name||e.st==='Non eseguito')continue;const m=metrics(e,!!s.updated);
-    out.push({d:s.d,dens:m.dens,pi:m.pi,e1:sessE1(e),kg:Number(e.kg)||null,tot:m.tot||0,vol:m.vol>0?m.vol:null,ton:m.ton||0,fails:m.fails||0,sets:(e.s||[]).filter(x=>x[1]!=='skip').length})}}
+    out.push({d:s.d,dens:m.dens,pi:m.pi,e1:sessE1(e),kg:Number(e.kg)||null,tot:m.tot||0,vol:m.vol>0?m.vol:null,ton:m.ton>0?m.ton:null,fails:m.fails||0,sets:(e.s||[]).filter(x=>x[1]!=='skip').length})}}
   return out.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
 }
 function trendOf(vals){const n=vals.length;if(n<4)return null;const k=Math.max(2,Math.floor(n/4)),avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
@@ -1389,7 +1390,7 @@ function barChart(title,rows,dec=0){
   </svg></div>`;
 }
 const pSeg=()=>`<div class="seg sm" role="group" aria-label="Periodo" style="max-width:480px;margin-bottom:12px">${PERIODI.map(([k,l])=>`<button data-a="setProg" data-v="${k}" aria-pressed="${S.prog===k}">${l}</button>`).join('')}</div>`;
-const PMET=[['e1','Forza stimata','kg',1],['vol','Volume','',1],['dens','Densità','rip/min',2],['pi','PowerIndex','',1]];
+const PMET=[['e1','Forza stimata','kg',1],['ton','Tonnellaggio','kg',0],['vol','Volume','',1],['dens','Densità','rip/min',2],['pi','PowerIndex','',1]];
 function vProgList(){
   const from=periodStart(),info=exInfo(),M=PMET.find(x=>x[0]===S.progM)||PMET[0];
   const rows=[...info.entries()].filter(([,o])=>o.last>=from).map(([n,o])=>{const sr=exSeries(n,from).filter(x=>x[M[0]]!=null);const vals=sr.map(x=>x[M[0]]);return {n,o,vals,tr:trendOf(vals)}}).filter(r=>r.tr)
@@ -1397,7 +1398,7 @@ function vProgList(){
   const up=rows.filter(r=>r.tr.pct>1).length,down=rows.filter(r=>r.tr.pct<-1).length;
   return `${pSeg()}<div class="seg sm" role="group" aria-label="Misura" style="max-width:480px;margin-bottom:12px">${PMET.map(([k,l])=>`<button data-a="setProgM" data-v="${k}" aria-pressed="${S.progM===k}">${l}</button>`).join('')}</div>
     <p class="lead2">${rows.length?`${M[1]}: in questo periodo migliori in <b class="up">${up}</b> ${up===1?'esercizio':'esercizi'}, peggiori in <b class="down">${down}</b>, stabile negli altri ${rows.length-up-down}.`:'Servono almeno 4 sedute nel periodo per vedere una tendenza.'}</p>
-    <p class="muted small" style="margin:4px 0 14px">${M[0]==='vol'?'Volume = ripetizioni × % 1RM di ogni seduta. ':M[0]==='e1'?'':'Densità = ripetizioni al minuto; PowerIndex = volume² ÷ tempo. Contano solo le sedute con il tempo segnato. '}Forza stimata dagli allenamenti: carico e ripetizioni fatte, più quelle che probabilmente avevi in riserva (dalla fatica e dal colore delle serie). Confronto l’inizio e la fine del periodo.</p>
+    <p class="muted small" style="margin:4px 0 14px">${M[0]==='ton'?'Tonnellaggio = kg × ripetizioni di ogni seduta. ':M[0]==='vol'?'Volume = ripetizioni × % 1RM di ogni seduta. ':M[0]==='e1'?'':'Densità = ripetizioni al minuto; PowerIndex = volume² ÷ tempo. Contano solo le sedute con il tempo segnato. '}Forza stimata dagli allenamenti: carico e ripetizioni fatte, più quelle che probabilmente avevi in riserva (dalla fatica e dal colore delle serie). Confronto l’inizio e la fine del periodo.</p>
     ${rows.map(r=>{const c=trCls(r.tr.pct);return `<button class="prow" data-a="exOpen" data-n="${esc(r.n)}">${exIcon(r.n,40)}<span><b>${esc(r.n)}</b><br><span class="muted small">${r.vals.length} sedute, ultima ${fmtD(r.o.last)}</span></span>${spark(r.vals,c)}
       <span class="v">${fmtN(r.tr.b,M[3])}<small class="${c}">${trArr(r.tr.pct)} ${fmtPct(r.tr.pct)}</small></span></button>`}).join('')}`;
 }
@@ -1422,6 +1423,7 @@ function vProgDetail(n){
       ${k('Miglior stima',best?`${fmtN(best.e1,1)} kg`:'–',best?`il ${fmtD(best.d)}`:'')}
       ${k('Carico massimo usato',maxKg?`${fk(maxKg)} kg`:'–','')}
       ${k('Volume a settimana',fmtN(vB,1),vpc!=null?`<span class="${trCls(vpc)}">${trArr(vpc)} ${fmtPct(vpc)}</span> rispetto alla prima metà`:'')}
+      ${(()=>{const tw=aggWeek(sr,'ton','sum');if(!tw.length)return '';const h=Math.max(1,Math.floor(tw.length/2)),a2=avg(tw.slice(0,h)),b2=avg(tw.slice(-h)),pc=a2&&tw.length>=4?(b2/a2-1)*100:null;return k('Tonnellaggio a settimana',`${fmtN(b2)} kg`,pc!=null?`<span class="${trCls(pc)}">${trArr(pc)} ${fmtPct(pc)}</span> rispetto alla prima metà`:'')})()}
       ${k('Sedute',sr.length,`${fmtN(sr.length/Math.max(1,span/7),1)} a settimana`)}
       ${k('Serie fallite',sets?`${fmtN(fails/sets*100)}%`:'–',`${fails} su ${sets}`)}
       ${(()=>{const dv=sr.filter(x=>x.dens!=null),pv=sr.filter(x=>x.pi!=null),td=trendOf(dv.map(x=>x.dens)),tp=trendOf(pv.map(x=>x.pi));
@@ -1430,6 +1432,7 @@ function vProgDetail(n){
     </div>
     ${tChart('Forza stimata (kg)',ser('e1','max'),1,`${pt}${wk?' (la seduta migliore)':''}. La stima viene dagli allenamenti, quindi di solito è più bassa del massimale dei test: conta la direzione della linea.`,o('il massimale stimato in kg','kg'))}
     ${tChart(wk?'Volume per settimana':'Volume per seduta',ser('vol','sum'),1,`${pt}${wk?' (somma delle sedute)':''}. Volume = ripetizioni × % 1RM: cresce con le ripetizioni e con il carico.`,o('il volume (ripetizioni × % 1RM)',''))}
+    ${tChart(wk?'Tonnellaggio per settimana':'Tonnellaggio per seduta',ser('ton','sum'),0,`${pt}${wk?' (somma delle sedute)':''}. Tonnellaggio = kg × ripetizioni, senza passare dalla % del massimale: è il peso totale che hai sollevato.`,o('i kg totali sollevati (kg × ripetizioni)','kg'))}
     ${tChart('Densità (ripetizioni al minuto)',ser('dens','avg'),2,`${pt}${wk?' (media)':''}. Solo le sedute con il tempo segnato.`,o('le ripetizioni al minuto','rip/min'))}
     ${tChart('PowerIndex',ser('pi','avg'),1,`${pt}${wk?' (media)':''}. PowerIndex = volume² ÷ tempo: premia molto lavoro in poco tempo. Solo le sedute con il tempo segnato.`,o('il PowerIndex',''))}
     ${tChart('Carico usato (kg)',ser('kg','max'),1,`${pt}${wk?' (il carico più alto)':''}.`,o('i kg usati (a corpo libero: peso corporeo + zavorra)','kg'))}`;
