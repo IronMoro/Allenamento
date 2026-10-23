@@ -1,5 +1,5 @@
 // Diario di allenamento: funzionamento offline
-const CACHE='diario-v45';
+const CACHE='diario-v47';
 const PRE='diario-';
 const SHELL=['./','index.html','manifest.webmanifest','icon-192-v2.png','icon-512-v2.png','icon-maskable-512-v2.png'];
 // all'installazione scarica i file aggirando la cache del browser

@@ -1,7 +1,7 @@
 {
  "name": "Diario di allenamento",
  "short_name": "Diario",
- "description": "Diario di allenamento con timer recupero, EMOM ed EDT",
+ "description": "Diario di allenamento con timer per la palestra e grafici dei progressi",
  "lang": "it",
  "start_url": "./",
  "scope": "./",
