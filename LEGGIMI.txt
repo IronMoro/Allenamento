@@ -1,4 +1,4 @@
-DIARIO DI ALLENAMENTO - pacchetto completo, versione 47
+DIARIO DI ALLENAMENTO - pacchetto completo, versione 48
 =======================================================
 
 Contiene l'app intera (funziona anche senza internet):
@@ -11,7 +11,7 @@ A) SE L'APP È GIÀ PUBBLICATA (repository «diario» su GitHub)
       (sostituiscono quelli vecchi) > «Commit changes».
    3. Aspetta un paio di minuti, poi sul tablet/telefono apri l'app con internet attivo.
       Se avevi una versione precedente alla 45: chiudila del tutto e riaprila una seconda volta.
-   4. Controlla in «Guida» (in alto) che ci sia scritto «Versione 47».
+   4. Controlla in «Guida» (in alto) che ci sia scritto «Versione 48».
 
 B) PRIMA PUBBLICAZIONE (una volta sola, gratis)
    1. Crea un account su github.com e un nuovo repository pubblico, ad esempio «diario».
@@ -30,7 +30,11 @@ D) I TUOI DATI
      vengono aggiunte solo le sedute nuove o modificate.
    - Con più profili sullo stesso dispositivo, il backup va esportato da ciascun profilo.
 
-E) NOVITÀ DELLA VERSIONE 47
+E) NOVITÀ DELLE VERSIONI 47 E 48
    - Timer libero: nella scheda Timer, «Timer libero» usa un timer da solo, senza seduta,
      senza riscaldamento/defaticamento e senza scrivere nel diario; alla fine «Ripeti» o «Nuovo timer».
    - L'app installata si aggiorna da sola appena c'è internet (dalla versione 45 in poi).
+   - Nella seduta: «Usa lo stesso protocollo per tutti gli esercizi» (es. un superset per tutto il WO:
+     gli esercizi si fanno in sequenza e il recupero parte a fine giro).
+   - Set&Pause: ripetizioni da segnare «durante la serie» oppure «dopo, nel recupero».
+   - Nuovo timer «Ladder» nella scheda Timer, con gli stessi andamenti del protocollo.
