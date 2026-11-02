@@ -1,40 +1,10 @@
-DIARIO DI ALLENAMENTO - pacchetto completo, versione 48
-=======================================================
+DIARIOAPP (web) - Beta 1.4
+==========================
+Stessa versione dell'app Android «DiarioAPP Beta 1.4».
 
-Contiene l'app intera (funziona anche senza internet):
-  index.html, sw.js, manifest.webmanifest, icon-192-v2.png, icon-512-v2.png, icon-maskable-512-v2.png
-Dentro NON ci sono i tuoi dati: quelli stanno sul tablet/telefono e nei file di backup.
-
-A) SE L'APP È GIÀ PUBBLICATA (repository «diario» su GitHub)
-   1. Su github.com apri il repository «diario».
-   2. «Add file» > «Upload files»: trascina TUTTI i file di questo pacchetto
-      (sostituiscono quelli vecchi) > «Commit changes».
-   3. Aspetta un paio di minuti, poi sul tablet/telefono apri l'app con internet attivo.
-      Se avevi una versione precedente alla 45: chiudila del tutto e riaprila una seconda volta.
-   4. Controlla in «Guida» (in alto) che ci sia scritto «Versione 48».
-
-B) PRIMA PUBBLICAZIONE (una volta sola, gratis)
-   1. Crea un account su github.com e un nuovo repository pubblico, ad esempio «diario».
-   2. «Add file» > «Upload files»: trascina tutti i file > «Commit changes».
-   3. «Settings» > «Pages» > Source «Deploy from a branch», branch «main», cartella «/ (root)» > «Save».
-   4. Dopo un paio di minuti l'app è su  https://TUONOME.github.io/diario/
-
-C) INSTALLARLA SUL TABLET O SUL TELEFONO
-   - Android: apri l'indirizzo con Chrome > menu ⋮ > «Installa app».
-   - iPhone/iPad: apri con Safari > Condividi > «Aggiungi alla schermata Home».
-   Da quel momento si apre dall'icona e funziona anche senza connessione.
-
-D) I TUOI DATI
-   - Restano sul dispositivo (nella memoria del browser). Ogni tanto: Storico > «Esporta backup».
-   - Per spostarli su un altro dispositivo o nella versione su claude.ai: «Importa backup» con quel file;
-     vengono aggiunte solo le sedute nuove o modificate.
-   - Con più profili sullo stesso dispositivo, il backup va esportato da ciascun profilo.
-
-E) NOVITÀ DELLE VERSIONI 47 E 48
-   - Timer libero: nella scheda Timer, «Timer libero» usa un timer da solo, senza seduta,
-     senza riscaldamento/defaticamento e senza scrivere nel diario; alla fine «Ripeti» o «Nuovo timer».
-   - L'app installata si aggiorna da sola appena c'è internet (dalla versione 45 in poi).
-   - Nella seduta: «Usa lo stesso protocollo per tutti gli esercizi» (es. un superset per tutto il WO:
-     gli esercizi si fanno in sequenza e il recupero parte a fine giro).
-   - Set&Pause: ripetizioni da segnare «durante la serie» oppure «dopo, nel recupero».
-   - Nuovo timer «Ladder» nella scheda Timer, con gli stessi andamenti del protocollo.
+Come aggiornare: su github.com apri il repository «diario» > «Add file» > «Upload files»,
+carica index.html, sw.js e le tre icone (icon-192-v2.png, icon-512-v2.png, icon-maskable-512-v2.png):
+sostituiscono quelli vecchi > «Commit changes». Le icone hanno lo stesso nome di prima, quindi il manifest resta com'è.
+Se l'app è installata sul telefono, la nuova icona (il lupo) può comparire dopo qualche giorno o reinstallandola.
+Dopo un paio di minuti apri l'app con internet attivo: in «Guida» deve comparire «Versione Beta 1.4».
+I dati sul dispositivo non vengono toccati.
