@@ -1,10 +1,11 @@
-DIARIOAPP (web) - Beta 1.4
-==========================
-Stessa versione dell'app Android «DiarioAPP Beta 1.4».
+GYMER (web) - Beta 1.4
+======================
+Stessa versione dell'app Android «GYMER Beta 1.4» (prima si chiamava DiarioAPP).
 
 Come aggiornare: su github.com apri il repository «diario» > «Add file» > «Upload files»,
-carica index.html, sw.js e le tre icone (icon-192-v2.png, icon-512-v2.png, icon-maskable-512-v2.png):
-sostituiscono quelli vecchi > «Commit changes». Le icone hanno lo stesso nome di prima, quindi il manifest resta com'è.
-Se l'app è installata sul telefono, la nuova icona (il lupo) può comparire dopo qualche giorno o reinstallandola.
+carica index.html, sw.js, manifest.webmanifest e le tre icone (icon-192-v2.png, icon-512-v2.png,
+icon-maskable-512-v2.png): sostituiscono quelli vecchi > «Commit changes».
+Il nuovo manifest.webmanifest porta il nome «GYMER»: se l'app è installata sul telefono o sul PC,
+il nome nuovo può comparire dopo qualche giorno o reinstallandola.
 Dopo un paio di minuti apri l'app con internet attivo: in «Guida» deve comparire «Versione Beta 1.4».
 I dati sul dispositivo non vengono toccati.
